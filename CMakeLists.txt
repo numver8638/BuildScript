@@ -57,3 +57,8 @@ target_link_libraries(Library PUBLIC
                               Boost::iostreams)
 
 configure_file(Source/Version.cpp.in Version.generated.cpp)
+
+add_subdirectory(Driver)
+
+enable_testing()
+add_subdirectory(Test)
