@@ -6,7 +6,7 @@ Script-like build engine for my own hobby projects.
 
 ## How to build
 Requisites:
-- Boost library(filesystem, iostreams, optional, program_options) 1.71 or above
+- Boost library(endian, filesystem, iostreams, optional, program_options) 1.71 or above
 - Catch2 library 2.11 or above
 - CMake 3.12 or above
 - Build tools which can compile C++11 code. (Tested in Visual Studio 2017, 2019 and Clang 11.0.0)
