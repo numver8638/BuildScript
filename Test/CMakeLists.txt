@@ -3,7 +3,10 @@ find_package(Catch2 2.11 REQUIRED)
 
 # Sources
 add_executable(Test Driver.cpp
-                    # Tests
+                    # Compiler tests
+                    Compiler/SourceTextTest.cpp
+
+                    # Utils tests
                     Utils/EncodingTest.cpp)
 
 # Compile options

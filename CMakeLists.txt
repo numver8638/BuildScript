@@ -34,6 +34,9 @@ find_package(Boost 1.71.0 REQUIRED COMPONENTS filesystem iostreams)
 
 # Sources
 add_library(Library SHARED
+                    # Compiler sources
+                    Source/Compiler/SourceText.cpp
+
                     # Utility sources
                     Source/Utils/Encoding.cpp
                     Source/Utils/Encoding/EUCKR.ConversionTable.cpp
