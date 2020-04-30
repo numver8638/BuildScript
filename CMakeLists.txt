@@ -34,6 +34,14 @@ find_package(Boost 1.71.0 REQUIRED COMPONENTS filesystem iostreams)
 
 # Sources
 add_library(Library SHARED
+                    # Utility sources
+                    Source/Utils/Encoding.cpp
+                    Source/Utils/Encoding/EUCKR.ConversionTable.cpp
+                    Source/Utils/Encoding/EUCKR.cpp
+                    Source/Utils/Encoding/UTF8.cpp
+                    Source/Utils/Encoding/UTF16.cpp
+                    Source/Utils/Encoding/UTF32.cpp
+                    
                     # Generated sources
                     ${CMAKE_CURRENT_BINARY_DIR}/Version.generated.cpp)
 
@@ -52,7 +60,7 @@ endif() # MSVC
 target_include_directories(Library PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Header)
 
 target_link_libraries(Library PUBLIC
-                              Boost::boost      # optional
+                              Boost::boost      # optional, endian
                               Boost::filesystem
                               Boost::iostreams)
 

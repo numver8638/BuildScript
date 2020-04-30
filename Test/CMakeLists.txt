@@ -2,7 +2,9 @@
 find_package(Catch2 2.11 REQUIRED)
 
 # Sources
-add_executable(Test Driver.cpp)
+add_executable(Test Driver.cpp
+                    # Tests
+                    Utils/EncodingTest.cpp)
 
 # Compile options
 set_target_properties(Test PROPERTIES
