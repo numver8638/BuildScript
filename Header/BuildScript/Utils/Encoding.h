@@ -29,6 +29,7 @@ namespace BuildScript {
 
     private:
         std::string m_name;
+        std::vector<char> m_bom;
 
     protected:
         /**
@@ -39,6 +40,17 @@ namespace BuildScript {
          * @param name an encoding name.
          */
         Encoding(const std::string& name);
+
+
+        /**
+         * @brief Construct and register with given name.
+         * 
+         * This class is auto-registered class.
+         * 
+         * @param name an encoding name.
+         * @param bom a BOM marker for encoding.
+         */
+        Encoding(const std::string& name, std::initializer_list<char> bom);
 
         /**
          * @brief Convert unicode character to UTF-8 encoded string.
@@ -74,6 +86,12 @@ namespace BuildScript {
          * @return the name of encoding.
          */
         const std::string& GetName() const { return m_name; }
+
+        /**
+         * @brief Get a BOM marker.
+         * @return a vector contains char sequence of BOM marker. This may empty if encoding has no BOM.
+         */
+        const std::vector<char>& GetBOM() const { return m_bom; }
 
         /**
          * @brief Get an encoding for given name.

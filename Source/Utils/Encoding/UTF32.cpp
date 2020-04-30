@@ -10,16 +10,21 @@
 
 #include <boost/endian.hpp>
 
+#define UTF32_BOM { (char)0xFF, (char)0xFE, (char)0x00, (char)0x00 }
+#define UTF32BE_BOM { (char)0x00, (char)0x00, (char)0xFF, (char)0xFE }
+
 using namespace BuildScript;
 namespace endian = boost::endian;
 
 class UTF32Encoding : public Encoding {
 public:
-    UTF32Encoding() : Encoding(u8"utf32") {}
+    UTF32Encoding() : Encoding(u8"utf32", UTF32_BOM) {}
 
     virtual int DecodeChar(const char* buffer, const char* end, int &length) const override {
-        if ((end - buffer) < 4) {
-            length = end - buffer;
+        auto delta = end - buffer;
+
+        if (delta < 4) {
+            length = delta > 0 ? delta : 0;
             return Encoding::InvalidEncoding;
         }
         
@@ -35,11 +40,13 @@ public:
 
 class UTF32BEEncoding : public Encoding {
 public:
-    UTF32BEEncoding() : Encoding(u8"utf32be") {}
+    UTF32BEEncoding() : Encoding(u8"utf32be", UTF32BE_BOM) {}
 
     virtual int DecodeChar(const char* buffer, const char* end, int &length) const override {
-        if ((end - buffer) < 4) {
-            length = end - buffer;
+        auto delta = end - buffer;
+
+        if (delta < 4) {
+            length = delta > 0 ? delta : 0;
             return Encoding::InvalidEncoding;
         }
         

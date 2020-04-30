@@ -23,6 +23,12 @@ Encoding::Encoding(const std::string& name)
     GetMap().emplace(name, this);
 }
 
+Encoding::Encoding(const std::string& name, std::initializer_list<char> bom)
+    : m_name(name), m_bom(bom) {
+    // Self registering
+    GetMap().emplace(name, this);
+}
+
 // static
 Encoding* Encoding::GetEncoding(const std::string& encoding) {
     auto it = GetMap().find(encoding);

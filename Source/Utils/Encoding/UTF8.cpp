@@ -8,11 +8,13 @@
  */
 #include <BuildScript/Utils/Encoding.h>
 
+#define UTF8_BOM { (char)0xEF, (char)0xBB, (char)0xBF }
+
 using namespace BuildScript;
 
 class UTF8Encoding : public Encoding {
 public:
-    UTF8Encoding() : Encoding(u8"utf8") {}
+    UTF8Encoding() : Encoding(u8"utf8", UTF8_BOM) {}
 
     virtual int DecodeChar(const char* buffer, const char* end, int &length) const override {
         const unsigned char* buf = reinterpret_cast<const unsigned char*>(buffer);

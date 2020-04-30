@@ -10,18 +10,21 @@
 
 #include <boost/endian.hpp>
 
+#define UTF16_BOM { (char)0xFF, (char)0xFE }
+#define UTF16BE_BOM { (char)0xFE, (char)0xFF }
+
 using namespace BuildScript;
 namespace endian = boost::endian;
 
 class UTF16Encoding : public Encoding {
 public:
-    UTF16Encoding() : Encoding(u8"utf16") {}
+    UTF16Encoding() : Encoding(u8"utf16", UTF16_BOM) {}
 
     virtual int DecodeChar(const char* buffer, const char* end, int &length) const override {
         auto delta = end - buffer;
         
         if (delta < 2) {
-            length = 0;
+            length = delta > 0 ? delta : 0;
             return Encoding::InvalidEncoding;
         }
         
@@ -41,7 +44,7 @@ public:
                 // Not a low surrogate
                 return Encoding::InvalidEncoding;
 
-            return (((high & 0x3FF) + 1) << 10) | (low & 0x3FF);
+            return (((high & 0x3FF) << 10) + 0x10000) | (low & 0x3FF);
         }
         else {
             length = 2;
@@ -57,13 +60,13 @@ public:
 
 class UTF16BEEncoding : public Encoding {
 public:
-    UTF16BEEncoding() : Encoding(u8"utf16be") {}
+    UTF16BEEncoding() : Encoding(u8"utf16be", UTF16BE_BOM) {}
 
     virtual int DecodeChar(const char* buffer, const char* end, int &length) const override {
         auto delta = end - buffer;
         
         if (delta < 2) {
-            length = 0;
+            length = delta > 0 ? delta : 0;
             return Encoding::InvalidEncoding;
         }
 
@@ -83,7 +86,7 @@ public:
                 // Not a low surrogate
                 return Encoding::InvalidEncoding;
 
-            return (((high & 0x3FF) + 1) << 10) | (low & 0x3FF);
+            return (((high & 0x3FF) << 10) + 0x10000) | (low & 0x3FF);
         }
         else {
             length = 2;
