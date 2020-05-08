@@ -31,10 +31,13 @@ endif()
 
 # Packages
 find_package(Boost 1.71.0 REQUIRED COMPONENTS filesystem iostreams)
+find_package(fmt 6.2.0 REQUIRED)
 
 # Sources
 add_library(Library SHARED
                     # Compiler sources
+                    Source/Compiler/ErrorReporter.ReportID.cpp
+                    Source/Compiler/Lexer.cpp
                     Source/Compiler/SourceText.cpp
 
                     # Utility sources
@@ -65,7 +68,8 @@ target_include_directories(Library PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Header)
 target_link_libraries(Library PUBLIC
                               Boost::boost      # optional, endian
                               Boost::filesystem
-                              Boost::iostreams)
+                              Boost::iostreams
+                              fmt::fmt)
 
 configure_file(Source/Version.cpp.in Version.generated.cpp)
 

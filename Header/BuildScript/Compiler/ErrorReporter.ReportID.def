@@ -1,0 +1,44 @@
+/*
+ * ErrorReporter.ReportID.def
+ * - Report and log errors and warnings.
+ *   This file is part of ErrorReporter and contains error messages correspond to ReportID.
+ *
+ * Copyright (c) 2019~2020 numver8638(신진환, Jinhwan Shin)
+ * Released under the MIT License.
+ * See the LICENSE file in the project root to get more information.
+ */
+#ifndef ERROR
+    #define ERROR(id, msg)
+#endif // ERROR
+
+#ifndef WARNING
+    #define WARNING(id, msg)
+#endif // WARNING
+
+#ifndef INFO
+    #define INFO(id, msg)
+#endif // INFO
+
+// Lexer
+ERROR(LexInvalidEncoding,                u8"invalid encoding in source.")
+ERROR(LexInvalidCharacter,               u8"invalid character in source.")
+ERROR(LexUnknownToken,                   u8"unknown token.")
+ERROR(LexNotAllowedCharacter,            u8"not allowed character used in identifier.")
+ERROR(LexExpectBinary,                   u8"expect binary digit in integer literal.")
+ERROR(LexExpectOctal,                    u8"expect octal digit in integer literal.")
+ERROR(LexExpectHex,                      u8"expect hexadecimal digit in integer literal.")
+ERROR(LexExpectExponent,                 u8"expect decimal digit in exponent.")
+ERROR(LexUnexpectedEOL,                  u8"unexpected end of string.")
+ERROR(LexMaxInterpolationDepthReached,   u8"maximum interpolation depth reached.")
+ERROR(LexInterpolatedVarExpected,        u8"identifier expected after $.")
+ERROR(LexKeywordCannotBeInterpolatedVar, u8"'{0}' cannot be used as variable name")
+ERROR(LexCommentInInterpolatedString,    u8"comments are not allowed in interpolated expression.")
+WARNING(LexUnknownEscape,                u8"unknown escape sequence '\{0:c}'.")
+WARNING(LexMoreDigitInEscapeSequence,    u8"{0} digits expected but {1} in escape sequence.")
+WARNING(LexInvalidEscape,                u8"invalid escape sequence.")
+INFO(LexIntendToNotEqual,                u8"did you intend to '!' for logical not operation, use 'not' keyword instead of '!'.")
+INFO(LexIntendToEllipsis,                u8"did you intend to '...'?")
+
+#undef INFO
+#undef WARNING
+#undef ERROR

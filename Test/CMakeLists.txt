@@ -4,6 +4,7 @@ find_package(Catch2 2.11 REQUIRED)
 # Sources
 add_executable(Test Driver.cpp
                     # Compiler tests
+                    Compiler/LexerTest.cpp
                     Compiler/SourceTextTest.cpp
 
                     # Utils tests

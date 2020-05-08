@@ -8,6 +8,7 @@ Script-like build engine for my own hobby projects.
 Requisites:
 - Boost library(endian, filesystem, iostreams, optional, program_options) 1.71 or above
 - Catch2 library 2.11 or above
+- {fmt} library 6.2.0 or above
 - CMake 3.12 or above
 - Build tools which can compile C++11 code. (Tested in Visual Studio 2017, 2019 and Clang 11.0.0)
 
@@ -24,3 +25,7 @@ URL: https://www.boost.org
 ### Catch2
 Licensed under the Boost Software License Version 1.0.
 URL: https://github.com/catchorg/catch2
+
+### {fmt}
+Licensed under the MIT License.
+URL: https://github.com/fmtlib/fmt
