@@ -22,7 +22,7 @@ namespace BuildScript {
     /**
      * @brief Represent text encoding.
      */
-    class Encoding : NonCopyable, NonMovable {
+    class EXPORT_API Encoding : NonCopyable, NonMovable {
     public:
         static constexpr int InvalidEncoding = -2;
         static constexpr int InvalidCharacter = -3;

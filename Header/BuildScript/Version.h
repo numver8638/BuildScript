@@ -15,7 +15,7 @@ namespace BuildScript {
     /**
      * @brief .
      */
-    class Version : AllStatic {
+    class EXPORT_API Version : AllStatic {
     public:
         /**
          * @brief Get major version number.

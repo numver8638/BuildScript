@@ -30,6 +30,9 @@ else ()
 endif()
 
 # Packages
+if (!MSVC)
+    set(Boost_USE_STATIC_LIBS ON)
+endif()
 find_package(Boost 1.71.0 REQUIRED COMPONENTS filesystem iostreams)
 find_package(fmt 6.2.0 REQUIRED)
 
@@ -39,6 +42,7 @@ add_library(Library SHARED
                     Source/Compiler/ErrorReporter.ReportID.cpp
                     Source/Compiler/Lexer.cpp
                     Source/Compiler/SourceText.cpp
+                    Source/Compiler/StringRef.cpp
 
                     # Utility sources
                     Source/Utils/Encoding.cpp
@@ -60,7 +64,15 @@ set_target_properties(Library PROPERTIES
                               OUTPUT_NAME_RELEASE buildscript)
 
 if (MSVC)
-    target_compile_options(Library PRIVATE /utf-8)
+    target_compile_options(Library PRIVATE /utf-8   # Accept source as UTF-8.
+                                           /wd4275  # Ignore warning when __declspec(dllexport)-ed class inherits
+                                                    # non __declspec(dllexport)-ed class.
+                                           /wd4251) # Ignore warning when member variable doen't have __declspec(dllexport)
+                                                    # in __declspec(dllexport)-ed class.
+    target_compile_definitions(Library PRIVATE   EXPORT_API=__declspec\(dllexport\)
+                                       INTERFACE EXPORT_API=__declspec\(dllimport\))
+else()
+    target_compile_definitions(Library PUBLIC EXPORT_API=)
 endif() # MSVC
 
 target_include_directories(Library PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Header)

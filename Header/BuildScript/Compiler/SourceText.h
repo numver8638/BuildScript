@@ -23,7 +23,7 @@ namespace BuildScript {
     /**
      * @brief Represent a source code.
      */
-    class SourceText : NonCopyable {
+    class EXPORT_API SourceText : NonCopyable {
     public:
         /** Source name when SourceText is constructed with buffer. */
         static constexpr const char* InternalSourceName = u8"<source>";
