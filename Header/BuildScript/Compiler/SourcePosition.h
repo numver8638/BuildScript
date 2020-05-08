@@ -63,55 +63,6 @@ namespace BuildScript {
             return IsValid();
         }
     }; // end struct SourcePosition
-
-    /**
-     * @brief Represent a half-opened range of string in the source text.
-     */
-    struct SourceRange {
-        SourcePosition Begin; //!< The beginning position of the range.
-        SourcePosition End;   //!< The ending position of the range.
-
-        /**
-         * @brief Construct empty object.
-         */
-        SourceRange() = default;
-
-        /**
-         * @brief Construct SourceRange.
-         * @param begin the starting position.
-         * @param end the ending position.
-         */
-        SourceRange(const SourcePosition& begin, const SourcePosition& end)
-            : Begin(begin), End(end) {}
-
-        /**
-         * @brief Copy construct with other object.
-         * @param rhs the SourceRange object to copy.
-         */
-        SourceRange(const SourceRange& rhs) = default;
-
-        /**
-         * @brief Copy-assign other object.
-         * @param rhs the SourceRange object to assign.
-         * @return the assigned object itself.
-         */
-        SourceRange& operator =(const SourceRange& rhs) = default;
-
-        /**
-         * @brief Test if data is valid.
-         * @return true if valid, otherwise false.
-         */
-        bool IsValid() const {
-            return Begin.IsValid() && End.IsValid();
-        }
-
-        /**
-         * @see SourceRange::IsValid() const
-         */
-        explicit operator bool() const {
-            return IsValid();
-        }
-    }; // end struct SourceRange
 } // end namespace BuildScript
 
 #endif // BUILDSCRIPT_COMPILER_SOURCEPOSITION_H
