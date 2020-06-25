@@ -88,7 +88,6 @@ const char* TypeToString(TokenType type) {
         u8"Task",
         u8"True",
         u8"Try",
-        u8"Value",
         u8"Var",
         u8"While",
         u8"With",

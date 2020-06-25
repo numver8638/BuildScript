@@ -78,7 +78,6 @@ namespace BuildScript {
         Task,              // task
         True,              // true
         Try,               // try
-        Value,             // value
         Var,               // var
         While,             // while
         With,              // with
@@ -146,7 +145,7 @@ namespace BuildScript {
          */
         Token(TokenType type, const SourcePosition& pos)
             : Type(type), Position(pos) {}
-        
+
         /**
          * @brief Construct the token.
          * @param type a type of the token.

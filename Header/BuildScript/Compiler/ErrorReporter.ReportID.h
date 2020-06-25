@@ -12,7 +12,7 @@
 
 namespace BuildScript {
     enum class ErrorLevel;
-    
+
     /**
      * @brief Represent the error contents like error message and error level.
      */
@@ -23,7 +23,7 @@ namespace BuildScript {
         #define INFO(id, msg)    _(id)
 
         #include <BuildScript/Compiler/ErrorReporter.ReportID.def>
-        
+
         #undef _
     }; // end enum ReportID
 

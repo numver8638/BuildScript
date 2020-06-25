@@ -11,6 +11,7 @@
 
 #include <string>
 #include <functional>
+#include <utility>
 #include <vector>
 
 #include <fmt/format.h>
@@ -40,8 +41,8 @@ namespace BuildScript {
         /**
          * @brief Constructor for ErrorEntry.
          */
-        ErrorEntry(ErrorLevel level, const SourcePosition& pos, const std::string& message)
-                : Level(level), Where(pos), Message(message) {}
+        ErrorEntry(ErrorLevel level, const SourcePosition& pos, std::string message)
+                : Level(level), Where(pos), Message(std::move(message)) {}
     }; // end struct ErrorEntry
 
     /**

@@ -27,7 +27,7 @@ namespace BuildScript {
     public:
         /** Source name when SourceText is constructed with buffer. */
         static constexpr const char* InternalSourceName = u8"<source>";
-        
+
         enum ErrorCode : int {
             EndOfFile = -1,                                 //!< Cursor is reached at the end.
             InvalidEncoding = Encoding::InvalidEncoding,    //!< Text is not encoded correctly.
@@ -87,8 +87,7 @@ namespace BuildScript {
             if (PeekChar() == desired) {
                 Consume();
                 return true;
-            }
-            else {
+            } else {
                 return false;
             }
         }
@@ -98,10 +97,10 @@ namespace BuildScript {
          * @param cond the condition.
          * @return the position of after last consumed character.
          */
-        SourcePosition ConsumeWhile(std::function<bool(int)> cond)  {
+        SourcePosition ConsumeWhile(std::function<bool(int)> cond) {
             while (cond(PeekChar()) && PeekChar() != EndOfFile)
                 Consume();
-            
+
             return GetPosition();
         }
 

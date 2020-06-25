@@ -8,7 +8,7 @@
  */
 #ifndef BUILDSCRIPT_UTILS_SINGLETON_H
 #define BUILDSCRIPT_UTILS_SINGLETON_H
-    
+
 #include <BuildScript/Utils/NonCopyable.h>
 #include <BuildScript/Utils/NonMovable.h>
 

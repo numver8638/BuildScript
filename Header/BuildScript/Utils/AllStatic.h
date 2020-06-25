@@ -14,7 +14,7 @@ namespace BuildScript {
      * @brief Disable creating object.
      */
     class AllStatic {
-    protected:
+    public:
         AllStatic() = delete;
         AllStatic(const AllStatic&) = delete;
         AllStatic(AllStatic&&) = delete;

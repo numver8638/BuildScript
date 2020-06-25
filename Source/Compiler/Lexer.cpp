@@ -70,7 +70,6 @@ struct {
     { u8"task",      TokenType::Task },
     { u8"true",      TokenType::True },
     { u8"try",       TokenType::Try },
-    { u8"value",     TokenType::Value },
     { u8"var",       TokenType::Var },
     { u8"while",     TokenType::While },
     { u8"with",      TokenType::With },
@@ -115,7 +114,7 @@ Token Lexer::LexToken() {
     switch (m_mode) {
         case LexerMode::Default:
             return LexTokenInternal();
-        
+
         case LexerMode::Interpolate: {
             Token token = LexTokenInternal();
 
@@ -146,6 +145,9 @@ Token Lexer::LexToken() {
             int quote = std::get<QUOTE>(m_states.back());
             return LexString(quote);
         }
+
+        default:
+            assert(!"never reached");
     }
 }
 
@@ -336,15 +338,13 @@ Token Lexer::LexString(int quote) {
             case u'\\':
                 HandleEscapeSequence();
                 break;
-            
+
             case u'$':
                 // Switch to InterpolateBegin mode.
                 m_mode = LexerMode::InterpolateBegin;
 
-                return Token(TokenType::String,
-                             pos,
-                             StringRef(m_source, begin, /*end=*/m_source.GetPosition()));
-            
+                return Token(TokenType::String, pos, StringRef(m_source, begin, /*end=*/m_source.GetPosition()));
+
             default:
                 m_source.Consume();
                 break;
@@ -392,7 +392,7 @@ void Lexer::HandleEscapeSequence() {
         case u'x':
             expected = 2;
             goto HandleEscape;
-        
+
         HandleEscape: {
             auto count = 0;
             do {
@@ -431,7 +431,7 @@ Token Lexer::LexPunctuator() {
         case SourceText::EndOfFile:
             type = TokenType::EndOfFile;
             break;
-        
+
         case SourceText::InvalidEncoding:
             m_reporter.Report(pos, ReportID::LexInvalidEncoding);
             break;
@@ -449,7 +449,7 @@ Token Lexer::LexPunctuator() {
         case u'\n':
             type = TokenType::EndOfLine;
             break;
-        
+
         // Punctuators
         case u'+':
             type = m_source.ConsumeIf(u'=') ? TokenType::InplaceAdd : TokenType::Add;
@@ -601,13 +601,21 @@ Token Lexer::LexComment() {
 }
 
 static bool IsContextualKeyword(TokenType type) {
-    return (type == TokenType::DependsOn) ||
-           (type == TokenType::Get) ||
-           (type == TokenType::Inputs) ||
-           (type == TokenType::Outputs) ||
-           (type == TokenType::Set) ||
-           (type == TokenType::Task) ||
-           (type == TokenType::Value);
+    switch (type) {
+        case TokenType::DependsOn:
+        case TokenType::Do:
+        case TokenType::DoFirst:
+        case TokenType::DoLast:
+        case TokenType::From:
+        case TokenType::Inputs:
+        case TokenType::Outputs:
+        case TokenType::Task:
+        case TokenType::With:
+            return true;
+
+        default:
+            return false;
+    }
 }
 
 Token Lexer::LexInterpolateBegin() {
@@ -633,10 +641,10 @@ Token Lexer::LexInterpolateBegin() {
                     case SourceText::EndOfFile:
                         // Reached at end of line. Stop consuming.
                         return false;
-                    
+
                     case u'}':
                         return depth-- > 0;
-                    
+
                     case u'{':
                         depth++;
                         /*[[fallthrough]]*/
@@ -663,12 +671,12 @@ Token Lexer::LexInterpolateBegin() {
         // Interpolated variable
         if (!IsIdentifier(m_source.PeekChar())) {
             m_reporter.Report(m_source.GetPosition(), ReportID::LexInterpolatedVarExpected);
-            
+
             // Revert to String mode.
             m_mode = LexerMode::String;
             return Token(TokenType::Invalid, pos);
         }
-        
+
         auto token = LexIdentifier();
 
         if ((token != TokenType::Identifier) && !IsContextualKeyword(token.Type)) {

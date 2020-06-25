@@ -15,9 +15,10 @@ namespace BuildScript {
      */
     class NonMovable {
     protected:
-        NonMovable() {}
-        ~NonMovable() {}
+        NonMovable() = default;
+        ~NonMovable() = default;
 
+    public:
         NonMovable(NonMovable&&) = delete;
         const NonMovable& operator =(NonMovable&&) = delete;
     }; // end class NonMovable

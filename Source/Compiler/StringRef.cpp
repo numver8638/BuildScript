@@ -14,7 +14,7 @@
 
 using namespace BuildScript;
 
-std::string StringRef::ToString() const  {
+std::string StringRef::ToString() const {
     assert(IsValid());
     return m_text->GetString(m_begin, m_end);
 }

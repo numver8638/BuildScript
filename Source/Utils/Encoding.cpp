@@ -1,6 +1,6 @@
 /*
  * Encoding.cpp
- * - .
+ * - Represent text encoding.
  *
  * Copyright (c) 2019~2020 numver8638(신진환, Jinhwan Shin)
  * Released under the MIT License.
@@ -42,13 +42,13 @@ const std::vector<Encoding*> Encoding::GetEncodings() {
 
     for (auto& e : GetMap())
         encodings.push_back(e.second);
-    
+
     return encodings;
 }
 
 int Encoding::ToUTF8(int ch, char* buf) const {
     assert((0 <= ch) && (ch <= 0x10FFFF));
-    assert((ch < 0xD800) && (0xDFFF < ch));
+    assert((ch < 0xD800) || (0xDFFF < ch));
 
     if (ch <= 0x7F) {
         buf[0] = ch;

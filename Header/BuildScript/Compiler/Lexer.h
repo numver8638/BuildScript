@@ -59,7 +59,7 @@ namespace BuildScript {
          * @param reporter a reporter for reporting errors.
          */
         Lexer(SourceText& source, ErrorReporter& reporter);
-        
+
         /**
          * @brief Tokenize text.
          * @return a token.

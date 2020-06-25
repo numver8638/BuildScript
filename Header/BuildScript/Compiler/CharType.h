@@ -78,7 +78,7 @@ namespace BuildScript {
                 (0xD0000 <= ch && ch <= 0xDFFFD) ||
                 (0xE0000 <= ch && ch <= 0xEFFFD) ;
     }
-    
+
     /**
      * @brief Check character is whitespace.
      * @param ch A unicode character.
