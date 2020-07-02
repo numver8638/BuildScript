@@ -33,16 +33,31 @@ endif()
 if (!MSVC)
     set(Boost_USE_STATIC_LIBS ON)
 endif()
+
 find_package(Boost 1.71.0 REQUIRED COMPONENTS filesystem iostreams)
 find_package(fmt 6.2.0 REQUIRED)
 
 # Sources
 add_library(Library SHARED
                     # Compiler sources
+                    Source/Compiler/AST/ASTVisitor.cpp
                     Source/Compiler/ErrorReporter.ReportID.cpp
                     Source/Compiler/Lexer.cpp
+                    Source/Compiler/Parser.cpp
+                    Source/Compiler/Parser.ClassMember.cpp
+                    Source/Compiler/Parser.Statement.cpp
+                    Source/Compiler/Parser.Declaration.cpp
+                    Source/Compiler/Parser.Expression.cpp
                     Source/Compiler/SourceText.cpp
                     Source/Compiler/StringRef.cpp
+
+                    # Debug code sources
+                    Source/Debug/ASTDumper.cpp
+                    Source/Debug/ASTDumper.ClassMember.cpp
+                    Source/Debug/ASTDumper.Declaration.cpp
+                    Source/Debug/ASTDumper.Expression.cpp
+                    Source/Debug/ASTDumper.Statement.cpp
+                    Source/Debug/NodeWriter.cpp
 
                     # Utility sources
                     Source/Utils/Encoding.cpp
