@@ -44,7 +44,7 @@ ERROR(ParseExpectString,                     u8"only string is allowed in import
 ERROR(ParseDeclarationInStatement,           u8"declaration is not allowed in statement.")
 ERROR(ParseInvalidPositionOfStatement,       u8"statement should not be used in this position.")
 ERROR(ParseMoreParamsAfterEllipsis,          u8"cannot have parameter(s) after varadic parameter.")
-ERROR(ParseMaxInterpolatedExpressionReached, u8"maximum interpolated expression count(256) is reached.")
+ERROR(ParseMaxInterpolatedExpressionReached, u8"maximum interpolated expression count(128) is reached.")
 ERROR(ParseNotAllowedOperator,               u8"cannot override operator.")
 WARNING(ParseOverridesInputs,                u8"more than one inputs clause is found.")
 WARNING(ParseOverridesOutputs,               u8"more than one outputs clause is found.")
