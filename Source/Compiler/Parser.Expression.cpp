@@ -29,7 +29,7 @@ ExprResult MakeResult(bool error, Args&& ... args) {
 ExprResult Parser::ParseTernaryExpression() {
     auto expr = ParseBinaryExpression();
 
-    if (ConsumeIf(TokenType::If)) {
+    if (!m_newline && ConsumeIf(TokenType::If)) {
         auto error = false;
         ExprResult condition, elseVal;
 
