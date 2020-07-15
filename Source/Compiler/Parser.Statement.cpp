@@ -380,7 +380,7 @@ StmtResult Parser::ParseBreakStatement() {
 
     auto pos = ConsumeToken();
     auto error = false;
-    Expression* expr;
+    Expression* expr = nullptr;
 
     if (ConsumeIf(TokenType::If)) {
         Result(error, expr) = ParseExpression();
@@ -396,7 +396,7 @@ StmtResult Parser::ParseContinueStatement() {
 
     auto pos = ConsumeToken();
     auto error = false;
-    Expression* expr;
+    Expression* expr = nullptr;
 
     if (ConsumeIf(TokenType::If)) {
         Result(error, expr) = ParseExpression();
