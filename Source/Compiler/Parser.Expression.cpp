@@ -306,7 +306,7 @@ ExprResult Parser::ParseUnaryExpression() {
                 auto error = false;
                 SourcePosition pos = ConsumeToken();
                 StringRef id = ExpectIdentifier(error);
-                Expression* target;
+                Expression* target = nullptr;
 
                 if (ConsumeIf(TokenType::In)) {
                     Result(error, target) = ParseCastExpression();
