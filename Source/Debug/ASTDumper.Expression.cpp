@@ -291,7 +291,7 @@ void ASTDumper::Visit(const ClosureExpression* node) {
                 m_writer << "- <empty>" << EOL;
             } else {
                 for (auto& e : node->GetParameters()) {
-                    m_writer << "- " << e << EOL;
+                    m_writer << "- " << e.first << "@" << e.second << EOL;
                 }
             }
         }
