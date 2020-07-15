@@ -708,6 +708,16 @@ ExprResult Parser::ParseMap() {
             if (key.HasError() && value.HasError())
                 SkipUntil(TokenType::Comma, TokenType::RightBrace);
 
+            if (key->GetKind() == ExpressionKind::Literal) {
+                auto literal = (LiteralExpression*) key.GetValue();
+
+                if (literal->GetLiteralKind() == LiteralKind::Identifier) {
+                    // Convert identifier to string.
+                    key = ExprResult(false, new StringLiteral(literal->GetPosition(), literal->GetImage(), literal->GetImage(), std::vector<Expression*>()));
+                    delete literal;
+                }
+            }
+
             error |= MakeStatus(key, value);
             items.emplace(key.GetValue(), value.GetValue());
         } while (ConsumeIf(TokenType::Comma));
