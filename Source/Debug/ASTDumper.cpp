@@ -19,4 +19,5 @@ void ASTDumper::Visit(const ScriptNode* node) {
         for (auto e : node->GetNodes())
             SafeAccept(e);
     }
+    m_writer << "\n";
 }

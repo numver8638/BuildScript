@@ -14,10 +14,11 @@ void NodeWriter::WriteString(const std::string &str) {
     std::string output;
 
     if (m_newline) {
-        output.append(1, '\n');
+        output.append(1, '\n').append(m_tabsize * m_indent, ' ');
+        m_newline = false;
     }
 
-    output.append(m_tabsize * m_indent, ' ').append(str);
+    output.append(str);
 
     m_writer(output);
 }
