@@ -198,7 +198,6 @@ ExprResult Parser::ParseBinaryExpression() {
 
     auto left = ParseUnaryExpression();
     std::vector<T> stack;
-    bool loop = true;
 
     do {
         int rank;
@@ -206,44 +205,54 @@ ExprResult Parser::ParseBinaryExpression() {
 
         std::tie(rank, op) = GetRank(m_token.Type);
 
-        if (rank != -1) {
-            ConsumeToken();
+        if (rank == -1)
+            break;
 
-            // Extra process for `is not` and `not in`
-            if (op == BinaryOp::Is && ConsumeIf(TokenType::Not)) {
-                op = BinaryOp::IsNot;
-            }
+        ConsumeToken(); // Consume for operator.
 
-            if (op == BinaryOp::NotIn) {
-                bool _; // placeholder
+        // Extra process for `is not` and `not in`
+        if (op == BinaryOp::Is && ConsumeIf(TokenType::Not)) {
+            op = BinaryOp::IsNot;
+        }
 
-                Expect(_, TokenType::In, [&](const SourcePosition& pos) {
-                    m_reporter.Report(pos, ReportID::ParseExpectIn);
-                    left.Taint();
-                });
-            }
+        if (op == BinaryOp::NotIn) {
+            bool _; // placeholder
 
-            auto right = ParseUnaryExpression();
+            Expect(_, TokenType::In, [&](const SourcePosition& pos) {
+                m_reporter.Report(pos, ReportID::ParseExpectIn);
+                left.Taint();
+            });
+        }
 
-            if (stack.empty() || std::get<RANK>(stack.back()) <= rank) {
-                stack.emplace_back(left, op, rank);
-                left = right;
-            }
-        } else
-            loop = false;
+        auto right = ParseUnaryExpression();
 
         while (!stack.empty() && std::get<RANK>(stack.back()) > rank) {
-            ExprResult expr;
-            BinaryOp op;
-            int _;
+            int _; // placeholder
+            BinaryOp prevOp;
+            ExprResult prevExpr;
 
-            std::tie(expr, op, _) = stack.back();
+            std::tie(prevExpr, prevOp, _) = stack.back();
             stack.pop_back();
 
-            auto error = MakeStatus(left, expr);
-            left = MakeResult<BinaryExpression>(error, expr.GetValue(), left.GetValue(), op);
+            auto error = MakeStatus(prevExpr, left);
+            left = MakeResult<BinaryExpression>(error, prevExpr.GetValue(), left.GetValue(), prevOp);
         }
-    } while (loop);
+
+        stack.emplace_back(left, op, rank);
+        left = right;
+    } while (true);
+
+    while (!stack.empty()) {
+        int _; // placeholder
+        BinaryOp prevOp;
+        ExprResult prevExpr;
+
+        std::tie(prevExpr, prevOp, _) = stack.back();
+        stack.pop_back();
+
+        auto error = MakeStatus(prevExpr, left);
+        left = MakeResult<BinaryExpression>(error, prevExpr.GetValue(), left.GetValue(), prevOp);
+    }
 
     return left;
 }
