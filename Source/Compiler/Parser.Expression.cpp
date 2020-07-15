@@ -623,6 +623,7 @@ ExprResult Parser::ParseString() {
     int index = 0;
     std::vector<Expression*> exprs;
     auto error = false;
+    auto raw = m_token.Image;
 
     str.append(m_token.Image);
     ConsumeToken();
@@ -659,12 +660,13 @@ ExprResult Parser::ParseString() {
             m_reporter.Report(m_token.Position, ReportID::ParseUnexpectedEOL);
             error = true;
         } else {
+            raw = StringRef::Merge(raw, m_token.Image);
             str.append(m_token.Image);
             ConsumeToken();
         }
     }
 
-    return MakeResult<StringLiteral>(error, pos, std::move(str), std::move(exprs));
+    return MakeResult<StringLiteral>(error, pos, raw, std::move(str), std::move(exprs));
 }
 
 /*

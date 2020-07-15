@@ -264,8 +264,8 @@ namespace BuildScript {
         std::vector<Expression*> m_exprs;
 
     public:
-        StringLiteral(const SourcePosition& pos, std::string&& text, std::vector<Expression*>&& exprs)
-            : LiteralExpression(pos, LiteralKind::String, StringRef()), m_text(std::move(text)), m_exprs(std::move(exprs)) {}
+        StringLiteral(const SourcePosition& pos, const StringRef& raw, std::string&& text, std::vector<Expression*>&& exprs)
+            : LiteralExpression(pos, LiteralKind::String, raw), m_text(std::move(text)), m_exprs(std::move(exprs)) {}
 
         ~StringLiteral() final {
             for (auto e : m_exprs)

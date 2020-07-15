@@ -105,6 +105,12 @@ namespace BuildScript {
          * @see StringRef::ToString() const
          */
         operator std::string() const { return ToString(); }
+
+        static StringRef Merge(const StringRef& left, const StringRef& right) {
+            assert(left.m_text == right.m_text);
+
+            return StringRef(left.m_text, left.m_begin, right.m_end);
+        }
     }; // end class StringRef
 } // end namespace BuildScript
 
