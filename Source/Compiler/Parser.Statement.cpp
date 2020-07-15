@@ -295,13 +295,14 @@ StmtResult Parser::ParseForStatement() {
     auto error = false;
     Expression* expr;
     Statement* body;
-    std::vector<StringRef> elements;
+    std::vector<ForStatement::Parameter> elements;
 
     do {
-        StringRef id = ExpectIdentifier(error);
+        SourcePosition paramPos;
+        StringRef param = ExpectIdentifier(error, &paramPos);
 
-        if (id)
-            elements.push_back(id);
+        if (param)
+            elements.emplace_back(param, paramPos);
     } while (ConsumeIf(TokenType::Comma));
 
     Expect(error, TokenType::In, [&](const SourcePosition& pos) {

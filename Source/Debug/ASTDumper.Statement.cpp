@@ -153,7 +153,7 @@ void ASTDumper::Visit(const ForStatement* node) {
         {
             IndentRAII indent2{m_writer};
             for (auto& e : node->GetParameters()) {
-                m_writer << e << EOL;
+                m_writer << e.first << "@" << e.second << EOL;
             }
         }
 

@@ -154,13 +154,16 @@ namespace BuildScript {
     }; // end class MatchStatement
 
     class ForStatement final : public Statement {
+    public:
+        using Parameter = std::pair<StringRef, SourcePosition>;
+
     private:
-        std::vector<StringRef> m_params;
+        std::vector<Parameter> m_params;
         Expression* m_expr;
         Statement* m_body;
 
     public:
-        ForStatement(const SourcePosition& pos, std::vector<StringRef>&& params, Expression* expr, Statement* body)
+        ForStatement(const SourcePosition& pos, std::vector<Parameter>&& params, Expression* expr, Statement* body)
             : Statement(pos), m_params(std::move(params)), m_expr(expr), m_body(body) {}
 
         ~ForStatement() final {
@@ -168,7 +171,7 @@ namespace BuildScript {
             delete m_body;
         }
 
-        const std::vector<StringRef>& GetParameters() const { return m_params; }
+        const std::vector<Parameter>& GetParameters() const { return m_params; }
 
         const Expression* GetExpression() const { return m_expr; }
 
