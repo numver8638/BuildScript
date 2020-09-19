@@ -2,7 +2,7 @@ BuildScript
 =============================
 Script-like build engine for my own hobby projects.
 
-__Because all of codes are rewritten, codes on this branch is not updated, leaved for archive purpose. Please do not commit/push request on this branch.__
+__Because all of codes are rewritten, codes on this branch is not updated, leaved for archive purpose. Please do not commit/pull request on this branch.__
 
 > Notice: Because I'm not native English speaker, there may be many typos and incorrect statements.
 
