@@ -1,0 +1,39 @@
+{
+    "name": "buildscript",
+    "version": "0.0.1",
+    "builtin-baseline": "9986c28da97f316fe3c79be0538af8f46a200796",
+    "dependencies": [
+        {
+            "name": "fmt",
+            "version>=": "7.1.3#2"
+        },
+        {
+            "name": "boost-endian",
+            "version>=": "1.75.0"
+        },
+        {
+            "name": "boost-filesystem",
+            "version>=": "1.75.0"
+        },
+        {
+            "name": "boost-iostreams",
+            "version>=": "1.75.0"
+        },
+        {
+            "name": "boost-optional",
+            "version>=": "1.75.0"
+        },
+        {
+            "name": "boost-program-options",
+            "version>=": "1.75.0"
+        },
+        {
+            "name": "boost-variant2",
+            "version>=": "1.75.0"
+        },
+        {
+            "name": "catch2",
+            "version>=": "2.13.1"
+        }
+    ]
+}
