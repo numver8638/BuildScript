@@ -9,6 +9,8 @@
 #ifndef BUILDSCRIPT_UTILS_SINGLETON_H
 #define BUILDSCRIPT_UTILS_SINGLETON_H
 
+#include <type_traits>
+
 #include <BuildScript/Utils/NonCopyable.h>
 #include <BuildScript/Utils/NonMovable.h>
 
@@ -22,6 +24,10 @@ namespace BuildScript {
     class Singleton : NonCopyable, NonMovable {
     public:
         using Type = T;
+
+        static_assert(std::is_trivially_constructible<T>::value, "not trivially constructible.");
+
+        virtual ~Singleton() = default;
     }; // end class Singleton
 
     /**
