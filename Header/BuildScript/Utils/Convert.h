@@ -12,6 +12,8 @@
 #include <string>
 #include <tuple>
 
+#include <BuildScript/Config.h>
+
 namespace BuildScript {
     /**
      * @brief Convert string to integer.
@@ -20,7 +22,7 @@ namespace BuildScript {
      * @return @c std::tuple which contains @c bool that indicates function returns successfully and @c int64_t that is
      *         converted value from input.
      */
-    std::tuple<bool, int64_t> ConvertInteger(const std::string& str);
+    EXPORT_API std::tuple<bool, int64_t> ConvertInteger(const std::string& str);
 
     /**
      * @brief Convert string to floating point number.
@@ -29,7 +31,7 @@ namespace BuildScript {
      *         converted value from input.
      * @warning This function assumes that input is always well-formed and no leading whitespaces nor signs.
      */
-    std::tuple<bool, double> ConvertFloat(const std::string& str);
+    EXPORT_API std::tuple<bool, double> ConvertFloat(const std::string& str);
 } // end namespace BuildScript
 
 #endif // BUILDSCRIPT_UTILS_CONVERT_H

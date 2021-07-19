@@ -77,7 +77,14 @@ else ()
     message(FATAL_ERROR "Unknown/Unsupported compiler.")
 endif ()
 
+add_subdirectory(Test)
+
+enable_testing()
+
 # Lists of sources
 target_sources(BuildScript PRIVATE
+               # ==== Utility ====
+               Source/Utils/Convert.cpp
+
                # ==== Version ====
                ${CMAKE_CURRENT_BINARY_DIR}/Generated/Version.cpp)
