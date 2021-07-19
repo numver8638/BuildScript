@@ -1,0 +1,31 @@
+/*
+ * Version.cpp
+ * - Get BuildScript's version.
+ *
+ * Copyright (c) 2019~2021 numver8638(신진환, Jinhwan Shin)
+ * Released under the MIT License.
+ * See the LICENSE file in the project root to get more information.
+ */
+#include <BuildScript/Version.h>
+
+using namespace BuildScript;
+
+// static
+const char* Version::GetVersion() {
+    return u8"@PROJECT_VERSION@";
+}
+
+// static
+int Version::GetVersionMajor() {
+    return @PROJECT_VERSION_MAJOR@;
+}
+
+// static
+int Version::GetVersionMinor() {
+    return @PROJECT_VERSION_MINOR@;
+}
+
+// static
+int Version::GetVersionRevision() {
+    return @PROJECT_VERSION_PATCH@;
+}
