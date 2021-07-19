@@ -150,7 +150,12 @@ namespace BuildScript {
         while (exp > 0) {
             // Overflow check
             while (value & High4Bits) {
+                bool round = (value % 2 == 1);
                 value >>= 1;
+
+                // ties to even
+                if (round && (value % 2 == 1)) { ++value; }
+
                 ++binexp;
             }
 
@@ -161,10 +166,17 @@ namespace BuildScript {
         while (exp < 0) {
             while (!(value & HighBit)) {
                 value <<= 1;
-                binexp -= 1;
+                --binexp;
             }
 
+            auto rem = value % 10;
             value /= 10;
+
+            // Round to nearest, ties to even.
+            if (rem > 5 || (rem == 5 && (value % 2 == 1))) {
+                ++value;
+            }
+
             ++exp;
         }
 
@@ -177,6 +189,21 @@ namespace BuildScript {
 
         // Calibrate binary exponent.
         binexp += (63 - shift);
+
+        if ((value & 0x7FF) > 0x400) {
+            // Round to nearest
+            value += 0x800;
+        }
+        else if ((value & 0x7FF) == 0x400) {
+            // Ties to even
+            // Converted value is always even when binexp is less than zero or grater than 52.
+            if (0 <= binexp && binexp <= 52) {
+                if ((value >> (63 - binexp)) % 2 == 1) {
+                    // converted value is odd.
+                    value += 0x800;
+                }
+            }
+        }
 
         // Range check of binary exponent.
         if (binexp < MinBinaryExp) {
