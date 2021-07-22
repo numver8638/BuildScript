@@ -39,8 +39,7 @@ add_library(BuildScript SHARED)
 # Set include path
 target_include_directories(BuildScript
                            PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Header>"
-                                  "$<INSTALL_INTERFACE:include>"
-                           PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/PrivateHeader")
+                                  "$<INSTALL_INTERFACE:include>")
 
 set_target_properties(BuildScript
                       PROPERTIES
