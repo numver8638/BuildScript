@@ -85,6 +85,11 @@ enable_testing()
 target_sources(BuildScript PRIVATE
                # ==== Utility ====
                Source/Utils/Convert.cpp
+               Source/Utils/Encoding.cpp
+               Source/Utils/Encoding/EUCKR.cpp
+               Source/Utils/Encoding/UTF16.cpp
+               Source/Utils/Encoding/UTF32.cpp
+               Source/Utils/Encoding/UTF8.cpp
 
                # ==== Version ====
                ${CMAKE_CURRENT_BINARY_DIR}/Generated/Version.cpp)
