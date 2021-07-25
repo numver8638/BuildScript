@@ -67,7 +67,7 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
                                     # inherits dllexport-ed class is not dll-exported.
                            /wd4251  # Suppress warning on dllexport-ed class has members
                                     # that is not dllexport-ed.
-                           /wd26812 # Supress warning on recommend using `enum class` rather than `enum'.
+                           /wd26812 # Suppress warning on recommend using `enum class` rather than `enum'.
     )
 elseif (CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     target_compile_options(BuildScript
