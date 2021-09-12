@@ -23,16 +23,12 @@
 // Compiler specific macros
 #if defined(COMPILER_CLANG) || defined(COMPILER_GCC)
     #define EXPORT_API __attribute__((visibility("default")))
-    #define PACKED __attribute__((packed))
-    #define DEPRECATED __attribute__((deprecated))
 #elif defined(COMPILER_MSVC)
     #ifdef ON_BUILD
         #define EXPORT_API __declspec(dllexport)
     #else
         #define EXPORT_API __declspec(dllimport)
     #endif // ON_BUILD
-    #define PACKED __declspec(align(1))
-    #define DEPRECATED __declspec(deprecated)
 #else
     #define EXPORT_API
 #endif // defined(COMPILER_*)
