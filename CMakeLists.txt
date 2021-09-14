@@ -58,6 +58,13 @@ target_link_libraries(BuildScript
 target_compile_definitions(BuildScript
                            PRIVATE "$<BUILD_INTERFACE:ON_BUILD>" ${TARGET_OS_DEFINE})
 
+set(PUBLIC_HEADERS
+    ## Compiler
+    BuildScript/Compiler/SourcePosition.h
+    BuildScript/Compiler/SourceText.h
+    BuildScript/Assert.h
+    BuildScript/Config.h
+    BuildScript/Version.h)
 # Add compiler specific options
 if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
     target_compile_options(BuildScript
@@ -79,6 +86,51 @@ endif ()
 add_subdirectory(Test)
 
 enable_testing()
+
+## Configure package
+include(CmakePackageConfigHelpers)
+
+configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/Config.cmake.in
+                              ${CMAKE_CURRENT_BINARY_DIR}/BuildScriptConfig.cmake
+                              INSTALL_DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/cmake/BuildScript
+                              NO_SET_AND_CHECK_MACRO)
+
+write_basic_package_version_file(${CMAKE_CURRENT_BINARY_DIR}/BuildScriptConfigVersion.cmake
+                                 COMPATIBILITY SameMajorVersion)
+
+## Install
+function(install_files)
+    cmake_parse_arguments(_PREFIX "" "DIRECTORY;DESTINATION" "FILES" ${ARGN})
+
+    foreach(_FILE ${_PREFIX_FILES})
+        string(REGEX MATCH "(.*)[/\\]" _DIR ${_FILE})
+        install(FILES ${_PREFIX_DIRECTORY}${_FILE} DESTINATION ${_PREFIX_DESTINATION}/${_DIR})
+    endforeach(_FILE)
+endfunction(install_files)
+
+install(TARGETS BuildScript
+        CONFIGURATIONS Debug Release
+        EXPORT BuildScriptTargets
+        LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
+
+install(TARGETS Driver
+        CONFIGURATIONS Release
+        RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
+
+install_files(DIRECTORY Header/
+              DESTINATION ${CMAKE_INSTALL_PREFIX}/include
+              FILES ${PUBLIC_HEADERS})
+
+install(EXPORT BuildScriptTargets
+        CONFIGURATIONS Debug Release
+        FILE BuildScriptTargets.cmake
+        NAMESPACE BuildScript::
+        DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/cmake/BuildScript)
+
+install(FILES
+        ${CMAKE_CURRENT_BINARY_DIR}/BuildScriptConfig.cmake
+        ${CMAKE_CURRENT_BINARY_DIR}/BuildScriptConfigVersion.cmake
+        DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/cmake/BuildScript)
 
 # Lists of sources
 target_sources(BuildScript PRIVATE

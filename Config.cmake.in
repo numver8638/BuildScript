@@ -1,0 +1,8 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+find_dependency(fmt @FMT_VERSION@ REQUIRED)
+
+include("${CMAKE_CURRENT_LIST_DIR}/BuildScriptTargets.cmake")
+
+check_required_components(BuildScript)
