@@ -5,6 +5,7 @@ add_executable(TestDriver
 
                # Test files
                Utils/ConvertTest.cpp
+               Utils/EncodingTest.cpp
                )
 
 set_target_properties(TestDriver PROPERTIES CXX_STANDARD 17)
@@ -13,6 +14,7 @@ target_link_libraries(TestDriver Catch2::Catch2 BuildScript)
 
 add_custom_target(TestCopyDLL ALL
                   COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:BuildScript> ${CMAKE_CURRENT_BINARY_DIR}
+                  COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:BuildScript> ${CMAKE_CURRENT_BINARY_DIR}
                   DEPENDS $<TARGET_FILE:BuildScript>)
 
 add_dependencies(TestDriver TestCopyDLL)
