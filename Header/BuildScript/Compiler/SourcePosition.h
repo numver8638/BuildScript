@@ -113,8 +113,8 @@ namespace BuildScript {
 
         /**
          * @brief Merge two ranges into one range.
-         * @param begin front range of merging range.
-         * @param end rear range of merging range.
+         * @param begin front range to be merged.
+         * @param end rear range to be merged.
          * @return a merged @c SourceRange.
          */
         static inline SourceRange Merge(const SourceRange& begin, const SourceRange& end) {
@@ -123,8 +123,8 @@ namespace BuildScript {
 
         /**
          * @brief Merge a position and a range into one range.
-         * @param begin front position of merging range.
-         * @param end rear range of merging range.
+         * @param begin front position to be merged.
+         * @param end rear range to be merged.
          * @return a merged @c SourceRange.
          */
         static inline SourceRange Merge(const SourcePosition& begin, const SourceRange& end) {
@@ -133,8 +133,8 @@ namespace BuildScript {
 
         /**
          * @brief Merge a position and a range into one range.
-         * @param begin front range of merging range.
-         * @param end rear position of merging range.
+         * @param begin front range to be merged.
+         * @param end rear position to be merged.
          * @return a merged @c SourceRange.
          */
         static inline SourceRange Merge(const SourceRange& begin, const SourcePosition& end) {
