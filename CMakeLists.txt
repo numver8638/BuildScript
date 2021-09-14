@@ -82,6 +82,9 @@ enable_testing()
 
 # Lists of sources
 target_sources(BuildScript PRIVATE
+               # ==== Compiler ====
+               Source/Compiler/SourceText.cpp
+
                # ==== Utility ====
                Source/Utils/Convert.cpp
                Source/Utils/Encoding.cpp
