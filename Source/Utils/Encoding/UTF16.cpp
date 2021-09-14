@@ -24,11 +24,11 @@ constexpr auto ONE_CHAR = sizeof(char16_t);
 constexpr auto TWO_CHARS = sizeof(char16_t) * 2;
 
 constexpr bool IsHighSurrogate(char16_t ch) {
-    return (0xD800 & ch) == 0xD800 /* (0xD800 <= ch) && (ch <= 0xDBFF) */;
+    return (0xD800 <= ch) && (ch <= 0xDBFF);
 }
 
 constexpr bool IsLowSurrogate(char16_t ch) {
-    return (0xDC00 & ch) == 0xDC00 /* (0xDC00 <= ch) && (ch <= 0xDFFF) */;
+    return (0xDC00 <= ch) && (ch <= 0xDFFF);
 }
 
 constexpr uint16_t HIGH_SURROGATE_MASK  = 0x03FF;
@@ -66,7 +66,7 @@ public:
                     return IsInvalidCharacter(ch) ? Encoding::InvalidCharacter : ch;
                 }
             }
-            else if (IsLowSurrogate(high) || length < 4) {
+            else if (IsLowSurrogate(high) || (IsHighSurrogate(high) && length < 4)) {
                 used = ONE_CHAR;
                 return Encoding::InvalidEncoding;
             }
@@ -92,8 +92,8 @@ public:
                 length = ONE_CHAR;
             }
             else if (size >= 4) {
-                *(buffer + 0) = endian::native_to_little(0xD800 | char16_t((ch & 0x1FFC00) >> 10) - 0x40);
-                *(buffer + 1) = endian::native_to_little(0xDC00 | char16_t(ch & 0x3FF));
+                *(buffer + 0) = endian::native_to_little(char16_t(0xD800 | ((ch >> HIGH_SURROGATE_SHIFT) & HIGH_SURROGATE_MASK) - 0x40));
+                *(buffer + 1) = endian::native_to_little(char16_t(0xDC00 | (ch & LOW_SURROGATE_MASK)));
 
                 length = TWO_CHARS;
             }
@@ -140,12 +140,12 @@ public:
                 }
                 else {
                     used = TWO_CHARS;
-                    char32_t ch = ((high & HIGH_SURROGATE_MASK) + 0x040) << HIGH_SURROGATE_SHIFT | low & LOW_SURROGATE_MASK;
+                    char32_t ch = ((high & HIGH_SURROGATE_MASK) + 0x40) << HIGH_SURROGATE_SHIFT | low & LOW_SURROGATE_MASK;
 
                     return IsInvalidCharacter(ch) ? Encoding::InvalidCharacter : ch;
                 }
             }
-            else if (IsLowSurrogate(high) || length < 4) {
+            else if (IsLowSurrogate(high) || (IsHighSurrogate(high) && length < 4)) {
                 used = ONE_CHAR;
                 return Encoding::InvalidEncoding;
             }
@@ -171,8 +171,8 @@ public:
                 length = ONE_CHAR;
             }
             else if (size >= 4) {
-                *(buffer + 0) = endian::native_to_big(0xD800 | char16_t((ch & 0x1FFC00) >> 10) - 0x40);
-                *(buffer + 1) = endian::native_to_big(0xDC00 | char16_t(ch & 0x3FF));
+                *(buffer + 0) = endian::native_to_big(char16_t(0xD800 | ((ch >> HIGH_SURROGATE_SHIFT) & HIGH_SURROGATE_MASK) - 0x40));
+                *(buffer + 1) = endian::native_to_big(char16_t(0xDC00 | (ch & LOW_SURROGATE_MASK)));
 
                 length = TWO_CHARS;
             }

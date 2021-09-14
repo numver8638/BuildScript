@@ -11,6 +11,7 @@
 
 #include <boost/endian.hpp>
 
+#include <BuildScript/Utils/CharType.h>
 #include <BuildScript/Utils/PointerArith.h>
 
 #include "EncodingRegisterer.h"
@@ -29,9 +30,10 @@ public:
         : Encoding("utf-32le") {}
 
     char32_t DecodeChar(const void* buffer, const void* end, size_t& used) override {
-        if (difference(buffer, end) > 4) {
+        if (difference(buffer, end) >= 4) {
             used = ONE_CHAR;
-            return endian::little_to_native(*reinterpret_cast<const char32_t*>(buffer));
+            auto ch = endian::little_to_native(*reinterpret_cast<const char32_t*>(buffer));
+            return IsInvalidCharacter(ch) ? InvalidCharacter : ch;
         }
         else {
             used = 0;
@@ -40,7 +42,7 @@ public:
     }
 
     bool EncodeChar(char32_t ch, void* buffer, const void* end, size_t &length) override {
-        if (difference(buffer, end) > 4) {
+        if (difference(buffer, end) >= 4 && !IsInvalidCharacter(ch)) {
             auto* casted_buffer = reinterpret_cast<char32_t*>(buffer);
 
             *casted_buffer = endian::native_to_little(ch);
@@ -64,9 +66,10 @@ public:
         : Encoding("utf-32be") {}
 
     char32_t DecodeChar(const void* buffer, const void* end, size_t& used) override {
-        if (difference(buffer, end) > 4) {
+        if (difference(buffer, end) >= 4) {
             used = ONE_CHAR;
-            return endian::big_to_native(*reinterpret_cast<const char32_t*>(buffer));
+            auto ch = endian::big_to_native(*reinterpret_cast<const char32_t*>(buffer));
+            return IsInvalidCharacter(ch) ? InvalidCharacter : ch;
         }
         else {
             used = 0;
@@ -75,7 +78,7 @@ public:
     }
 
     bool EncodeChar(char32_t ch, void* buffer, const void* end, size_t &length) override {
-        if (difference(buffer, end) > 4) {
+        if (difference(buffer, end) >= 4  && !IsInvalidCharacter(ch)) {
             auto* casted_buffer = reinterpret_cast<char32_t*>(buffer);
 
             *casted_buffer = endian::native_to_big(ch);

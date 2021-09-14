@@ -54,21 +54,19 @@ public:
             else {
                 // continuation character in current position
                 // or invalid character.
-                auto* begin = buffer;
-
-                while (buffer > end && (IsContinuation(*buffer) || (*buffer & 0xF8) == 0xF8)) {
+                while (buffer < end && IsContinuation(*buffer)) {
                     ++buffer;
                 }
 
-                used = (buffer - begin);
+                used = difference(buf, buffer);
                 return InvalidEncoding;
             }
 
-            // Move cursor to next because character is consumed in length check.
-            ++buffer;
-
             // Modify end position to reduce comparison.
             end = buffer + length;
+
+            // Move cursor to next because character is consumed in length check.
+            ++buffer;
 
             // decode
             while (buffer < end && IsContinuation(*buffer)) {
@@ -77,11 +75,16 @@ public:
 
             // Check decode is done successfully.
             if (buffer != end) {
-                used = length - difference(end, buffer);
+                used = difference(buf, buffer);
                 return InvalidEncoding;
             }
             else {
                 used = length;
+
+                // Overlong encoding check.
+                if ((used == 2 && ch < 0x80) || (used == 3 && ch < 0x800) || (used == 4 && ch < 0x10000)) {
+                    return InvalidEncoding;
+                }
 
                 // Range check
                 return IsInvalidCharacter(ch) ? InvalidCharacter : ch;
@@ -106,22 +109,22 @@ public:
                 *(buffer + 0) = ch & 0x7F;
                 length = 1;
             }
-            else if (ch < 0x800 && difference(end, buf) >= 2) {
-                *(buffer + 1) = ((ch >>  6) & 0x1F) | 0xC0;
-                *(buffer + 0) = ((ch >>  0) & 0x3F) | 0x80;
+            else if (ch < 0x800 && difference(buffer, end) >= 2) {
+                *(buffer + 0) = ((ch >>  6) & 0x1F) | 0xC0;
+                *(buffer + 1) = ((ch >>  0) & 0x3F) | 0x80;
                 length = 2;
             }
-            else if (ch < 0x10000 && difference(end, buf) >= 3) {
-                *(buffer + 2) = ((ch >> 12) & 0x0F) | 0xE0;
+            else if (ch < 0x10000 && difference(buffer, end) >= 3) {
+                *(buffer + 0) = ((ch >> 12) & 0x0F) | 0xE0;
                 *(buffer + 1) = ((ch >>  6) & 0x3F) | 0x80;
-                *(buffer + 0) = ((ch >>  0) & 0x3F) | 0x80;
+                *(buffer + 2) = ((ch >>  0) & 0x3F) | 0x80;
                 length = 3;
             }
-            else if (difference(end, buf) >= 4) {
-                *(buffer + 3) = ((ch >> 18) & 0x07) | 0xF0;
-                *(buffer + 2) = ((ch >> 12) & 0x3F) | 0x80;
-                *(buffer + 1) = ((ch >>  6) & 0x3F) | 0x80;
-                *(buffer + 0) = ((ch >>  0) & 0x3F) | 0x80;
+            else if (difference(buffer, end) >= 4) {
+                *(buffer + 0) = ((ch >> 18) & 0x07) | 0xF0;
+                *(buffer + 1) = ((ch >> 12) & 0x3F) | 0x80;
+                *(buffer + 2) = ((ch >>  6) & 0x3F) | 0x80;
+                *(buffer + 3) = ((ch >>  0) & 0x3F) | 0x80;
                 length = 4;
             }
             else {
