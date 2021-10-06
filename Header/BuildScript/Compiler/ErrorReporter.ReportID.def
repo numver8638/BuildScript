@@ -1,0 +1,22 @@
+/*
+ * ErrorReporter.ReportID.def
+ * - Collect and notify errors during compile.
+ *   This file contains ReportIDs and messages.
+ *
+ * Copyright (c) 2019~2021 numver8638(신진환, Jinhwan Shin)
+ * Released under the MIT License.
+ * See the LICENSE file in the project root to get more information.
+ */
+#ifndef REPORT_ID
+    #error "Cannot include 'ErrorReporter.ReportID.def' directly. Did you intend to include 'ErrorReporter.ReportID.h'?"
+#endif // REPORT_ID
+
+#define FATAL(id, msg)      REPORT_ID(BuildScript::Severity::Fatal, id, msg)
+#define ERROR(id, msg)      REPORT_ID(BuildScript::Severity::Error, id, msg)
+#define WARNING(id, msg)    REPORT_ID(BuildScript::Severity::Warning, id, msg)
+#define NOTE(id, msg)       REPORT_ID(BuildScript::Severity::Note, id, msg)
+
+#undef NOTICE
+#undef WARNING
+#undef ERROR
+#undef FATAL

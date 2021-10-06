@@ -60,8 +60,18 @@ target_compile_definitions(BuildScript
 
 set(PUBLIC_HEADERS
     ## Compiler
+    BuildScript/Compiler/ErrorReporter.h
     BuildScript/Compiler/SourcePosition.h
     BuildScript/Compiler/SourceText.h
+
+    ## Utils
+    BuildScript/Utils/AllStatic.h
+    BuildScript/Utils/BitCast.h
+    BuildScript/Utils/Encoding.h
+    BuildScript/Utils/NonCopyable.h
+    BuildScript/Utils/NonMovable.h
+    BuildScript/Utils/Singleton.h
+
     BuildScript/Assert.h
     BuildScript/Config.h
     BuildScript/Version.h)
@@ -135,6 +145,7 @@ install(FILES
 # Lists of sources
 target_sources(BuildScript PRIVATE
                # ==== Compiler ====
+               Source/Compiler/ErrorReporter.cpp
                Source/Compiler/SourceText.cpp
 
                # ==== Utility ====
