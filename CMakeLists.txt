@@ -149,6 +149,7 @@ target_sources(BuildScript PRIVATE
                Source/Compiler/Parse/Lexer.cpp
                Source/Compiler/Parse/Lexer.KeywordTable.cpp
                Source/Compiler/Parse/Lexer.String.cpp
+               Source/Compiler/Context.cpp
                Source/Compiler/ErrorReporter.cpp
                Source/Compiler/SourceText.cpp
 
