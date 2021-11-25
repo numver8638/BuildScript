@@ -42,7 +42,6 @@ namespace BuildScript {
         enum CommentKind {
             Reference,  //!< Reference in other position of the source.
             Insert,     //!< Insertion of the text.
-            Note,       //!< Informative message from the compiler.
             Remove      //!< Removal of the text.
         }; // end enum CommentKind
 
@@ -101,17 +100,11 @@ namespace BuildScript {
         public:
             /**
              * @brief Add reference comment at error.
-             * @tparam Args types of arguments.
              * @param pos a position where comment refers to.
-             * @param id the @c ReportID to report.
-             * @param args arguments for @c id.
              * @return @c this
              */
-            template <typename... Args>
-            Builder& Reference(SourcePosition pos, ReportID id, Args&&... args) {
-                auto text = fmt::format(ErrorReporter::GetMessage(id), args...);
-
-                m_info.Comments.emplace_back(ErrorInfo::Reference, pos, text);
+            Builder& Reference(SourcePosition pos) {
+                m_info.Comments.emplace_back(ErrorInfo::Reference, pos, std::string{});
                 return *this;
             }
 
@@ -123,21 +116,6 @@ namespace BuildScript {
              */
             Builder& Insert(SourcePosition pos, std::string text) {
                 m_info.Comments.emplace_back(ErrorInfo::Insert, pos, std::move(text));
-                return *this;
-            }
-
-            /**
-             * @brief Add note comment at error.
-             * @tparam Args types of arguments.
-             * @param id the @c ReportID to report.
-             * @param args arguments for @c id.
-             * @return @c this
-             */
-            template <typename... Args>
-            Builder& Note(ReportID id, Args&&... args) {
-                auto text = fmt::format(ErrorReporter::GetMessage(id), args...);
-
-                m_info.Comments.emplace_back(ErrorInfo::Note, m_info.Location, text);
                 return *this;
             }
 

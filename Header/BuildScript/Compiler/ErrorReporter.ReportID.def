@@ -92,8 +92,8 @@ ERROR(LexInvalidInterpolation, "expected identifier or '{' after '$'.")
 ERROR(LexNotAllowedCharacter, "not allowed unicode character used.")
 ERROR(LexUnexpectedEOS, "unexpected end of string.")
 ERROR(LexUnknownToken, "unknown token.")
-NOTE(LexIntendedToEllipsis, "did you intend to '...'?")
-NOTE(LexIntendedToNotEqual, "did you intend to '!='?")
+ERROR(LexIntendedToEllipsis, "unknown token; did you intend to '...'?")
+ERROR(LexIntendedToNotEqual, "unknown token; did you intend to '!='?")
 
 #undef NOTICE
 #undef WARNING

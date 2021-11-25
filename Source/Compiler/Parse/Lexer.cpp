@@ -177,8 +177,7 @@ Token Lexer::GetNextToken() {
                     type = TokenType::NotEqual;
                 }
                 else {
-                    m_reporter.Report(start, ReportID::LexUnknownToken)
-                              .Note(ReportID::LexIntendedToNotEqual);
+                    m_reporter.Report(start, ReportID::LexIntendedToNotEqual);
                     continue;
                 }
                 break;
@@ -221,8 +220,7 @@ Token Lexer::GetNextToken() {
                         type = TokenType::Ellipsis;
                     }
                     else {
-                        m_reporter.Report(start, ReportID::LexUnknownToken)
-                                  .Note(ReportID::LexIntendedToEllipsis);
+                        m_reporter.Report(start, ReportID::LexIntendedToEllipsis);
                         continue;
                     }
                 }
