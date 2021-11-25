@@ -11,7 +11,7 @@ Script-like build engine for my own hobby projects.
 - Build tools which can compile C++17 code. (Tested in Visual Studio 2017, 2019 and Clang 11.0.0)
 
 Requisites listed below are managed via [vcpkg](https://github.com/microsoft/vcpkg).
-- Boost library(endian, filesystem, iostreams, optional, program_options, variant2) 1.75 or above
+- Boost library(endian, iostreams, program_options) 1.75 or above
 - Catch2 library 2.13 or above
 - {fmt} library 7.1 or above
 
