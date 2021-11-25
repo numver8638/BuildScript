@@ -12,23 +12,11 @@
             "version>=": "1.75.0"
         },
         {
-            "name": "boost-filesystem",
-            "version>=": "1.75.0"
-        },
-        {
             "name": "boost-iostreams",
             "version>=": "1.75.0"
         },
         {
-            "name": "boost-optional",
-            "version>=": "1.75.0"
-        },
-        {
             "name": "boost-program-options",
-            "version>=": "1.75.0"
-        },
-        {
-            "name": "boost-variant2",
             "version>=": "1.75.0"
         },
         {
