@@ -22,10 +22,13 @@ namespace BuildScript {
      */
     template <typename T>
     class Singleton : NonCopyable, NonMovable {
+    protected:
+        Singleton() {
+            static_assert(std::is_default_constructible_v<T> && std::is_final_v<T>, "not default constructible nor final.");
+        }
+
     public:
         using Type = T;
-
-        static_assert(std::is_trivially_constructible<T>::value, "not trivially constructible.");
 
         virtual ~Singleton() = default;
     }; // end class Singleton
