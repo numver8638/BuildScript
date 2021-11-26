@@ -1,6 +1,6 @@
 /*
  * TrailObjects.h
- * - Variable length class.
+ * - Implements variable length array in class.
  *
  * Copyright (c) 2019~2021 numver8638(신진환, Jinhwan Shin)
  * Released under the MIT License.
@@ -18,24 +18,78 @@
 
 namespace BuildScript {
     /**
-     * @brief Implements variable length class.
+     * @brief Implements variable length array in class.
      *
-     * @tparam BaseType Base class type inherits @c TrailObjects.
+     * This class implements variable length array with one and more types.
+     * Referenced from TrailingObjects in LLVM.
+     *
+     * @section Requirements
+     * - To calculate correct address of requested trailing type, implementing
+     * `size_t GetTrailCount(OverloadToken<T>) const` of every trail types is required to every classes
+     * inherits TrailObjects.
+     * - To prevent overriding other class' contents and/or inheriting class contains variable length array that cause
+     * unpredicted behavior, every classes inherits TrailObjects requires to be `final` and inherit `TrailObjects` in
+     * last order of inheritance.
+     * - Difference between return value at `GetTrailCount` and parameter at `GetTrailSize` may cause memory overrun
+     * and/or heap corruption.
+     *
+     * @section Usage
+     * @code
+     * class SomeClass final : TrailObjects<SomeClass, double, int> {
+     *   size_t m_doubleCount;
+     *   size_t m_intCount;
+     *
+     *   // Must be defined for all trail types.
+     *   size_t GetTrailCount(OverloadToken<double>) const { return m_doubleCount; }
+     *   size_t GetTrailCount(OverloadToken<int>) const { return m_intCount; }
+     *
+     * public:
+     *   SomeClass(size_t doubleCount, size_t intCount)
+     *     : m_doubleCount(doubleCount), m_intCount(intCount) {}
+     *
+     *   // To iterate all elements, use GetTrailObjects().
+     *   TrailIterator<double> GetDoubles() { return GetTrailObjects<double>(); }
+     *
+     *   // Use GetTrailObjects(begin, end) to iterate elements in specific range.
+     *   TrailIterator<int> GetIntFrom2To4() { return GetTrailObjects<int>(2, 4); }
+     *
+     *   // Direct access to trail arrays, use GetTrailObjectBase().
+     *   // Use without care may cause undefined behaviors.
+     *   double* GetDoubleArray() { return GetTrailObjectBase<double>(); }
+     *
+     *   // To get an element of specific index, use At().
+     *   int GetIntAt(size_t index) const { return At<int>(index); }
+     *
+     *   static SomeClass* Create(std::vector<double> doubles, std::vector<int> ints) {
+     *     auto trailSize = GetTrailSizes(doubles.size(), ints.size());
+     *     void* memory = std::malloc(sizeof(SomeClass) + trailSize);
+     *     auto* self = new (memory) SomeClass(doubles.size(), ints.size());
+     *
+     *     // Copy elements of vector to trail. Also supports std::array and buffer with length.
+     *     self->SetTrailObjects(doubles);
+     *     self->SetTrailObjects(ints);
+     *
+     *     return self;
+     *   }
+     * };
+     * @endcode
+     *
+     * @tparam BaseType Base class that inherits @c TrailObjects.
      * @tparam TrailTypes Types to be appended to end of base class.
      */
     template <typename BaseType, typename... TrailTypes>
     class TrailObjects {
     protected:
         /**
-         * @brief Expand parameter pack to T.
-         * @tparam T
+         * @brief Expand parameter packs with T.
+         * @tparam T Type ... expand to.
          */
         template <typename, typename T>
         using expand_pack_t = T;
 
         /**
-         * @brief
-         * @tparam T
+         * @brief Phony type for overloading.
+         * @tparam T Type to overload.
          */
         template <typename T>
         struct OverloadToken {};
@@ -119,8 +173,8 @@ namespace BuildScript {
 
     public:
         /**
-         * @brief
-         * @tparam T
+         * @brief Wrapper for range-based-for-loop.
+         * @tparam T type of the element.
          */
         template <typename T>
         class TrailIterator {
@@ -183,24 +237,26 @@ namespace BuildScript {
             iterator end() { return iterator(m_base, m_length); }
         }; // end class TrailIterator
 
-        TrailObjects() { static_assert(std::is_final_v<BaseType>, "Base is not final."); }
+        TrailObjects() { static_assert(std::is_final_v<BaseType>, "BaseType is not final."); }
         TrailObjects(const TrailObjects&) = delete;
         TrailObjects(TrailObjects&&) = delete;
         TrailObjects& operator =(const TrailObjects&) = delete;
         TrailObjects& operator =(TrailObjects&&) = delete;
 
         /**
-         * @brief
-         * @tparam T
+         * @brief Get base address of writable array of desired type.
+         * @tparam T the desired type.
          * @return a pointer to base of trailing type @c T.
+         * @note Use without caution may cause undefined behavior.
          */
         template <typename T>
         T* GetTrailObjectBase() { return reinterpret_cast<T*>(add(static_cast<BaseType*>(this), GetOffset<T>())); }
 
         /**
-         * @brief
-         * @tparam T
+         * @brief Get base address of readonly array of desired type.
+         * @tparam T the desired type.
          * @return a pointer to base of trailing type @c T.
+         * @note Use without caution may cause undefined behavior.
          */
         template <typename T>
         const T* GetTrailObjectBase() const {
@@ -210,11 +266,11 @@ namespace BuildScript {
         static constexpr auto size_t_max_v = std::numeric_limits<size_t>::max();
 
         /**
-         * @brief Get
-         * @tparam T
-         * @param begin
-         * @param end
-         * @return
+         * @brief Get writable iterator wrapper of desired type.
+         * @tparam T the desired type.
+         * @param begin start index of the array. default is 0.
+         * @param end end index of the array. default is max value of @c size_t.
+         * @return a writable TrailIterator<T>.
          */
         template <typename T>
         TrailIterator<T> GetTrailObjects(size_t begin = 0, size_t end = size_t_max_v) {
@@ -229,11 +285,11 @@ namespace BuildScript {
         }
 
         /**
-         * @brief
-         * @tparam T
-         * @param begin
-         * @param end
-         * @return
+         * @brief Get readonly iterator wrapper of desired type.
+         * @tparam T the desired type.
+         * @param begin start index of the array. default is 0.
+         * @param end end index of the array. default is max value of @c size_t.
+         * @return a readonly @c TrailIterator<T>.
          */
         template <typename T>
         TrailIterator<const T> GetTrailObjects(size_t begin = 0, size_t end = size_t_max_v) const {
@@ -248,10 +304,10 @@ namespace BuildScript {
         }
 
         /**
-         * @brief
-         * @tparam T
-         * @param index
-         * @return
+         * @brief Get an element of given type at desired index.
+         * @tparam T type of desired element.
+         * @param index index of desired element.
+         * @return writable reference of @c T.
          */
         template <typename T>
         T& At(size_t index) {
@@ -260,10 +316,10 @@ namespace BuildScript {
         }
 
         /**
-         * @brief
-         * @tparam T
-         * @param index
-         * @return
+         * @brief Get an element of given type at desired index.
+         * @tparam T type of desired element.
+         * @param index index of desired element.
+         * @return readonly reference of @c T.
          */
         template <typename T>
         const T& At(size_t index) const {
@@ -272,10 +328,10 @@ namespace BuildScript {
         }
 
         /**
-         * @brief Set trail objects from content of std::array.
+         * @brief Set trailing objects from content of std::array.
          * @tparam T Target type to set.
          * @tparam N count of elements in the array.
-         * @param array the array contains
+         * @param array a container.
          */
         template <typename T, size_t N>
         void SetTrailObjects(const std::array<T, N>& array) {
@@ -283,9 +339,9 @@ namespace BuildScript {
         }
 
         /**
-         * @brief Set trail objects from content of std::vector.
+         * @brief Set trailing objects from content of std::vector.
          * @tparam T Target type to set.
-         * @param vector
+         * @param vector a container.
          */
         template <typename T>
         void SetTrailObjects(const std::vector<T>& vector) {
@@ -293,7 +349,7 @@ namespace BuildScript {
         }
 
         /**
-         * @brief Set trail objects from array.
+         * @brief Set trailing objects from array.
          * @tparam T Target type to set.
          * @param array an array of T.
          * @param count a count of elements in array.
@@ -305,9 +361,9 @@ namespace BuildScript {
         }
 
         /**
-         * @brief Get a size of trail objects.
-         * @param counts
-         * @return
+         * @brief Get a sizeof tailing objects.
+         * @param counts lists of count per trailing type.
+         * @return a sizeof trailing objects.
          * @note Return value does not include sizeof BaseType.
          */
         static constexpr size_t GetTrailSize(expand_pack_t<TrailTypes, size_t>... counts) {
