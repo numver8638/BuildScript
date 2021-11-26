@@ -1,0 +1,76 @@
+/*
+ * Nodes.def
+ * - Node lists with macro.
+ *
+ * Copyright (c) 2019~2021 numver8638(신진환, Jinhwan Shin)
+ * Released under the MIT License.
+ * See the LICENSE file in the project root to get more information.
+ */
+#ifndef BUILDSCRIPT_COMPILER_AST_NODES_DEF
+#define BUILDSCRIPT_COMPILER_AST_NODES_DEF
+
+#ifndef DECL_LIST
+#define DECL_LIST(V) \
+    V(InvalidDeclaration, Invalid) \
+    V(ScriptDeclaration, Script) \
+    V(ImportDeclaration, Import) \
+    V(ExportDeclaration, Export) \
+    V(FunctionDeclaration, Function) \
+    V(ClassDeclaration, Class) \
+    V(TaskDeclaration, Task) \
+    V(VariableDeclaration, Variable) \
+    V(TaskInputsDeclaration, TaskInputs) \
+    V(TaskOutputsDeclaration, TaskOutputs) \
+    V(TaskActionDeclaration, TaskAction) \
+    V(TaskPropertyDeclaration, TaskProperty) \
+    V(ClassInitDeclaration, ClassInit) \
+    V(ClassDeinitDeclaration, ClassDeinit) \
+    V(ClassFieldDeclaration, ClassField) \
+    V(ClassMethodDeclaration, ClassMethod) \
+    V(ClassPropertyDeclaration, ClassProperty) \
+    V(ClassOperatorDeclaration, ClassOperator)
+#endif // DECL_LIST
+
+#ifndef STMT_LIST
+#define STMT_LIST(V) \
+    V(InvalidStatement, Invalid) \
+    V(BlockStatement, Block) \
+    V(ArrowStatement, Arrow) \
+    V(IfStatement, If) \
+    V(MatchStatement, Match) \
+    V(LabeledStatement, Labeled) \
+    V(ForStatement, For) \
+    V(WhileStatement, While) \
+    V(WithStatement, With) \
+    V(TryStatement, Try) \
+    V(ExceptStatement, Except) \
+    V(FinallyStatement, Finally) \
+    V(BreakStatement, Break) \
+    V(ContinueStatement, Continue) \
+    V(ReturnStatement, Return) \
+    V(AssertStatement, Assert) \
+    V(PassStatement, Pass) \
+    V(AssignStatement, Assign)
+#endif // STMT_LIST
+
+#ifndef EXPR_LIST
+#define EXPR_LIST(V) \
+    V(InvalidExpression, Invalid) \
+    V(PassExpression, Pass) \
+    V(KeyValuePair, KeyValue) \
+    V(TernaryExpression, Ternary) \
+    V(BinaryExpression, Binary) \
+    V(UnaryExpression, Unary) \
+    V(DefinedExpression, Defined) \
+    V(RaiseExpression, Raise) \
+    V(MemberAccessExpression, MemberAccess) \
+    V(InvocationExpression, Invocation) \
+    V(SubscriptExpression, Subscript) \
+    V(ParenthesizedExpression, Parenthesized) \
+    V(ListExpression, List) \
+    V(MapExpression, Map) \
+    V(ClosureExpression, Closure) \
+    V(LiteralExpression, Literal)
+#endif // EXPR_LIST
+
+#endif // BUILDSCRIPT_COMPILER_AST_NODES_DEF

@@ -26,6 +26,12 @@ namespace BuildScript {
         void* operator new(size_t size, Context& context) { return context.Allocate(size); }
         void operator delete(void*, Context&) noexcept {}
 
+        [[nodiscard]]
+        void* operator new(size_t size, Context& context, size_t additional) {
+            return context.Allocate(size + additional);
+        }
+        void operator delete(void*, Context&, size_t) noexcept {}
+
         void* operator new(size_t) = delete;
         void operator delete(void*, size_t) noexcept {}
     }; // end class ManagedObject

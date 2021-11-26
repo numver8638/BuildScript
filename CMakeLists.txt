@@ -30,7 +30,7 @@ set(FMT_VERSION "7.1.0")
 
 # Find required packages
 set(Boost_USE_STATIC_LIBS ON)
-find_package(Boost ${BOOST_VERSION} REQUIRED COMPONENTS filesystem iostreams)
+find_package(Boost ${BOOST_VERSION} REQUIRED iostreams)
 find_package(fmt ${FMT_VERSION} REQUIRED)
 
 # Create target - sources are listed bottom of CMakeLists.txt.
@@ -52,7 +52,7 @@ set_target_properties(BuildScript
 configure_file(Source/Version.cpp.in ${CMAKE_CURRENT_BINARY_DIR}/Generated/Version.cpp @ONLY)
 
 target_link_libraries(BuildScript
-                      PRIVATE Boost::boost Boost::filesystem Boost::iostreams
+                      PRIVATE Boost::boost Boost::iostreams
                       PUBLIC  fmt::fmt)
 
 target_compile_definitions(BuildScript
@@ -71,10 +71,12 @@ set(PUBLIC_HEADERS
     BuildScript/Utils/NonCopyable.h
     BuildScript/Utils/NonMovable.h
     BuildScript/Utils/Singleton.h
+    BuildScript/Utils/TrailObjects.h
 
     BuildScript/Assert.h
     BuildScript/Config.h
     BuildScript/Version.h)
+
 # Add compiler specific options
 if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
     target_compile_options(BuildScript
@@ -145,10 +147,27 @@ install(FILES
 # Lists of sources
 target_sources(BuildScript PRIVATE
                # ==== Compiler ====
+               ## AST
+               Source/Compiler/AST/ASTDumper.cpp
+               Source/Compiler/AST/ASTWalker.cpp
+               Source/Compiler/AST/Declarations.cpp
+               Source/Compiler/AST/Expressions.cpp
+               Source/Compiler/AST/OperatorKind.cpp
+               Source/Compiler/AST/Parameters.cpp
+               Source/Compiler/AST/Statements.cpp
+
                ## Parser
                Source/Compiler/Parse/Lexer.cpp
                Source/Compiler/Parse/Lexer.KeywordTable.cpp
                Source/Compiler/Parse/Lexer.String.cpp
+               Source/Compiler/Parse/Parser.Declaration.cpp
+               Source/Compiler/Parse/Parser.Expression.cpp
+               Source/Compiler/Parse/Parser.Statement.cpp
+               Source/Compiler/Parse/Parser.Misc.cpp
+               Source/Compiler/Parse/Parser.cpp
+               Source/Compiler/Parse/ParserBase.cpp
+               Source/Compiler/Parse/Token.cpp
+
                Source/Compiler/Context.cpp
                Source/Compiler/ErrorReporter.cpp
                Source/Compiler/SourceText.cpp
