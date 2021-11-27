@@ -362,7 +362,7 @@ namespace BuildScript {
          */
         SourcePosition GetForPosition() const { return m_for; }
 
-        const Identifier& GetParmeterName() const { return m_param; }
+        const Identifier& GetParameterName() const { return m_param; }
 
         /**
          * @brief Get a position of 'in' keyword.

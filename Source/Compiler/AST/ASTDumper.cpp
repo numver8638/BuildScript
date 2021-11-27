@@ -576,19 +576,7 @@ WalkerFlags ASTDumper::OnEnterNode(const ForStatement& node) {
     writer() << Indent;
 
     writer() << "- ForKeywordPosition: " << node.GetForPosition() << EOL;
-    writer() << "- Parameters:" << EOL << Indent;
-
-    auto index = 0;
-    for (const auto& name : node.GetParameterNames()) {
-        writer() << "<< Parameter #" << index << " >>" << EOL << Indent;
-
-        writer() << "- Name: " << name << EOL;
-        // writer() << "- CommaPosition: " << node.GetCommaPositionAt(index) << EOL;
-
-        ++index;
-
-        writer() << Dedent;
-    }
+    writer() << "- Parameter:" << node.GetParameterName() << EOL << Indent;
 
     writer() << Dedent;
 
