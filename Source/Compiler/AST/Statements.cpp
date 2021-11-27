@@ -119,16 +119,10 @@ const ASTNode* LabeledStatement::GetChild(size_t index) const {
 }
 
 ForStatement*
-ForStatement::Create(Context& context, SourcePosition _for, const std::vector<Identifier>& params,
-                     const std::vector<SourcePosition>& commas, SourcePosition _in, Expression* expr, Statement* body) {
-    assert((params.size() < 2 && commas.empty()) || (params.size() == (commas.size() - 1)) && "count mismatch");
-
-    auto trailSize = GetTrailSize(params.size(), commas.size());
+ForStatement::Create(Context& context, SourcePosition _for, Identifier param, SourcePosition _in, Expression* expr,
+                     Statement* body) {
     auto range = SourceRange::Merge(_for, body->GetRange());
-    auto* node = new (context, trailSize) ForStatement(range, _for, _in, expr, body, params.size());
-
-    node->SetTrailObjects(params.data(), params.size());
-    node->SetTrailObjects(commas.data(), commas.size());
+    auto* node = new (context) ForStatement(range, _for, std::move(param), _in, expr, body);
 
     return node;
 }

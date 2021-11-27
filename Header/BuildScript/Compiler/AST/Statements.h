@@ -338,26 +338,20 @@ namespace BuildScript {
     /**
      * @brief Represents for statement.
      */
-    class ForStatement final : public Statement, TrailObjects<ForStatement, Identifier, SourcePosition> {
-        friend TrailObjects;
-
+    class ForStatement final : public Statement {
     public:
         static constexpr auto Kind = StatementKind::For;
 
     private:
         SourcePosition m_for;
+        Identifier m_param;
         SourcePosition m_in;
         Expression* m_expr;
         Statement* m_body;
-        size_t m_count;
 
-        ForStatement(SourceRange range, SourcePosition _for, SourcePosition _in, Expression* expr, Statement* body,
-                     size_t count)
-            : Statement(Kind, range), m_for(_for), m_in(_in), m_expr(expr), m_body(body), m_count(count) {}
-
-
-        size_t GetTrailCount(OverloadToken<Identifier>) const { return m_count; }
-        size_t GetTrailCount(OverloadToken<SourcePosition>) const { return (m_count == 0) ? 0 : (m_count - 1); }
+        ForStatement(SourceRange range, SourcePosition _for, Identifier param, SourcePosition _in, Expression* expr,
+                     Statement* body)
+            : Statement(Kind, range), m_for(_for), m_param(std::move(param)), m_in(_in), m_expr(expr), m_body(body) {}
 
         const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
 
@@ -368,13 +362,7 @@ namespace BuildScript {
          */
         SourcePosition GetForPosition() const { return m_for; }
 
-        size_t GetParameterCount() const { return m_count; }
-
-        TrailIterator<const Identifier> GetParameterNames() const { return GetTrailObjects<Identifier>(); }
-
-        const Identifier& GetParameterNameAt(size_t index) const { return At<Identifier>(index); }
-
-        SourcePosition GetCommaPositionAt(size_t index) const { return At<SourcePosition>(index); }
+        const Identifier& GetParmeterName() const { return m_param; }
 
         /**
          * @brief Get a position of 'in' keyword.
@@ -395,8 +383,8 @@ namespace BuildScript {
         const Statement* GetBody() const { return m_body; }
 
         static ForStatement*
-        Create(Context& context, SourcePosition _for, const std::vector<Identifier>& params,
-               const std::vector<SourcePosition>& commas, SourcePosition _in, Expression* expr, Statement* body);
+        Create(Context& context, SourcePosition _for, Identifier param, SourcePosition _in, Expression* expr,
+               Statement* body);
     }; // end class ForStatement
 
     /**

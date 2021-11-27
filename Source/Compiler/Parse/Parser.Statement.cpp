@@ -267,23 +267,19 @@ Statement* Parser::ParseMatchStatement() {
 
 /*
  * for_statement
- *  : 'for' name_list 'in' expression body
+ *  : 'for' identifier 'in' expression body
  *  ;
  */
 Statement* Parser::ParseForStatement() {
     assert(m_token == TokenType::For);
 
     auto _for = ConsumeToken();
-    std::vector<Identifier> names;
-    std::vector<SourcePosition> commas;
-
-    ParseNameList(names, commas);
-
+    auto param = RequireIdentifier();
     auto in = RequireToken(TokenType::In);
     auto* expr = ParseExpression();
     auto* body = ParseBody();
 
-    return ForStatement::Create(m_context, _for, names, commas, in, expr, body);
+    return ForStatement::Create(m_context, _for, std::move(param), in, expr, body);
 }
 
 /*
