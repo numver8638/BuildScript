@@ -165,13 +165,6 @@ namespace BuildScript {
         SourcePosition GetPosition() const { return { size_t(m_current - m_begin), m_line, m_column }; }
 
         /**
-         * @brief Get next position after given position.
-         * @param pos the position.
-         * @return the next position after given position.
-         */
-        SourcePosition GetNextPosition(const SourcePosition& pos) const;
-
-        /**
          * @brief Get the name of the source text.
          * @return the name of the source text.
          */

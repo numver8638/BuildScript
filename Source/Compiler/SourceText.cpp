@@ -73,43 +73,6 @@ void SourceText::ConsumeChar() {
     }
 }
 
-SourcePosition SourceText::GetNextPosition(const SourcePosition& pos) const {
-    auto cursor = m_begin + pos.Cursor;
-
-    assert(cursor < m_end);
-
-    size_t length;
-    auto ch = m_encoding.DecodeChar(cursor, m_end, length);
-    auto line = m_line;
-    auto column = m_column;
-    cursor += length;
-
-    if (ch == u'\r' && m_encoding.DecodeChar(cursor, m_end, length) == u'\n') {
-        cursor += length;
-    }
-
-    switch (ch) {
-        case u'\r':
-        case u'\n':
-            ++line;
-            column = 0;
-            break;
-
-        case u'\t':
-            column += m_tabsize - (column % m_tabsize);
-            break;
-
-        default:
-            // do nothing.
-            break;
-    }
-
-    ++column;
-
-    return {static_cast<size_t>(cursor - m_begin), line, column};
-
-}
-
 std::string SourceText::GetString(const SourcePosition& begin, const SourcePosition& end) const {
     assert(begin.Cursor <= end.Cursor);
     assert((m_begin + end.Cursor) <= m_end);
