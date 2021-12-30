@@ -213,7 +213,11 @@ namespace BuildScript {
          * @return
          */
         template <typename DeclType>
-        DeclType* As() { return const_cast<DeclType*>(As<DeclType>()); }
+        DeclType* As() {
+            static_assert(std::is_base_of_v<Declaration, DeclType>, "DeclType is not base of Declaration.");
+
+            return (DeclType::Kind == m_kind) ? static_cast<DeclType*>(this) : nullptr;
+        }
     }; // end class Declaration
 
     inline const Declaration* ASTNode::AsDeclaration() const {
@@ -266,7 +270,11 @@ namespace BuildScript {
          * @return
          */
         template <typename StmtType>
-        StmtType* As() { return const_cast<StmtType*>(As<StmtType>()); }
+        StmtType* As() {
+            static_assert(std::is_base_of_v<Statement, StmtType>, "StmtType is not base of Statement.");
+
+            return (StmtType::Kind == m_kind) ? static_cast<StmtType*>(this) : nullptr;
+        }
     }; // end class Statement
 
     inline const Statement* ASTNode::AsStatement() const {
@@ -319,7 +327,11 @@ namespace BuildScript {
          * @return
          */
         template <typename ExprType>
-        ExprType* As() { return const_cast<ExprType*>(As<ExprType>()); }
+        ExprType* As() {
+            static_assert(std::is_base_of_v<Expression, ExprType>, "ExprType is not base of Expression.");
+
+            return (ExprType::Kind == m_kind) ? static_cast<ExprType*>(this) : nullptr;
+        }
     }; // end class Expression
 
     inline const Expression* ASTNode::AsExpression() const {
