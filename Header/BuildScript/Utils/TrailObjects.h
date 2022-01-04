@@ -11,7 +11,7 @@
 
 #include <array>
 #include <vector>
-#include <cstring>
+#include <memory>
 #include <type_traits>
 
 #include <BuildScript/Utils/PointerArith.h>

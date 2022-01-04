@@ -31,9 +31,8 @@ namespace BuildScript {
         SourcePosition m_close;
         size_t m_count;
 
-        Parameters(SourceRange range, SourcePosition open, SourcePosition ellipsis, SourcePosition close, size_t count)
-            : ASTNode(ASTKind::Parameters, range), m_open(open), m_ellipsis(ellipsis), m_close(close),
-              m_count(count) {}
+        Parameters(SourcePosition open, SourcePosition ellipsis, SourcePosition close, size_t count)
+            : ASTNode(ASTKind::Parameters), m_open(open), m_ellipsis(ellipsis), m_close(close), m_count(count) {}
 
         // TrailObjects support.
         size_t GetTrailCount(OverloadToken<Identifier>) const { return m_count; }

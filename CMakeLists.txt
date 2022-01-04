@@ -168,8 +168,8 @@ target_sources(BuildScript PRIVATE
                Source/Compiler/Parse/ParserBase.cpp
                Source/Compiler/Parse/Token.cpp
 
-               Source/Compiler/Context.cpp
                Source/Compiler/ErrorReporter.cpp
+               Source/Compiler/ManagedObject.cpp
                Source/Compiler/SourceText.cpp
 
                # ==== Utility ====
@@ -179,6 +179,7 @@ target_sources(BuildScript PRIVATE
                Source/Utils/Encoding/UTF16.cpp
                Source/Utils/Encoding/UTF32.cpp
                Source/Utils/Encoding/UTF8.cpp
+               Source/Utils/Hash.cpp
 
                # ==== Version ====
                ${CMAKE_CURRENT_BINARY_DIR}/Generated/Version.cpp)

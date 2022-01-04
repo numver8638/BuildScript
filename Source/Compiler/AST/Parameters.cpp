@@ -8,6 +8,8 @@
  */
 #include <BuildScript/Compiler/AST/Parameters.h>
 
+#include <BuildScript/Compiler/Context.h>
+
 using namespace BuildScript;
 
 Parameters*
@@ -17,7 +19,7 @@ Parameters::Create(Context& context, SourcePosition open, const std::vector<Iden
             && "count of parameter names and commas does not match.");
 
     auto trailSize = GetTrailSize(params.size(), commas.size());
-    auto* node = new (context, trailSize) Parameters({ open, close }, open, ellipsis, close, params.size());
+    auto* node = new (context.GetAllocator(), trailSize) Parameters(open, ellipsis, close, params.size());
 
     node->SetTrailObjects(params.data(), params.size());
     node->SetTrailObjects(commas.data(), commas.size());

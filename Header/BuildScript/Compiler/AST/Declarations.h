@@ -20,6 +20,7 @@
 #include <BuildScript/Utils/TrailObjects.h>
 
 namespace BuildScript {
+    class Context;
     class Parameters; // Defined in <BuildScript/Compiler/AST/Parameters.h>
 
     enum class DeclarationKind {
@@ -57,8 +58,10 @@ namespace BuildScript {
         static constexpr auto Kind = DeclarationKind::Invalid;
 
     private:
+        SourceRange m_range;
+
         explicit InvalidDeclaration(SourceRange range)
-            : Declaration(Kind, range) {}
+            : Declaration(Kind), m_range(range) {}
 
     public:
         static InvalidDeclaration* Create(Context& context, SourceRange range);
@@ -77,8 +80,8 @@ namespace BuildScript {
         std::string m_name;
         size_t m_count;
 
-        ScriptDeclaration(SourceRange range, std::string name, size_t count)
-            : Declaration(Kind, range), m_name(std::move(name)), m_count(count) {}
+        ScriptDeclaration(std::string name, size_t count)
+            : Declaration(Kind), m_name(std::move(name)), m_count(count) {}
 
         size_t GetTrailCount(OverloadToken<ASTNode*>) const { return m_count; } // TrailObjects support.
 
@@ -105,8 +108,8 @@ namespace BuildScript {
         SourcePosition m_import;
         Expression* m_path;
 
-        ImportDeclaration(SourceRange range, SourcePosition _import, Expression* path)
-            : Declaration(Kind, range), m_import(_import), m_path(path) {}
+        ImportDeclaration(SourcePosition _import, Expression* path)
+            : Declaration(Kind), m_import(_import), m_path(path) {}
 
         const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
 
@@ -139,9 +142,9 @@ namespace BuildScript {
         SourcePosition m_assign;
         Expression* m_value;
 
-        ExportDeclaration(SourceRange range, SourcePosition _export, Identifier name, SourcePosition assign,
+        ExportDeclaration(SourcePosition _export, Identifier name, SourcePosition assign,
                           Expression* value)
-            : Declaration(Kind, range), m_export(_export), m_name(std::move(name)), m_assign(assign), m_value(value) {}
+            : Declaration(Kind), m_export(_export), m_name(std::move(name)), m_assign(assign), m_value(value) {}
 
         const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
 
@@ -195,8 +198,8 @@ namespace BuildScript {
         Parameters* m_params;
         Statement* m_body;
 
-        FunctionDeclaration(SourceRange range, SourcePosition def, Identifier name, Parameters* param, Statement* body)
-            : Declaration(Kind, range), m_def(def), m_name(std::move(name)), m_params(param), m_body(body) {}
+        FunctionDeclaration(SourcePosition def, Identifier name, Parameters* param, Statement* body)
+            : Declaration(Kind), m_def(def), m_name(std::move(name)), m_params(param), m_body(body) {}
 
         const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
 
@@ -247,9 +250,9 @@ namespace BuildScript {
         SourcePosition m_close;
         size_t m_count;
 
-        ClassDeclaration(SourceRange range, SourcePosition _class, Identifier name, SourcePosition extends,
+        ClassDeclaration(SourcePosition _class, Identifier name, SourcePosition extends,
                          Identifier extendName, SourcePosition open, SourcePosition close, size_t count)
-            : Declaration(Kind, range), m_class(_class), m_name(std::move(name)), m_extends(extends),
+            : Declaration(Kind), m_class(_class), m_name(std::move(name)), m_extends(extends),
               m_extendName(std::move(extendName)), m_open(open), m_close(close), m_count(count) {}
 
         size_t GetTrailCount(OverloadToken<Declaration*>) const { return m_count; } // TrailObjects support.
@@ -321,10 +324,10 @@ namespace BuildScript {
         size_t m_count;
         size_t m_depsCount;
 
-        TaskDeclaration(SourceRange range, SourcePosition task, Identifier name, SourcePosition extends,
+        TaskDeclaration(SourcePosition task, Identifier name, SourcePosition extends,
                         Identifier extendName, SourcePosition dependsOn, SourcePosition open, SourcePosition close,
                         size_t count, size_t depsCount)
-            : Declaration(Kind, range), m_task(task), m_name(std::move(name)), m_extends(extends),
+            : Declaration(Kind), m_task(task), m_name(std::move(name)), m_extends(extends),
               m_extendName(std::move(extendName)), m_dependsOn(dependsOn), m_open(open), m_close(close), m_count(count),
               m_depsCount(depsCount) {}
 
@@ -405,9 +408,9 @@ namespace BuildScript {
         SourcePosition m_assign;
         Expression* m_value;
 
-        VariableDeclaration(SourceRange range, SourcePosition key, SpecifierKind kind, Identifier name,
-                            SourcePosition assign, Expression* value)
-            : Declaration(Kind, range), m_keyword(key), m_kind(kind), m_name(std::move(name)), m_assign(assign),
+        VariableDeclaration(SourcePosition key, SpecifierKind kind, Identifier name, SourcePosition assign,
+                            Expression* value)
+            : Declaration(Kind), m_keyword(key), m_kind(kind), m_name(std::move(name)), m_assign(assign),
               m_value(value) {
             assert((m_kind !=  SpecifierKind::Static) && "kind of variable cannot be 'static'");
         }
@@ -478,9 +481,9 @@ namespace BuildScript {
         SourcePosition m_with;
         Expression* m_withValue;
 
-        TaskInputsDeclaration(SourceRange range, SourcePosition inputs, Expression* inputsValue, SourcePosition with,
+        TaskInputsDeclaration(SourcePosition inputs, Expression* inputsValue, SourcePosition with,
                               Expression* withValue)
-            : Declaration(Kind, range), m_inputs(inputs), m_inputsValue(inputsValue), m_with(with),
+            : Declaration(Kind), m_inputs(inputs), m_inputsValue(inputsValue), m_with(with),
               m_withValue(withValue) {}
 
         const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
@@ -520,9 +523,9 @@ namespace BuildScript {
         SourcePosition m_from;
         Expression* m_fromValue;
 
-        TaskOutputsDeclaration(SourceRange range, SourcePosition outputs, Expression* outputsValue, SourcePosition from,
+        TaskOutputsDeclaration(SourcePosition outputs, Expression* outputsValue, SourcePosition from,
                                Expression* fromValue)
-            : Declaration(Kind, range), m_outputs(outputs), m_outputsValue(outputsValue), m_from(from),
+            : Declaration(Kind), m_outputs(outputs), m_outputsValue(outputsValue), m_from(from),
               m_fromValue(fromValue) {}
 
         const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
@@ -567,8 +570,8 @@ namespace BuildScript {
         SourcePosition m_pos;
         Statement* m_body;
 
-        TaskActionDeclaration(SourceRange range, ActionKind kind, SourcePosition pos, Statement* body)
-            : Declaration(Kind, range), m_kind(kind), m_pos(pos), m_body(body) {}
+        TaskActionDeclaration(ActionKind kind, SourcePosition pos, Statement* body)
+            : Declaration(Kind), m_kind(kind), m_pos(pos), m_body(body) {}
 
         const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
 
@@ -606,8 +609,8 @@ namespace BuildScript {
         SourcePosition m_assign;
         Expression* m_value;
 
-        TaskPropertyDeclaration(SourceRange range, Identifier name, SourcePosition assign, Expression* value)
-            : Declaration(Kind, range), m_name(std::move(name)), m_assign(assign), m_value(value) {}
+        TaskPropertyDeclaration(Identifier name, SourcePosition assign, Expression* value)
+            : Declaration(Kind), m_name(std::move(name)), m_assign(assign), m_value(value) {}
 
         const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
 
@@ -645,8 +648,8 @@ namespace BuildScript {
         Parameters* m_params;
         Statement* m_body;
 
-        ClassInitDeclaration(SourceRange range, SourcePosition init, Parameters* params, Statement* body)
-            : Declaration(Kind, range), m_init(init), m_params(params), m_body(body) {}
+        ClassInitDeclaration(SourcePosition init, Parameters* params, Statement* body)
+            : Declaration(Kind), m_init(init), m_params(params), m_body(body) {}
 
         const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
 
@@ -683,8 +686,8 @@ namespace BuildScript {
         SourcePosition m_deinit;
         Statement* m_body;
 
-        ClassDeinitDeclaration(SourceRange range, SourcePosition deinit, Statement* body)
-            : Declaration(Kind, range), m_deinit(deinit), m_body(body) {}
+        ClassDeinitDeclaration(SourcePosition deinit, Statement* body)
+            : Declaration(Kind), m_deinit(deinit), m_body(body) {}
 
         const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
 
@@ -718,9 +721,9 @@ namespace BuildScript {
         SourcePosition m_assign;
         Expression* m_value;
 
-        ClassFieldDeclaration(SourceRange range, SourcePosition keyword, SpecifierKind kind, Identifier name,
+        ClassFieldDeclaration(SourcePosition keyword, SpecifierKind kind, Identifier name,
                               SourcePosition assign, Expression* value)
-            : Declaration(Kind, range), m_keyword(keyword), m_kind(kind), m_name(std::move(name)), m_assign(assign),
+            : Declaration(Kind), m_keyword(keyword), m_kind(kind), m_name(std::move(name)), m_assign(assign),
               m_value(value) {
             assert((m_kind != SpecifierKind::Var) && "kind of field cannot be 'var'.");
         }
@@ -779,9 +782,9 @@ namespace BuildScript {
         Parameters* m_params;
         Statement* m_body;
 
-        ClassMethodDeclaration(SourceRange range, SourcePosition _static, SourcePosition def, Identifier name,
+        ClassMethodDeclaration(SourcePosition _static, SourcePosition def, Identifier name,
                                Parameters* params, Statement* body)
-            : Declaration(Kind, range), m_static(_static), m_def(def), m_name(std::move(name)), m_params(params),
+            : Declaration(Kind), m_static(_static), m_def(def), m_name(std::move(name)), m_params(params),
               m_body(body) {}
 
         const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
@@ -838,9 +841,8 @@ namespace BuildScript {
         bool m_isGetter;
         Statement* m_body;
 
-        ClassPropertyDeclaration(SourceRange range, SourcePosition keyword, Identifier name, bool isGetter,
-                                 Statement* body)
-            : Declaration(Kind, range), m_keyword(keyword), m_name(std::move(name)), m_isGetter(isGetter),
+        ClassPropertyDeclaration(SourcePosition keyword, Identifier name, bool isGetter, Statement* body)
+            : Declaration(Kind), m_keyword(keyword), m_name(std::move(name)), m_isGetter(isGetter),
               m_body(body) {}
 
         const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
@@ -894,9 +896,9 @@ namespace BuildScript {
         Parameters* m_params;
         Statement* m_body;
 
-        ClassOperatorDeclaration(SourceRange range, SourcePosition _operator, OperatorKind kind,
-                                 std::array<SourcePosition, 2> pos, Parameters* params, Statement* body)
-            : Declaration(Kind, range), m_operator(_operator), m_kind(kind), m_pos(pos), m_params(params),
+        ClassOperatorDeclaration(SourcePosition _operator, OperatorKind kind, std::array<SourcePosition, 2> pos,
+                                 Parameters* params, Statement* body)
+            : Declaration(Kind), m_operator(_operator), m_kind(kind), m_pos(pos), m_params(params),
               m_body(body) {}
 
         const ASTNode* GetChild(size_t index) const override; // ASTIterator support.

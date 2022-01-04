@@ -220,7 +220,7 @@ void ASTDumper::Dump(const ASTNode* root) {
 }
 
 WalkerFlags ASTDumper::OnEnterNode(const Parameters& node) {
-    writer() << "<< Parameters @ " << node.GetRange() << " >>" << EOL;
+    writer() << "<< Parameters >>" << EOL;
 
     writer() << Indent;
 
@@ -247,19 +247,19 @@ WalkerFlags ASTDumper::OnEnterNode(const Parameters& node) {
 }
 
 WalkerFlags ASTDumper::OnEnterNode(const InvalidDeclaration& node) {
-    writer() << "<< InvalidDeclaration @ " << node.GetRange() << " >>" << EOL << Indent;
+    writer() << "<< InvalidDeclaration >>" << EOL << Indent;
     return WalkerFlags::Continue;
 }
 
 WalkerFlags ASTDumper::OnEnterNode(const ScriptDeclaration& node) {
-    writer() << "<< ScriptNode @ " << node.GetRange() << " >>" << EOL << Indent;
+    writer() << "<< ScriptNode >>" << EOL << Indent;
     writer() << "- Name: " << node.GetName() << EOL;
 
     return WalkerFlags::Continue;
 }
 
 WalkerFlags ASTDumper::OnEnterNode(const TaskInputsDeclaration& node) {
-    writer() << "<< TaskInputsDeclaration @ " << node.GetRange() << " >>" << EOL << Indent;
+    writer() << "<< TaskInputsDeclaration >>" << EOL << Indent;
     writer() << "- InputsKeywordPosition: " << node.GetInputsPosition() << EOL;
     writer() << "- WithKeywordPosition: " << node.GetWithPosition() << EOL;
 
@@ -267,7 +267,7 @@ WalkerFlags ASTDumper::OnEnterNode(const TaskInputsDeclaration& node) {
 }
 
 WalkerFlags ASTDumper::OnEnterNode(const TaskOutputsDeclaration& node) {
-    writer() << "<< TaskOutputsDeclaration @ " << node.GetRange() << " >>" << EOL << Indent;
+    writer() << "<< TaskOutputsDeclaration >>" << EOL << Indent;
     writer() << "- OutputsKeywordPosition: " << node.GetOutputsPosition() << EOL;
     writer() << "- FromKeywordPosition: " << node.GetFromPosition() << EOL;
 
@@ -275,14 +275,14 @@ WalkerFlags ASTDumper::OnEnterNode(const TaskOutputsDeclaration& node) {
 }
 
 WalkerFlags ASTDumper::OnEnterNode(const TaskActionDeclaration& node) {
-    writer() << "<< TaskActionDeclaration @ " << node.GetRange() << " >>" << EOL << Indent;
+    writer() << "<< TaskActionDeclaration >>" << EOL << Indent;
     writer() << "- KeywordPosition: " << node.GetKeywordPosition() << EOL;
 
     return WalkerFlags::Continue;
 }
 
 WalkerFlags ASTDumper::OnEnterNode(const TaskPropertyDeclaration& node) {
-    writer() << "<< TaskPropertyDeclaration @ " << node.GetRange() << " >>" << EOL << Indent;
+    writer() << "<< TaskPropertyDeclaration >>" << EOL << Indent;
 
     writer() << "- Name: " << node.GetName() << EOL;
     writer() << "- AssignPosition: " << node.GetAssignPosition() << EOL;
@@ -292,7 +292,7 @@ WalkerFlags ASTDumper::OnEnterNode(const TaskPropertyDeclaration& node) {
 
 // Declarations
 WalkerFlags ASTDumper::OnEnterNode(const TaskDeclaration& node) {
-    writer() << "<< TaskDeclaration @ " << node.GetRange() << " >>" << EOL ;
+    writer() << "<< TaskDeclaration >>" << EOL ;
 
     writer() << Indent;
 
@@ -327,7 +327,7 @@ WalkerFlags ASTDumper::OnEnterNode(const TaskDeclaration& node) {
 }
 
 WalkerFlags ASTDumper::OnEnterNode(const ClassDeclaration& node) {
-    writer() << "<< ClassDeclaration @ " << node.GetRange() << " >>" << EOL;
+    writer() << "<< ClassDeclaration >>" << EOL;
 
     writer() << Indent;
 
@@ -346,7 +346,7 @@ WalkerFlags ASTDumper::OnEnterNode(const ClassDeclaration& node) {
 }
 
 WalkerFlags ASTDumper::OnEnterNode(const FunctionDeclaration& node) {
-    writer() << "<< FunctionDeclaration @ " << node.GetRange() << " >>" << EOL;
+    writer() << "<< FunctionDeclaration >>" << EOL;
 
     writer() << Indent;
 
@@ -358,7 +358,7 @@ WalkerFlags ASTDumper::OnEnterNode(const FunctionDeclaration& node) {
 }
 
 WalkerFlags ASTDumper::OnEnterNode(const ImportDeclaration& node) {
-    writer() << "<< ImportDeclaration @ " << node.GetRange() << " >>" << EOL;
+    writer() << "<< ImportDeclaration >>" << EOL;
 
     writer() << Indent;
 
@@ -368,7 +368,7 @@ WalkerFlags ASTDumper::OnEnterNode(const ImportDeclaration& node) {
 }
 
 WalkerFlags ASTDumper::OnEnterNode(const ExportDeclaration& node) {
-    writer() << "<< ExportDeclaration @ " << node.GetRange() << " >>" << EOL;
+    writer() << "<< ExportDeclaration >>" << EOL;
 
     writer() << Indent;
 
@@ -383,7 +383,7 @@ WalkerFlags ASTDumper::OnEnterNode(const ExportDeclaration& node) {
 }
 
 WalkerFlags ASTDumper::OnEnterNode(const VariableDeclaration& node) {
-    writer() << "<< VariableDeclaration @ " << node.GetRange() << " >>" << EOL;
+    writer() << "<< VariableDeclaration >>" << EOL;
 
     writer() << Indent;
 
@@ -403,7 +403,7 @@ WalkerFlags ASTDumper::OnEnterNode(const VariableDeclaration& node) {
 
 // ClassMembers
 WalkerFlags ASTDumper::OnEnterNode(const ClassInitDeclaration& node) {
-    writer() << "<< ClassInitDeclaration @ " << node.GetRange() << " >>" << EOL;
+    writer() << "<< ClassInitDeclaration >>" << EOL;
 
     writer() << Indent;
 
@@ -413,7 +413,7 @@ WalkerFlags ASTDumper::OnEnterNode(const ClassInitDeclaration& node) {
 }
 
 WalkerFlags ASTDumper::OnEnterNode(const ClassDeinitDeclaration& node) {
-    writer() << "<< ClassDeinitDeclaration @ " << node.GetRange() << " >>" << EOL;
+    writer() << "<< ClassDeinitDeclaration >>" << EOL;
 
     writer() << Indent;
 
@@ -423,7 +423,7 @@ WalkerFlags ASTDumper::OnEnterNode(const ClassDeinitDeclaration& node) {
 }
 
 WalkerFlags ASTDumper::OnEnterNode(const ClassFieldDeclaration& node) {
-    writer() << "<< ClassFieldDeclaration @ " << node.GetRange() << " >>" << EOL;
+    writer() << "<< ClassFieldDeclaration >>" << EOL;
 
     writer() << Indent;
 
@@ -445,7 +445,7 @@ WalkerFlags ASTDumper::OnEnterNode(const ClassFieldDeclaration& node) {
 }
 
 WalkerFlags ASTDumper::OnEnterNode(const ClassMethodDeclaration& node) {
-    writer() << "<< ClassMethodDeclaration @ " << node.GetRange() << " >>" << EOL;
+    writer() << "<< ClassMethodDeclaration >>" << EOL;
 
     writer() << Indent;
 
@@ -462,7 +462,7 @@ WalkerFlags ASTDumper::OnEnterNode(const ClassMethodDeclaration& node) {
 }
 
 WalkerFlags ASTDumper::OnEnterNode(const ClassPropertyDeclaration& node) {
-    writer() << "<< ClassPropertyDeclaration @ " << node.GetRange() << " >>" << EOL;
+    writer() << "<< ClassPropertyDeclaration >>" << EOL;
 
     writer() << Indent;
 
@@ -480,7 +480,7 @@ WalkerFlags ASTDumper::OnEnterNode(const ClassPropertyDeclaration& node) {
 }
 
 WalkerFlags ASTDumper::OnEnterNode(const ClassOperatorDeclaration& node) {
-    writer() << "<< ClassOperatorDeclaration @ " << node.GetRange() << " >>" << EOL;
+    writer() << "<< ClassOperatorDeclaration >>" << EOL;
 
     writer() << Indent;
 
@@ -499,13 +499,13 @@ WalkerFlags ASTDumper::OnEnterNode(const ClassOperatorDeclaration& node) {
 
 // Statements
 WalkerFlags ASTDumper::OnEnterNode(const InvalidStatement& node) {
-    writer() << "<< InvalidStatement @ " << node.GetRange() << " >>" << EOL << Indent;
+    writer() << "<< InvalidStatement >>" << EOL << Indent;
 
     return WalkerFlags::Continue;
 }
 
 WalkerFlags ASTDumper::OnEnterNode(const ArrowStatement& node) {
-    writer() << "<< ArrowStatement @ " << node.GetRange() << " >>" << EOL;
+    writer() << "<< ArrowStatement >>" << EOL;
     writer() << Indent;
 
     writer() << "- ArrowPosition: " << node.GetArrowPosition() << EOL;
@@ -515,7 +515,7 @@ WalkerFlags ASTDumper::OnEnterNode(const ArrowStatement& node) {
 }
 
 WalkerFlags ASTDumper::OnEnterNode(const BlockStatement& node) {
-    writer() << "<< BlockStatement @ " << node.GetRange() << " >>" << EOL;
+    writer() << "<< BlockStatement >>" << EOL;
     writer() << Indent;
 
     writer() << "- OpenBrace: " << node.GetOpenBracePosition() << EOL;
@@ -526,7 +526,7 @@ WalkerFlags ASTDumper::OnEnterNode(const BlockStatement& node) {
 }
 
 WalkerFlags ASTDumper::OnEnterNode(const IfStatement& node) {
-    writer() << "<< IfStatement @ " << node.GetRange() << " >>" << EOL;
+    writer() << "<< IfStatement >>" << EOL;
 
     writer() << Indent;
 
@@ -538,7 +538,7 @@ WalkerFlags ASTDumper::OnEnterNode(const IfStatement& node) {
 }
 
 WalkerFlags ASTDumper::OnEnterNode(const Label& node) {
-    writer() << "<< Label @ " << node.GetRange() << " >>" << EOL << Indent;
+    writer() << "<< Label >>" << EOL << Indent;
 
     if (node.IsDefault()) {
         writer() << "- DefaultKeywordPosition: " << node.GetDefaultPosition() << EOL;
@@ -554,14 +554,14 @@ WalkerFlags ASTDumper::OnEnterNode(const Label& node) {
 }
 
 WalkerFlags ASTDumper::OnEnterNode(const LabeledStatement& node) {
-    writer() << "<< LabeledStatement @ " << node.GetRange() << " >>" << EOL;
+    writer() << "<< LabeledStatement >>" << EOL;
     writer() << Indent;
 
     return WalkerFlags::Continue;
 }
 
 WalkerFlags ASTDumper::OnEnterNode(const MatchStatement& node) {
-    writer() << "<< MatchStatement @ " << node.GetRange() << " >>" << EOL;
+    writer() << "<< MatchStatement >>" << EOL;
 
     writer() << Indent;
 
@@ -571,7 +571,7 @@ WalkerFlags ASTDumper::OnEnterNode(const MatchStatement& node) {
 }
 
 WalkerFlags ASTDumper::OnEnterNode(const ForStatement& node) {
-    writer() << "<< ForStatement @ " << node.GetRange() << " >>" << EOL;
+    writer() << "<< ForStatement >>" << EOL;
 
     writer() << Indent;
 
@@ -587,7 +587,7 @@ WalkerFlags ASTDumper::OnEnterNode(const ForStatement& node) {
 }
 
 WalkerFlags ASTDumper::OnEnterNode(const WhileStatement& node) {
-    writer() << "<< WhileStatement @ " << node.GetRange() << " >>" << EOL;
+    writer() << "<< WhileStatement >>" << EOL;
 
     writer() << Indent;
 
@@ -598,7 +598,7 @@ WalkerFlags ASTDumper::OnEnterNode(const WhileStatement& node) {
 }
 
 WalkerFlags ASTDumper::OnEnterNode(const WithStatement& node) {
-    writer() << "<< WithStatement @ " << node.GetRange() << " >>" << EOL;
+    writer() << "<< WithStatement >>" << EOL;
 
     writer() << Indent;
 
@@ -613,7 +613,7 @@ WalkerFlags ASTDumper::OnEnterNode(const WithStatement& node) {
 }
 
 WalkerFlags ASTDumper::OnEnterNode(const ExceptStatement& node) {
-    writer() << "<< ExceptClause @ " << node.GetRange() << " >>" << EOL << Indent;
+    writer() << "<< ExceptClause >>" << EOL << Indent;
 
     writer() << "- ExceptKeywordPosition: " << node.GetExceptPosition() << EOL;
     writer() << "- Typename: " << node.GetTypename() << EOL;
@@ -627,7 +627,7 @@ WalkerFlags ASTDumper::OnEnterNode(const ExceptStatement& node) {
 }
 
 WalkerFlags ASTDumper::OnEnterNode(const FinallyStatement& node) {
-    writer() << "<< FinallyClause @ " << node.GetRange() << " >>" << EOL << Indent;
+    writer() << "<< FinallyClause >>" << EOL << Indent;
 
     writer() << "- FinallyKeywordPosition: " << node.GetFinallyPosition() << EOL;
 
@@ -635,7 +635,7 @@ WalkerFlags ASTDumper::OnEnterNode(const FinallyStatement& node) {
 }
 
 WalkerFlags ASTDumper::OnEnterNode(const TryStatement& node) {
-    writer() << "<< TryStatement @ " << node.GetRange() << " >>" << EOL;
+    writer() << "<< TryStatement >>" << EOL;
 
     writer() << Indent;
 
@@ -645,7 +645,7 @@ WalkerFlags ASTDumper::OnEnterNode(const TryStatement& node) {
 }
 
 WalkerFlags ASTDumper::OnEnterNode(const BreakStatement& node) {
-    writer() << "<< BreakStatement @ " << node.GetRange() << " >>" << EOL;
+    writer() << "<< BreakStatement >>" << EOL;
 
     writer() << Indent;
 
@@ -659,7 +659,7 @@ WalkerFlags ASTDumper::OnEnterNode(const BreakStatement& node) {
 }
 
 WalkerFlags ASTDumper::OnEnterNode(const ContinueStatement& node) {
-    writer() << "<< ContinueStatement @ " << node.GetRange() << " >>" << EOL;
+    writer() << "<< ContinueStatement >>" << EOL;
 
     writer() << Indent;
 
@@ -673,7 +673,7 @@ WalkerFlags ASTDumper::OnEnterNode(const ContinueStatement& node) {
 }
 
 WalkerFlags ASTDumper::OnEnterNode(const ReturnStatement& node) {
-    writer() << "<< ReturnStatement @ " << node.GetRange() << " >>" << EOL;
+    writer() << "<< ReturnStatement >>" << EOL;
 
     writer() << Indent;
 
@@ -683,7 +683,7 @@ WalkerFlags ASTDumper::OnEnterNode(const ReturnStatement& node) {
 }
 
 WalkerFlags ASTDumper::OnEnterNode(const AssertStatement& node) {
-    writer() << "<< AssertStatement @ " << node.GetRange() << " >>" << EOL;
+    writer() << "<< AssertStatement >>" << EOL;
 
     writer() << Indent;
 
@@ -694,7 +694,7 @@ WalkerFlags ASTDumper::OnEnterNode(const AssertStatement& node) {
 }
 
 WalkerFlags ASTDumper::OnEnterNode(const PassStatement& node) {
-    writer() << "<< PassStatement @ " << node.GetRange() << " >>" << EOL;
+    writer() << "<< PassStatement >>" << EOL;
 
     writer() << Indent;
 
@@ -704,7 +704,7 @@ WalkerFlags ASTDumper::OnEnterNode(const PassStatement& node) {
 }
 
 WalkerFlags ASTDumper::OnEnterNode(const AssignStatement& node) {
-    writer() << "<< AssignStatement @ " << node.GetRange() << " >>" << EOL;
+    writer() << "<< AssignStatement >>" << EOL;
 
     writer() << Indent;
 
@@ -716,19 +716,19 @@ WalkerFlags ASTDumper::OnEnterNode(const AssignStatement& node) {
 
 // Expressions
 WalkerFlags ASTDumper::OnEnterNode(const InvalidExpression& node) {
-    writer() << "<< InvalidExpression @ " << node.GetRange() << " >>" << EOL << Indent;
+    writer() << "<< InvalidExpression >>" << EOL << Indent;
 
     return WalkerFlags::Continue;
 }
 
 WalkerFlags ASTDumper::OnEnterNode(const PassExpression& node) {
-    writer() << "<< PassExpression @ " << node.GetRange() << " >>" << EOL << Indent;
+    writer() << "<< PassExpression >>" << EOL << Indent;
 
     return WalkerFlags::Continue;
 }
 
 WalkerFlags ASTDumper::OnEnterNode(const TernaryExpression& node) {
-    writer() << "<< ConditionalExpression @ " << node.GetRange() << " >>" << EOL;
+    writer() << "<< ConditionalExpression >>" << EOL;
 
     writer() << Indent;
         writer() << "- IfKeywordPosition: " << node.GetIfPosition() << EOL;
@@ -738,7 +738,7 @@ WalkerFlags ASTDumper::OnEnterNode(const TernaryExpression& node) {
 }
 
 WalkerFlags ASTDumper::OnEnterNode(const BinaryExpression& node) {
-    writer() << "<< BinaryExpression @ " << node.GetRange() << " >>" << EOL;
+    writer() << "<< BinaryExpression >>" << EOL;
 
     writer() << Indent;
         writer() << "- Operation: " << node.GetOp() << EOL;
@@ -753,7 +753,7 @@ WalkerFlags ASTDumper::OnEnterNode(const BinaryExpression& node) {
 }
 
 WalkerFlags ASTDumper::OnEnterNode(const UnaryExpression& node) {
-    writer() << "<< UnaryExpression @ " << node.GetRange() << " >>" << EOL;
+    writer() << "<< UnaryExpression >>" << EOL;
 
     writer() << Indent;
         writer() << "- Operation: " << node.GetOp() << EOL;
@@ -763,7 +763,7 @@ WalkerFlags ASTDumper::OnEnterNode(const UnaryExpression& node) {
 }
 
 WalkerFlags ASTDumper::OnEnterNode(const DefinedExpression& node) {
-    writer() << "<< DefinedExpression @ " << node.GetRange() << " >>" << EOL;
+    writer() << "<< DefinedExpression >>" << EOL;
 
     writer() << Indent;
         writer() << "- DefinedKeywordPosition: " << node.GetDefinedPosition() << EOL;
@@ -777,7 +777,7 @@ WalkerFlags ASTDumper::OnEnterNode(const DefinedExpression& node) {
 }
 
 WalkerFlags ASTDumper::OnEnterNode(const RaiseExpression& node) {
-    writer() << "<< RaiseExpression @ " << node.GetRange() << " >>" << EOL;
+    writer() << "<< RaiseExpression >>" << EOL;
 
     writer() << Indent;
 
@@ -787,7 +787,7 @@ WalkerFlags ASTDumper::OnEnterNode(const RaiseExpression& node) {
 }
 
 WalkerFlags ASTDumper::OnEnterNode(const MemberAccessExpression& node) {
-    writer() << "<< MemberAccessExpression @ " << node.GetRange() << " >>" << EOL;
+    writer() << "<< MemberAccessExpression >>" << EOL;
 
     writer() << Indent;
         writer() << "- MemberName: " << node.GetMemberName() << EOL;
@@ -797,7 +797,7 @@ WalkerFlags ASTDumper::OnEnterNode(const MemberAccessExpression& node) {
 }
 
 WalkerFlags ASTDumper::OnEnterNode(const SubscriptExpression& node) {
-    writer() << "<< SubscriptExpression @ " << node.GetRange() << " >>" << EOL;
+    writer() << "<< SubscriptExpression >>" << EOL;
 
     writer() << Indent;
         writer() << "- OpenSquarePosition: " << node.GetOpenSquarePosition() << EOL;
@@ -807,7 +807,7 @@ WalkerFlags ASTDumper::OnEnterNode(const SubscriptExpression& node) {
 }
 
 WalkerFlags ASTDumper::OnEnterNode(const InvocationExpression& node) {
-    writer() << "<< InvocationExpression @ " << node.GetRange() << " >>" << EOL;
+    writer() << "<< InvocationExpression >>" << EOL;
 
     writer() << Indent;
         writer() << "- OpenParenPosition: " << node.GetOpenParenPosition() << EOL;
@@ -817,7 +817,7 @@ WalkerFlags ASTDumper::OnEnterNode(const InvocationExpression& node) {
 }
 
 WalkerFlags ASTDumper::OnEnterNode(const ParenthesizedExpression& node) {
-    writer() << "<< ParenthesizedExpression @ " << node.GetRange() << " >>" << EOL;
+    writer() << "<< ParenthesizedExpression >>" << EOL;
 
     writer() << Indent;
         writer() << "- OpenParenPosition: " << node.GetOpenParenPosition() << EOL;
@@ -828,18 +828,18 @@ WalkerFlags ASTDumper::OnEnterNode(const ParenthesizedExpression& node) {
 }
 
 WalkerFlags ASTDumper::OnEnterNode(const LiteralExpression& node) {
-    writer() << "<< LiteralExpression @ " << node.GetRange() << " >>" << EOL;
+    writer() << "<< LiteralExpression >>" << EOL;
 
     writer() << Indent;
         writer() << "- LiteralType: " << node.GetLiteralType() << EOL;
-        writer() << "- RawValue: " << m_source.GetString(node.GetRange()) << EOL;
+        // writer() << "- RawValue: " << m_source.GetString(node.GetRange()) << EOL;
 
 
     return WalkerFlags::Continue;
 }
 
 WalkerFlags ASTDumper::OnEnterNode(const ListExpression& node) {
-    writer() << "<< ListExpression @ " << node.GetRange() << " >>" << EOL;
+    writer() << "<< ListExpression >>" << EOL;
 
     writer() << Indent;
         writer() << "- OpenSquarePosition: " << node.GetOpenSquarePosition() << EOL;
@@ -850,13 +850,13 @@ WalkerFlags ASTDumper::OnEnterNode(const ListExpression& node) {
 }
 
 WalkerFlags ASTDumper::OnEnterNode(const KeyValuePair& node) {
-    writer() << "<< KeyValuePair @ " << node.GetRange() << " >>" << EOL << Indent;
+    writer() << "<< KeyValuePair >>" << EOL << Indent;
     writer() << "- ColonPosition: " << node.GetColonPosition() << EOL;
     return WalkerFlags::Continue;
 }
 
 WalkerFlags ASTDumper::OnEnterNode(const MapExpression& node) {
-    writer() << "<< MapExpression @ " << node.GetRange() << " >>" << EOL;
+    writer() << "<< MapExpression >>" << EOL;
 
     writer() << Indent;
         writer() << "- OpenBracePosition: " << node.GetOpenBracePosition() << EOL;
@@ -866,7 +866,7 @@ WalkerFlags ASTDumper::OnEnterNode(const MapExpression& node) {
 }
 
 WalkerFlags ASTDumper::OnEnterNode(const ClosureExpression& node) {
-    writer() << "<< ClosureExpression @ " << node.GetRange() << " >>" << EOL;
+    writer() << "<< ClosureExpression >>" << EOL;
 
     writer() << Indent;
 

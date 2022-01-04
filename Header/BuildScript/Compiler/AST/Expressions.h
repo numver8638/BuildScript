@@ -20,7 +20,7 @@
 #include <BuildScript/Utils/TrailObjects.h>
 
 namespace BuildScript {
-    class Parameters;
+    class Context; // Defined in <BuildScript/Compiler/Context.h>
 
     enum class ExpressionKind {
         Invalid,
@@ -57,8 +57,10 @@ namespace BuildScript {
         static constexpr auto Kind = ExpressionKind::Invalid;
 
     private:
+        SourceRange m_range;
+
         explicit InvalidExpression(SourceRange range)
-            : Expression(Kind, range) {}
+            : Expression(Kind), m_range(range) {}
 
     public:
         static InvalidExpression* Create(Context& context, SourceRange range);
@@ -72,11 +74,15 @@ namespace BuildScript {
         static constexpr auto Kind = ExpressionKind::Pass;
 
     private:
-        explicit PassExpression(SourceRange range)
-            : Expression(Kind, range) {}
+        SourcePosition m_pass;
+
+        explicit PassExpression(SourcePosition pass)
+            : Expression(Kind), m_pass(pass) {}
 
     public:
-        static PassExpression* Create(Context& context, SourceRange range);
+        SourcePosition GetPassPosition() const { return m_pass; }
+
+        static PassExpression* Create(Context& context, SourcePosition pass);
     }; // end class PassExpression
 
     /**
@@ -93,9 +99,9 @@ namespace BuildScript {
         SourcePosition m_else;
         Expression* m_valueF;
 
-        TernaryExpression(SourceRange range, Expression* valueT, SourcePosition _if, Expression* cond,
+        TernaryExpression(Expression* valueT, SourcePosition _if, Expression* cond,
                           SourcePosition _else, Expression* valueF)
-            : Expression(Kind, range), m_valueT(valueT), m_if(_if), m_cond(cond), m_else(_else), m_valueF(valueF) {}
+            : Expression(Kind), m_valueT(valueT), m_if(_if), m_cond(cond), m_else(_else), m_valueF(valueF) {}
 
         const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
 
@@ -176,9 +182,9 @@ namespace BuildScript {
         std::array<SourcePosition, 2> m_pos;
         Expression* m_right;
 
-        BinaryExpression(SourceRange range, Expression* left, BinaryOp op, std::array<SourcePosition, 2> pos,
+        BinaryExpression(Expression* left, BinaryOp op, std::array<SourcePosition, 2> pos,
                          Expression* right)
-            : Expression(Kind, range), m_left(left), m_op(op), m_pos(pos), m_right(right) {}
+            : Expression(Kind), m_left(left), m_op(op), m_pos(pos), m_right(right) {}
 
         const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
 
@@ -239,8 +245,8 @@ namespace BuildScript {
         SourcePosition m_pos;
         Expression* m_expr;
 
-        UnaryExpression(SourceRange range, UnaryOp op, SourcePosition pos, Expression* expr)
-            : Expression(Kind, range), m_op(op), m_pos(pos), m_expr(expr) {}
+        UnaryExpression(UnaryOp op, SourcePosition pos, Expression* expr)
+            : Expression(Kind), m_op(op), m_pos(pos), m_expr(expr) {}
 
         const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
 
@@ -279,9 +285,9 @@ namespace BuildScript {
         SourcePosition m_in;
         Expression* m_target;
 
-        DefinedExpression(SourceRange range, SourcePosition defined, Identifier id, SourcePosition in,
+        DefinedExpression(SourcePosition defined, Identifier id, SourcePosition in,
                           Expression* target)
-            : Expression(Kind, range), m_defined(defined), m_id(std::move(id)), m_in(in), m_target(target) {}
+            : Expression(Kind), m_defined(defined), m_id(std::move(id)), m_in(in), m_target(target) {}
 
         const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
 
@@ -325,8 +331,8 @@ namespace BuildScript {
         SourcePosition m_raise;
         Expression* m_target;
 
-        RaiseExpression(SourceRange range, SourcePosition raise, Expression* target)
-            : Expression(Kind, range), m_raise(raise), m_target(target) {}
+        RaiseExpression(SourcePosition raise, Expression* target)
+            : Expression(Kind), m_raise(raise), m_target(target) {}
 
         const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
 
@@ -358,8 +364,8 @@ namespace BuildScript {
         SourcePosition m_dot;
         Identifier m_name;
 
-        MemberAccessExpression(SourceRange range, Expression* target, SourcePosition dot, Identifier name)
-            : Expression(Kind, range), m_target(target), m_dot(dot), m_name(std::move(name)) {}
+        MemberAccessExpression(Expression* target, SourcePosition dot, Identifier name)
+            : Expression(Kind), m_target(target), m_dot(dot), m_name(std::move(name)) {}
 
         const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
 
@@ -397,26 +403,25 @@ namespace BuildScript {
         static constexpr auto Kind = ExpressionKind::Invocation;
 
     private:
+        Expression* m_target;
         SourcePosition m_open;
         SourcePosition m_close;
-        size_t m_exprCount;
-        size_t m_commaCount;
+        size_t m_count;
 
-        InvocationExpression(SourceRange range, SourcePosition open, SourcePosition close, size_t exprCount,
-                             size_t commaCount)
-            : Expression(Kind, range), m_open(open), m_close(close), m_exprCount(exprCount), m_commaCount(commaCount) {}
+        InvocationExpression(Expression* target, SourcePosition open, SourcePosition close, size_t count)
+            : Expression(Kind), m_target(target), m_open(open), m_close(close), m_count(count) {}
 
-        size_t GetTrailCount(OverloadToken<Expression*>) const { return m_exprCount; } // TrailObjects support.
-        size_t GetTrailCount(OverloadToken<SourcePosition>) const { return m_commaCount; } // TrailObjects support.
+        size_t GetTrailCount(OverloadToken<Expression*>) const { return m_count; } // TrailObjects support.
+        size_t GetTrailCount(OverloadToken<SourcePosition>) const { return GetArguementCount(); } // TrailObjects support.
 
         const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
 
     public:
         /**
-         * @brief
+         * @brief Get an expression that is target of invocation.
          * @return
          */
-        Expression* GetTarget() const { return At<Expression*>(0); }
+        Expression* GetTarget() const { return m_target; }
 
         /**
          * @brief Get a position of '('.
@@ -428,13 +433,13 @@ namespace BuildScript {
          * @brief
          * @return
          */
-        ASTIterator GetArguments() const;
+        ASTIterator GetArguments() const { return { this, 1 }; }
 
         /**
          * @brief Get count of arguments.
          * @return a count of arguments.
          */
-        size_t GetArguementCount() const { return m_exprCount - 1; }
+        size_t GetArguementCount() const { return (m_count > 1) ? m_count - 1 : 0; }
 
         /**
          * @brief
@@ -456,7 +461,7 @@ namespace BuildScript {
         SourcePosition GetCloseParenPosition() const { return m_close; }
 
         static InvocationExpression*
-        Create(Context& context, SourcePosition open, const std::vector<Expression*>& nodes,
+        Create(Context& context, Expression* target, SourcePosition open, const std::vector<Expression*>& args,
                const std::vector<SourcePosition>& commas, SourcePosition close);
     }; // end class InvocationExpression
 
@@ -473,9 +478,8 @@ namespace BuildScript {
         Expression* m_index;
         SourcePosition m_close;
 
-        SubscriptExpression(SourceRange range, Expression* target, SourcePosition open, Expression* index,
-                            SourcePosition close)
-            : Expression(Kind, range), m_target(target), m_open(open), m_index(index), m_close(close) {}
+        SubscriptExpression(Expression* target, SourcePosition open, Expression* index, SourcePosition close)
+            : Expression(Kind), m_target(target), m_open(open), m_index(index), m_close(close) {}
 
         const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
 
@@ -520,8 +524,8 @@ namespace BuildScript {
         SourcePosition m_close;
         Expression* m_expr;
 
-        ParenthesizedExpression(SourceRange range, SourcePosition open, SourcePosition close, Expression* expr)
-            : Expression(Kind, range), m_open(open), m_close(close), m_expr(expr) {}
+        ParenthesizedExpression(SourcePosition open, SourcePosition close, Expression* expr)
+            : Expression(Kind), m_open(open), m_close(close), m_expr(expr) {}
 
         const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
 
@@ -562,8 +566,8 @@ namespace BuildScript {
         SourcePosition m_close;
         size_t m_count;
 
-        ListExpression(SourceRange range, SourcePosition open, SourcePosition close, size_t count)
-            : Expression(Kind, range), m_open(open), m_close(close), m_count(count) {}
+        ListExpression(SourcePosition open, SourcePosition close, size_t count)
+            : Expression(Kind), m_open(open), m_close(close), m_count(count) {}
 
         // TrailObjects support.
         size_t GetTrailCount(OverloadToken<Expression*>) const { return m_count; }
@@ -597,7 +601,7 @@ namespace BuildScript {
     }; // end class ListExpression
 
     /**
-     * @brief
+     * @brief Represents key and value in map.
      */
     class KeyValuePair final : public Expression {
     public:
@@ -608,8 +612,8 @@ namespace BuildScript {
         SourcePosition m_colon;
         Expression* m_value;
 
-        KeyValuePair(SourceRange range, Expression* key, SourcePosition colon, Expression* value)
-            : Expression(Kind, range), m_key(key), m_colon(colon), m_value(value) {}
+        KeyValuePair(Expression* key, SourcePosition colon, Expression* value)
+            : Expression(Kind), m_key(key), m_colon(colon), m_value(value) {}
 
         const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
 
@@ -649,8 +653,8 @@ namespace BuildScript {
         SourcePosition m_close;
         size_t m_count;
 
-        MapExpression(SourceRange range, SourcePosition open, SourcePosition close, size_t count)
-            : Expression(Kind, range), m_open(open), m_close(close), m_count(count) {}
+        MapExpression(SourcePosition open, SourcePosition close, size_t count)
+            : Expression(Kind), m_open(open), m_close(close), m_count(count) {}
 
         // TrailObjects support.
         size_t GetTrailCount(OverloadToken<Expression*>) const { return m_count; }
@@ -695,8 +699,8 @@ namespace BuildScript {
         Parameters* m_params;
         ASTNode* m_body;
 
-        ClosureExpression(SourceRange range, SourcePosition arrow, Parameters* params, ASTNode* body)
-            : Expression(Kind, range), m_arrow(arrow), m_params(params), m_body(body) {}
+        ClosureExpression(SourcePosition arrow, Parameters* params, ASTNode* body)
+            : Expression(Kind), m_arrow(arrow), m_params(params), m_body(body) {}
 
         ASTNode* GetChild(size_t index) const override; // ASTIterator support.
 
@@ -748,12 +752,13 @@ namespace BuildScript {
         using ValueUnion = std::variant<int64_t, double, bool, std::string>;
 
     private:
+        SourceRange m_range;
         LiteralType m_type;
         ValueUnion m_value;
         size_t m_count;
 
         LiteralExpression(SourceRange range, LiteralType type, ValueUnion value, size_t count = 0)
-            : Expression(Kind, range), m_type(type), m_value(std::move(value)), m_count(count) {}
+            : Expression(Kind), m_range(range), m_type(type), m_value(std::move(value)), m_count(count) {}
 
         size_t GetTrailCount(OverloadToken<Expression*>) const { return m_count; } // TrailObjects support.
 

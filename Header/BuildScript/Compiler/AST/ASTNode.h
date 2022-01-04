@@ -40,7 +40,6 @@ namespace BuildScript {
 
     private:
         ASTKind m_kind;
-        SourceRange m_range;
 
     protected:
         /**
@@ -48,13 +47,13 @@ namespace BuildScript {
          * @param kind
          * @param range
          */
-        ASTNode(ASTKind kind, SourceRange range)
-            : m_kind(kind), m_range(range) {}
+        explicit ASTNode(ASTKind kind)
+            : m_kind(kind) {}
 
         /**
          * @brief Helper member function for iterating children.
          * @param index
-         * @return ... `nullptr` if there's no children
+         * @return a child node located in given index. `nullptr` if there's no children
          */
         virtual const ASTNode* GetChild(size_t index) const { return nullptr; }
 
@@ -64,18 +63,6 @@ namespace BuildScript {
          * @return
          */
         ASTIterator GetChildren() const;
-
-        /**
-         * @brief Get the range of the node where node declared.
-         * @return the range of the node.
-         */
-        SourceRange GetRange() const { return m_range; }
-
-        /**
-         * @brief Get the position of the node where node declared.
-         * @return the position of the node.
-         */
-        SourcePosition GetPosition() const { return m_range.Begin; }
 
         bool IsDeclaration() const { return m_kind == ASTKind::Declaration; }
 
@@ -161,6 +148,8 @@ namespace BuildScript {
         explicit ASTIterator(const ASTNode* node)
             : m_target(node) {}
 
+        ASTIterator(const ASTNode* node, size_t begin, size_t end = static_cast<size_t>(-1));
+
         const_iterator begin() const { return { m_target, 0 }; }
         const_iterator end() const { return {}; }
     }; // end class ASTIterator
@@ -185,8 +174,8 @@ namespace BuildScript {
          * @param kind
          * @param range
          */
-        Declaration(DeclarationKind kind, SourceRange range)
-            : ASTNode(ASTKind::Declaration, range), m_kind(kind) {}
+        explicit Declaration(DeclarationKind kind)
+            : ASTNode(ASTKind::Declaration), m_kind(kind) {}
 
     public:
         /**
@@ -242,8 +231,8 @@ namespace BuildScript {
          * @param kind
          * @param range
          */
-        Statement(StatementKind kind, SourceRange range)
-            : ASTNode(ASTKind::Statement, range), m_kind(kind) {}
+        explicit Statement(StatementKind kind)
+            : ASTNode(ASTKind::Statement), m_kind(kind) {}
 
     public:
         /**
@@ -299,8 +288,8 @@ namespace BuildScript {
          * @param kind
          * @param range
          */
-        Expression(ExpressionKind kind, SourceRange range)
-            : ASTNode(ASTKind::Expression, range), m_kind(kind) {}
+        explicit Expression(ExpressionKind kind)
+            : ASTNode(ASTKind::Expression), m_kind(kind) {}
 
     public:
         /**

@@ -11,18 +11,17 @@
 #include <cassert>
 
 #include <BuildScript/Compiler/AST/Parameters.h>
+#include <BuildScript/Compiler/Context.h>
 
 using namespace BuildScript;
 
 InvalidDeclaration* InvalidDeclaration::Create(Context& context, SourceRange range) {
-    return new (context) InvalidDeclaration(range);
+    return new (context.GetAllocator()) InvalidDeclaration(range);
 }
 
 ScriptDeclaration* ScriptDeclaration::Create(Context& context, std::string name, const std::vector<ASTNode*>& nodes) {
     auto trailSize = GetTrailSize(nodes.size());
-    auto range = nodes.empty() ? SourceRange()
-                               : SourceRange::Merge(nodes.front()->GetRange(), nodes.back()->GetRange());
-    auto* node = new (context, trailSize) ScriptDeclaration(range, std::move(name), nodes.size());
+    auto* node = new (context.GetAllocator(), trailSize) ScriptDeclaration(std::move(name), nodes.size());
 
     node->SetTrailObjects<ASTNode*>(nodes.data(), nodes.size());
 
@@ -34,8 +33,7 @@ const ASTNode* ScriptDeclaration::GetChild(size_t index) const {
 }
 
 ImportDeclaration* ImportDeclaration::Create(Context& context, SourcePosition _import, Expression* path) {
-    auto range = SourceRange::Merge(_import, path->GetRange());
-    return new (context) ImportDeclaration(range, _import, path);
+    return new (context.GetAllocator()) ImportDeclaration(_import, path);
 }
 
 const ASTNode* ImportDeclaration::GetChild(size_t index) const {
@@ -45,8 +43,7 @@ const ASTNode* ImportDeclaration::GetChild(size_t index) const {
 ExportDeclaration*
 ExportDeclaration::Create(Context& context, SourcePosition _export, Identifier name, SourcePosition assign,
                           Expression* value) {
-    auto range = SourceRange::Merge(_export, assign ? value->GetRange() : name.GetRange());
-    return new (context) ExportDeclaration(range, _export, std::move(name), assign, value);
+    return new (context.GetAllocator()) ExportDeclaration(_export, std::move(name), assign, value);
 }
 
 const ASTNode* ExportDeclaration::GetChild(size_t index) const {
@@ -55,8 +52,7 @@ const ASTNode* ExportDeclaration::GetChild(size_t index) const {
 
 FunctionDeclaration*
 FunctionDeclaration::Create(Context& context, SourcePosition def, Identifier name, Parameters* param, Statement* body) {
-    auto range = SourceRange::Merge(def, body->GetRange());
-    return new (context) FunctionDeclaration(range, def, std::move(name), param, body);
+    return new (context.GetAllocator()) FunctionDeclaration(def, std::move(name), param, body);
 }
 
 const ASTNode* FunctionDeclaration::GetChild(size_t index) const {
@@ -72,7 +68,7 @@ ClassDeclaration::Create(Context& context, SourcePosition _class, Identifier nam
                          Identifier extendName, SourcePosition open, const std::vector<Declaration*>& nodes,
                          SourcePosition close) {
     auto trailSize = GetTrailSize(nodes.size());
-    auto* node = new (context, trailSize) ClassDeclaration({ _class, close }, _class, std::move(name), extends,
+    auto* node = new (context.GetAllocator(), trailSize) ClassDeclaration(_class, std::move(name), extends,
                                                            std::move(extendName), open, close, nodes.size());
 
     node->SetTrailObjects<Declaration*>(nodes.data(), nodes.size());
@@ -93,7 +89,7 @@ TaskDeclaration::Create(Context& context, SourcePosition task, Identifier name, 
            && "count of dependency names and commas does not match.");
 
     auto trailSize = GetTrailSize(nodes.size(), depnames.size(), commas.size());
-    auto* node = new (context, trailSize) TaskDeclaration({ task, close }, task, std::move(name), extends,
+    auto* node = new (context.GetAllocator(), trailSize) TaskDeclaration(task, std::move(name), extends,
                                                           std::move(extendName), dependsOn, open, close, nodes.size(),
                                                           depnames.size());
 
@@ -112,7 +108,6 @@ VariableDeclaration*
 VariableDeclaration::Create(Context& context, SourcePosition _const, SourcePosition var, Identifier name,
                             SourcePosition assign, Expression* value) {
     assert(!(_const && var) && "cannot be both const and var.");
-    assert((_const || var) && "cannot be static.");
 
     SourcePosition pos;
     SpecifierKind kind;
@@ -126,8 +121,7 @@ VariableDeclaration::Create(Context& context, SourcePosition _const, SourcePosit
         kind = SpecifierKind::Var;
     }
 
-    auto range = SourceRange::Merge(pos, value->GetRange());
-    return new (context) VariableDeclaration(range, pos, kind, std::move(name), assign, value);
+    return new (context.GetAllocator()) VariableDeclaration(pos, kind, std::move(name), assign, value);
 }
 
 const ASTNode* VariableDeclaration::GetChild(size_t index) const {
@@ -137,8 +131,7 @@ const ASTNode* VariableDeclaration::GetChild(size_t index) const {
 TaskInputsDeclaration*
 TaskInputsDeclaration::Create(Context& context, SourcePosition inputs, Expression* inputsValue, SourcePosition with,
                               Expression* withValue) {
-    auto range = SourceRange::Merge(inputs, with ? withValue->GetRange() : inputsValue->GetRange());
-    return new (context) TaskInputsDeclaration(range, inputs, inputsValue, with, withValue);
+    return new (context.GetAllocator()) TaskInputsDeclaration(inputs, inputsValue, with, withValue);
 }
 
 const ASTNode* TaskInputsDeclaration::GetChild(size_t index) const {
@@ -152,8 +145,7 @@ const ASTNode* TaskInputsDeclaration::GetChild(size_t index) const {
 TaskOutputsDeclaration*
 TaskOutputsDeclaration::Create(Context& context, SourcePosition outputs, Expression* outputsValue, SourcePosition from,
                                Expression* fromValue) {
-    auto range = SourceRange::Merge(outputs, from ? fromValue->GetRange() : outputsValue->GetRange());
-    return new (context) TaskOutputsDeclaration(range, outputs, outputsValue, from, fromValue);
+    return new (context.GetAllocator()) TaskOutputsDeclaration(outputs, outputsValue, from, fromValue);
 }
 
 const ASTNode* TaskOutputsDeclaration::GetChild(size_t index) const {
@@ -166,8 +158,7 @@ const ASTNode* TaskOutputsDeclaration::GetChild(size_t index) const {
 
 TaskActionDeclaration*
 TaskActionDeclaration::Create(Context& context, ActionKind kind, SourcePosition pos, Statement* body) {
-    auto range = SourceRange::Merge(pos, body->GetRange());
-    return new (context) TaskActionDeclaration(range, kind, pos, body);
+    return new (context.GetAllocator()) TaskActionDeclaration(kind, pos, body);
 }
 
 const ASTNode* TaskActionDeclaration::GetChild(size_t index) const {
@@ -176,8 +167,7 @@ const ASTNode* TaskActionDeclaration::GetChild(size_t index) const {
 
 TaskPropertyDeclaration*
 TaskPropertyDeclaration::Create(Context& context, Identifier name, SourcePosition assign, Expression* value) {
-    auto range = SourceRange::Merge(name.GetRange(), value->GetRange());
-    return new (context) TaskPropertyDeclaration(range, std::move(name), assign, value);
+    return new (context.GetAllocator()) TaskPropertyDeclaration(std::move(name), assign, value);
 }
 
 const ASTNode* TaskPropertyDeclaration::GetChild(size_t index) const {
@@ -186,8 +176,7 @@ const ASTNode* TaskPropertyDeclaration::GetChild(size_t index) const {
 
 ClassInitDeclaration*
 ClassInitDeclaration::Create(Context& context, SourcePosition init, Parameters* params, Statement* body) {
-    auto range = SourceRange::Merge(init, body->GetRange());
-    return new (context) ClassInitDeclaration(range, init, params, body);
+    return new (context.GetAllocator()) ClassInitDeclaration(init, params, body);
 }
 
 const ASTNode* ClassInitDeclaration::GetChild(size_t index) const {
@@ -199,8 +188,7 @@ const ASTNode* ClassInitDeclaration::GetChild(size_t index) const {
 }
 
 ClassDeinitDeclaration* ClassDeinitDeclaration::Create(Context& context, SourcePosition deinit, Statement* body) {
-    auto range = SourceRange::Merge(deinit, body->GetRange());
-    return new (context) ClassDeinitDeclaration(range, deinit, body);
+    return new (context.GetAllocator()) ClassDeinitDeclaration(deinit, body);
 }
 
 const ASTNode* ClassDeinitDeclaration::GetChild(size_t index) const {
@@ -211,7 +199,6 @@ ClassFieldDeclaration*
 ClassFieldDeclaration::Create(Context& context, SourcePosition _const, SourcePosition _static, Identifier name,
                               SourcePosition assign, Expression* value) {
     assert(!(_const && _static) && "cannot be both const and static.");
-    assert((_const || _static) && "cannot be var.");
 
     SourcePosition pos;
     SpecifierKind kind;
@@ -225,8 +212,7 @@ ClassFieldDeclaration::Create(Context& context, SourcePosition _const, SourcePos
         kind = SpecifierKind::Static;
     }
 
-    auto range = SourceRange::Merge(pos, value->GetRange());
-    return new (context) ClassFieldDeclaration(range, pos, kind, std::move(name), assign, value);
+    return new (context.GetAllocator()) ClassFieldDeclaration(pos, kind, std::move(name), assign, value);
 }
 
 const ASTNode* ClassFieldDeclaration::GetChild(size_t index) const {
@@ -236,8 +222,7 @@ const ASTNode* ClassFieldDeclaration::GetChild(size_t index) const {
 ClassMethodDeclaration*
 ClassMethodDeclaration::Create(Context& context, SourcePosition _static, SourcePosition def, Identifier name,
                                Parameters* params, Statement* body) {
-    auto range = SourceRange::Merge((_static < def ? _static : def), body->GetRange());
-    return new (context) ClassMethodDeclaration(range, _static, def, std::move(name), params, body);
+    return new (context.GetAllocator()) ClassMethodDeclaration(_static, def, std::move(name), params, body);
 }
 
 const ASTNode* ClassMethodDeclaration::GetChild(size_t index) const {
@@ -255,8 +240,7 @@ ClassPropertyDeclaration::Create(Context& context, SourcePosition get, SourcePos
 
     auto isGetter = (bool) get;
     auto pos = isGetter ? get : set;
-    auto range = SourceRange::Merge(pos, body->GetRange());
-    return new (context) ClassPropertyDeclaration(range, pos, std::move(name), isGetter, body);
+    return new (context.GetAllocator()) ClassPropertyDeclaration(pos, std::move(name), isGetter, body);
 }
 
 const ASTNode* ClassPropertyDeclaration::GetChild(size_t index) const {
@@ -266,8 +250,7 @@ const ASTNode* ClassPropertyDeclaration::GetChild(size_t index) const {
 ClassOperatorDeclaration*
 ClassOperatorDeclaration::Create(Context& context, SourcePosition _operator, OperatorKind kind,
                                  std::array<SourcePosition, 2> pos, Parameters* params, Statement* body) {
-    auto range = SourceRange::Merge(_operator, body->GetRange());
-    return new (context) ClassOperatorDeclaration(range, _operator, kind, pos, params, body);
+    return new (context.GetAllocator()) ClassOperatorDeclaration(_operator, kind, pos, params, body);
 }
 
 const ASTNode* ClassOperatorDeclaration::GetChild(size_t index) const {

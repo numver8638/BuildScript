@@ -1,6 +1,6 @@
 /*
  * Context.h
- * - Manage allocations and trace objects allocated during compile.
+ * - Shared data during compile.
  *
  * Copyright (c) 2019~2021 numver8638(신진환, Jinhwan Shin)
  * Released under the MIT License.
@@ -11,34 +11,19 @@
 
 #include <cstddef>
 
+#include <BuildScript/Compiler/ManagedObject.h>
 #include <BuildScript/Utils/NonCopyable.h>
 
 namespace BuildScript {
-    struct ManagedObjectHeader;
-
     /**
-     * @brief Manage allocations and trace objects allocated during compile.
-     *        All objects inherit @c ManagedObject are freed on destruction of @c Context.
-     *
-     * @see BuildScript::ManagedObject
+     * @brief Shared data during compile.
      */
     class Context final : NonCopyable {
-        friend class ManagedObject;
-
-        ManagedObjectHeader* m_first = nullptr;
-        size_t m_allocated = 0;
-
     private:
-        [[nodiscard]]
-        void* Allocate(size_t);
+        ManagedObjectAllocator m_allocator;
 
     public:
-        ~Context();
-
-        /**
-         * @brief Dump memory usage to stdout.
-         */
-        void Dump() const;
+        ManagedObjectAllocator& GetAllocator() { return m_allocator; }
     }; // end class Context
 } // end namespace BuildScript
 

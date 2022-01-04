@@ -16,7 +16,7 @@
 #include <BuildScript/Utils/TrailObjects.h>
 
 namespace BuildScript {
-    class Context;
+    class Context; // Defined in <BuildScript/Compiler/Context.h>
 
     enum class StatementKind {
         Invalid,
@@ -51,8 +51,10 @@ namespace BuildScript {
         static constexpr auto Kind = StatementKind::Invalid;
 
     private:
+        SourceRange m_range;
+
         explicit InvalidStatement(SourceRange range)
-            : Statement(Kind, range) {}
+            : Statement(Kind), m_range(range) {}
 
     public:
         static InvalidStatement* Create(Context& context, SourceRange range);
@@ -72,8 +74,8 @@ namespace BuildScript {
         SourcePosition m_close;
         size_t m_count;
 
-        BlockStatement(SourceRange range, SourcePosition open, SourcePosition close, size_t count)
-            : Statement(Kind, range), m_open(open), m_close(close), m_count(count) {}
+        BlockStatement(SourcePosition open, SourcePosition close, size_t count)
+            : Statement(Kind), m_open(open), m_close(close), m_count(count) {}
 
         size_t GetTrailCount(OverloadToken<ASTNode*>) const { return m_count; } // TrailObjects support.
 
@@ -107,8 +109,8 @@ namespace BuildScript {
         SourcePosition m_arrow;
         Expression* m_expr;
 
-        ArrowStatement(SourceRange range, SourcePosition arrow, Expression* expr)
-            : Statement(Kind, range), m_arrow(arrow), m_expr(expr) {}
+        ArrowStatement(SourcePosition arrow, Expression* expr)
+            : Statement(Kind), m_arrow(arrow), m_expr(expr) {}
 
         const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
 
@@ -142,9 +144,9 @@ namespace BuildScript {
         SourcePosition m_else;
         Statement* m_elseBody;
 
-        IfStatement(SourceRange range, SourcePosition _if, Expression* condition, Statement* ifBody,
+        IfStatement(SourcePosition _if, Expression* condition, Statement* ifBody,
                     SourcePosition _else, Statement* elseBody)
-            : Statement(Kind, range), m_if(_if), m_condition(condition), m_ifBody(ifBody), m_else(_else),
+            : Statement(Kind), m_if(_if), m_condition(condition), m_ifBody(ifBody), m_else(_else),
               m_elseBody(elseBody) {}
 
         const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
@@ -202,9 +204,9 @@ namespace BuildScript {
         SourcePosition m_close;
         size_t m_count;
 
-        MatchStatement(SourceRange range, SourcePosition match, Expression* condition, SourcePosition open,
+        MatchStatement(SourcePosition match, Expression* condition, SourcePosition open,
                        SourcePosition close, size_t count)
-            : Statement(Kind, range), m_match(match), m_condition(condition), m_open(open), m_close(close),
+            : Statement(Kind), m_match(match), m_condition(condition), m_open(open), m_close(close),
               m_count(count) {}
 
         size_t GetTrailCount(OverloadToken<Statement*>) const { return m_count; } // TrailObjects support.
@@ -251,8 +253,8 @@ namespace BuildScript {
         SourcePosition m_colon;
         bool m_isDefault;
 
-        Label(SourceRange range, SourcePosition pos, Expression* value, SourcePosition colon, bool isDefault)
-            : ASTNode(ASTKind::Label, range), m_value(value), m_pos(pos), m_colon(colon), m_isDefault(isDefault) {}
+        Label(SourcePosition pos, Expression* value, SourcePosition colon, bool isDefault)
+            : ASTNode(ASTKind::Label), m_value(value), m_pos(pos), m_colon(colon), m_isDefault(isDefault) {}
 
         const ASTNode* GetChild(size_t index) const override; // ASTIterator support
 
@@ -310,8 +312,8 @@ namespace BuildScript {
         size_t m_labelCount;
         size_t m_stmtCount;
 
-        LabeledStatement(SourceRange range, size_t labelCount, size_t stmtCount)
-            : Statement(Kind, range), m_labelCount(labelCount), m_stmtCount(stmtCount) {}
+        LabeledStatement(size_t labelCount, size_t stmtCount)
+            : Statement(Kind), m_labelCount(labelCount), m_stmtCount(stmtCount) {}
 
         size_t GetTrailCount(OverloadToken<Label*>) const { return m_labelCount; } // TrailObjects support.
         size_t GetTrailCount(OverloadToken<ASTNode*>) const { return m_stmtCount; } // TrailObjects support.
@@ -349,9 +351,9 @@ namespace BuildScript {
         Expression* m_expr;
         Statement* m_body;
 
-        ForStatement(SourceRange range, SourcePosition _for, Identifier param, SourcePosition _in, Expression* expr,
+        ForStatement(SourcePosition _for, Identifier param, SourcePosition _in, Expression* expr,
                      Statement* body)
-            : Statement(Kind, range), m_for(_for), m_param(std::move(param)), m_in(_in), m_expr(expr), m_body(body) {}
+            : Statement(Kind), m_for(_for), m_param(std::move(param)), m_in(_in), m_expr(expr), m_body(body) {}
 
         const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
 
@@ -399,8 +401,8 @@ namespace BuildScript {
         Expression* m_condition;
         Statement* m_body;
 
-        WhileStatement(SourceRange range, SourcePosition _while, Expression* cond, Statement* body)
-            : Statement(Kind, range), m_while(_while), m_condition(cond), m_body(body) {}
+        WhileStatement(SourcePosition _while, Expression* cond, Statement* body)
+            : Statement(Kind), m_while(_while), m_condition(cond), m_body(body) {}
 
         const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
 
@@ -440,9 +442,9 @@ namespace BuildScript {
         Identifier m_capture;
         Statement* m_body;
 
-        WithStatement(SourceRange range, SourcePosition with, Expression* expr, SourcePosition as, Identifier capture,
+        WithStatement(SourcePosition with, Expression* expr, SourcePosition as, Identifier capture,
                       Statement* body)
-            : Statement(Kind, range), m_with(with), m_expr(expr), m_as(as), m_capture(std::move(capture)), m_body(body) {}
+            : Statement(Kind), m_with(with), m_expr(expr), m_as(as), m_capture(std::move(capture)), m_body(body) {}
 
         const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
 
@@ -500,8 +502,8 @@ namespace BuildScript {
         SourcePosition m_try;
         size_t m_count;
 
-        TryStatement(SourceRange range, SourcePosition tryPos, size_t count)
-            : Statement(Kind, range), m_try(tryPos), m_count(count) {}
+        TryStatement(SourcePosition tryPos, size_t count)
+            : Statement(Kind), m_try(tryPos), m_count(count) {}
 
         size_t GetTrailCount(OverloadToken<Statement*>) const { return m_count; }
 
@@ -543,9 +545,9 @@ namespace BuildScript {
         Identifier m_capture;
         Statement* m_body;
 
-        ExceptStatement(SourceRange range, SourcePosition exceptPos, Identifier _typename, SourcePosition as,
+        ExceptStatement(SourcePosition exceptPos, Identifier _typename, SourcePosition as,
                         Identifier capture, Statement* body)
-            : Statement(Kind, range), m_except(exceptPos), m_typename(std::move(_typename)), m_as(as),
+            : Statement(Kind), m_except(exceptPos), m_typename(std::move(_typename)), m_as(as),
               m_capture(std::move(capture)), m_body(body) {}
 
         const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
@@ -604,8 +606,8 @@ namespace BuildScript {
         SourcePosition m_finally;
         Statement* m_body;
 
-        FinallyStatement(SourceRange range, SourcePosition finallyPos, Statement* body)
-            : Statement(Kind, range), m_finally(finallyPos), m_body(body) {}
+        FinallyStatement(SourcePosition finallyPos, Statement* body)
+            : Statement(Kind), m_finally(finallyPos), m_body(body) {}
 
         const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
 
@@ -637,8 +639,8 @@ namespace BuildScript {
         SourcePosition m_if;
         Expression* m_condition;
 
-        BreakStatement(SourceRange range, SourcePosition _break, SourcePosition _if, Expression* condition)
-            : Statement(Kind, range), m_break(_break), m_if(_if), m_condition(condition) {}
+        BreakStatement(SourcePosition _break, SourcePosition _if, Expression* condition)
+            : Statement(Kind), m_break(_break), m_if(_if), m_condition(condition) {}
 
         const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
 
@@ -668,7 +670,7 @@ namespace BuildScript {
          */
         const Expression* GetCondition() const { return m_condition; }
 
-        static BreakStatement* Create(Context& context, SourceRange _break, SourcePosition _if, Expression* condition);
+        static BreakStatement* Create(Context& context, SourcePosition _break, SourcePosition _if, Expression* condition);
     }; // end class BreakStatement
 
     /**
@@ -683,8 +685,8 @@ namespace BuildScript {
         SourcePosition m_if;
         Expression* m_condition;
 
-        ContinueStatement(SourceRange range, SourcePosition _continue, SourcePosition _if, Expression* condition)
-            : Statement(Kind, range), m_continue(_continue), m_if(_if), m_condition(condition) {}
+        ContinueStatement(SourcePosition _continue, SourcePosition _if, Expression* condition)
+            : Statement(Kind), m_continue(_continue), m_if(_if), m_condition(condition) {}
 
         const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
 
@@ -715,7 +717,7 @@ namespace BuildScript {
         const Expression* GetCondition() const { return m_condition; }
 
         static ContinueStatement*
-        Create(Context& context, SourceRange _continue, SourcePosition _if, Expression* condition);
+        Create(Context& context, SourcePosition _continue, SourcePosition _if, Expression* condition);
     }; // end class ContinueStatement
 
     /**
@@ -729,8 +731,8 @@ namespace BuildScript {
         SourcePosition m_return;
         Expression* m_retval;
 
-        ReturnStatement(SourceRange range, SourcePosition _return, Expression* retval)
-            : Statement(Kind, range), m_return(_return), m_retval(retval) {}
+        ReturnStatement(SourcePosition _return, Expression* retval)
+            : Statement(Kind), m_return(_return), m_retval(retval) {}
 
         const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
 
@@ -753,7 +755,7 @@ namespace BuildScript {
          */
         const Expression* GetReturnValue() const { return m_retval; }
 
-        static ReturnStatement* Create(Context& context, SourceRange _return, Expression* returnValue);
+        static ReturnStatement* Create(Context& context, SourcePosition _return, Expression* returnValue);
     }; // end class ReturnStatement
 
     /**
@@ -769,9 +771,9 @@ namespace BuildScript {
         SourcePosition m_colon;
         Expression* m_message;
 
-        AssertStatement(SourceRange range, SourcePosition _assert, Expression* condition, SourcePosition colon,
+        AssertStatement(SourcePosition _assert, Expression* condition, SourcePosition colon,
                         Expression* message)
-            : Statement(Kind, range), m_assert(_assert), m_condition(condition), m_colon(colon), m_message(message) {}
+            : Statement(Kind), m_assert(_assert), m_condition(condition), m_colon(colon), m_message(message) {}
 
         const ASTNode* GetChild(size_t index) const override; // ASTIterator support
 
@@ -815,8 +817,8 @@ namespace BuildScript {
     private:
         SourcePosition m_pass;
 
-        PassStatement(SourceRange range, SourcePosition pass)
-            : Statement(Kind, range), m_pass(pass) {}
+        explicit PassStatement(SourcePosition pass)
+            : Statement(Kind), m_pass(pass) {}
 
     public:
         /**
@@ -825,7 +827,7 @@ namespace BuildScript {
          */
         SourcePosition GetPassPosition() const { return m_pass; }
 
-        static PassStatement* Create(Context& context, SourceRange pass);
+        static PassStatement* Create(Context& context, SourcePosition pass);
     }; // end class PassStatement
 
     /**
@@ -858,8 +860,8 @@ namespace BuildScript {
         SourcePosition m_pos;
         Expression* m_value;
 
-        AssignStatement(SourceRange range, Expression* target, AssignOp op, SourcePosition pos, Expression* value)
-            : Statement(Kind, range), m_target(target), m_op(op), m_pos(pos), m_value(value) {}
+        AssignStatement(Expression* target, AssignOp op, SourcePosition pos, Expression* value)
+            : Statement(Kind), m_target(target), m_op(op), m_pos(pos), m_value(value) {}
 
         const ASTNode* GetChild(size_t index) const override; // ASTIterator support
 
