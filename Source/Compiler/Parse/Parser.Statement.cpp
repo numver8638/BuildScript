@@ -148,7 +148,7 @@ Statement* Parser::ParseBody() {
         Expression* body;
 
         if (m_token == TokenType::Pass) {
-            body = PassExpression::Create(m_context, ConsumeTokenRange());
+            body = PassExpression::Create(m_context, ConsumeToken());
         }
         else {
             body = ParseExpression();
@@ -201,10 +201,6 @@ Statement* Parser::ParseIfStatement() {
 }
 
 /*
- * match_statement
- *  : 'match' expression '{' labeled_statement+ '}'
- *  ;
- *
  * labeled_statement
  *  : label+ statement+
  *  ;
@@ -214,42 +210,47 @@ Statement* Parser::ParseIfStatement() {
  *  | 'default' ':'
  *  ;
  */
+Statement* Parser::ParseLabeledStatement() {
+    std::vector<Label*> labels;
+    std::vector<ASTNode*> nodes;
+
+    // Parse labels.
+    while (OneOf<TokenType::Case, TokenType::Default>()) {
+        SourcePosition _case, _default;
+        auto isCase = (m_token == TokenType::Case);
+        isCase ? (_case = ConsumeToken()) : (_default = ConsumeToken());
+
+        Expression* constant = isCase ? ParseConstantExpression() : nullptr;
+        auto colon = RequireToken(TokenType::Colon);
+
+        labels.push_back(Label::Create(m_context, _case, _default, constant, colon));
+    }
+
+    // Validity check - labels must be present before statements.
+    if (labels.empty()) {
+        m_reporter.Report(m_token.GetPosition(), ReportID::ParseExpectLabel);
+    }
+
+    // Parse statements after labels.
+    while (!OneOf<TokenType::Case, TokenType::Default, TokenType::RightBrace, TokenType::EndOfFile>()) {
+        nodes.push_back(ParseLocalDeclarationOrStatement());
+    }
+
+    // Validity check - least 1 statement must be present after label.
+    if (nodes.empty()) {
+        m_reporter.Report(m_token.GetPosition(), ReportID::ParseExpectStatement);
+    }
+
+    return LabeledStatement::Create(m_context, labels, nodes);
+}
+
+/*
+ * match_statement
+ *  : 'match' expression '{' labeled_statement+ '}'
+ *  ;
+ */
 Statement* Parser::ParseMatchStatement() {
     assert(m_token == TokenType::Match);
-
-    const auto ParseLabeledStatement = [&]() -> LabeledStatement* {
-        std::vector<Label*> labels;
-        std::vector<ASTNode*> nodes;
-
-        // Parse labels.
-        while (OneOf<TokenType::Case, TokenType::Default>()) {
-            SourcePosition _case, _default;
-            auto isCase = (m_token == TokenType::Case);
-            isCase ? (_case = ConsumeToken()) : (_default = ConsumeToken());
-
-            Expression* constant = isCase ? ParseConstantExpression() : nullptr;
-            auto colon = RequireToken(TokenType::Colon);
-
-            labels.push_back(Label::Create(m_context, _case, _default, constant, colon));
-        }
-
-        // Validity check - labels must be present before statements.
-        if (labels.empty()) {
-            m_reporter.Report(m_token.GetPosition(), ReportID::ParseExpectLabel);
-        }
-
-        // Parse statements after labels.
-        while (!OneOf<TokenType::Case, TokenType::Default, TokenType::RightBrace, TokenType::EndOfFile>()) {
-            nodes.push_back(ParseLocalDeclarationOrStatement());
-        }
-
-        // Validity check - least 1 statement must be present after label.
-        if (nodes.empty()) {
-            m_reporter.Report(m_token.GetPosition(), ReportID::ParseExpectStatement);
-        }
-
-        return LabeledStatement::Create(m_context, labels, nodes);
-    };
 
     auto match = ConsumeToken();
     auto* expr = ParseExpression();
@@ -404,7 +405,7 @@ Statement* Parser::ParseBreakStatement() {
     assert(m_token == TokenType::Break);
 
     // Consume token with range because 'break' may be used solely.
-    auto _break = ConsumeTokenRange();
+    auto _break = ConsumeToken();
     SourcePosition _if;
     Expression* cond = nullptr;
 
@@ -428,7 +429,7 @@ Statement* Parser::ParseContinueStatement() {
     assert(m_token == TokenType::Continue);
 
     // Consume token with range because 'continue' may be used solely.
-    auto _continue = ConsumeTokenRange();
+    auto _continue = ConsumeToken();
     SourcePosition _if;
     Expression* cond = nullptr;
 
@@ -452,7 +453,7 @@ Statement* Parser::ParseReturnStatement() {
     assert(m_token == TokenType::Return);
 
     // Consume token with range because 'return' may be used solely.
-    auto _return = ConsumeTokenRange();
+    auto _return = ConsumeToken();
     Expression* value = nullptr;
 
     if (!HasEOL()) {
@@ -495,5 +496,5 @@ Statement* Parser::ParseAssertStatement() {
 Statement* Parser::ParsePassStatement() {
     assert(m_token == TokenType::Pass);
 
-    return PassStatement::Create(m_context, ConsumeTokenRange());
+    return PassStatement::Create(m_context, ConsumeToken());
 }

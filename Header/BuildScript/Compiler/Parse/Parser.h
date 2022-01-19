@@ -65,6 +65,7 @@ namespace BuildScript {
         ASTNode* ParseStatement();
         Statement* ParseBody();
         Statement* ParseIfStatement();
+        Statement* ParseLabeledStatement();
         Statement* ParseMatchStatement();
         Statement* ParseForStatement();
         Statement* ParseWhileStatement();

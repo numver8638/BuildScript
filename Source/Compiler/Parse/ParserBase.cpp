@@ -93,13 +93,27 @@ SourcePosition ParserBase::RequireToken(TokenType expected) {
                       .Insert(m_token.GetPosition(), Token::TypeToString(expected));
         }
 
-        // To make always range valid, return current token's position.
-        return m_token.GetPosition();
+        return {};
+    }
+}
+
+inline bool IsContextualKeyword(TokenType type) {
+    switch (type) {
+        default: return false;
+
+        case TokenType::Inputs:
+        case TokenType::Outputs:
+        case TokenType::From:
+        case TokenType::Do:
+        case TokenType::DoFirst:
+        case TokenType::DoLast:
+        case TokenType::DependsOn:
+            return true;
     }
 }
 
 Identifier ParserBase::RequireIdentifier() {
-    if (m_token == TokenType::Identifier) {
+    if (m_token == TokenType::Identifier || IsContextualKeyword(m_token.Type)) {
         auto image = m_source.GetString(m_token.Range);
         auto range = ConsumeTokenRange();
 
@@ -113,8 +127,7 @@ Identifier ParserBase::RequireIdentifier() {
         m_reporter.Report(m_token.GetPosition(), reportID);
     }
 
-    // To make always range valid, return current token's position - zero length range.
-    return { SourceRange(m_token.GetPosition()), "" };
+    return {};
 }
 
 void ParserBase::RequireEOL() {

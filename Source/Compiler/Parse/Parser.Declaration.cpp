@@ -318,6 +318,11 @@ Declaration* Parser::ParseClassDeinit() {
 Declaration* Parser::ParseClassField(SourcePosition _const, SourcePosition _static) {
     assert(m_token == TokenType::Identifier);
 
+    if (!(_const || _static)) {
+        m_reporter.Report(m_token.GetPosition(), ReportID::ParseExpectSpecifier)
+                  .Insert(m_token.GetPosition(), "const / static");
+    }
+
     auto name = RequireIdentifier(); // always succeed.
     auto assign = RequireToken(TokenType::Assign);
     auto* value = ParseExpression();
@@ -390,18 +395,18 @@ Declaration* Parser::ParseClassOperator() {
 
     if (kind == OperatorKind::Invalid) {
         // Report error
-        auto pos = m_token.GetPosition();
+        auto invalid = m_token.GetPosition();
         auto type = m_token.Type;
 
-        m_reporter.Report(pos, ReportID::ParseNotAOperator, Token::TypeToString(type));
+        m_reporter.Report(invalid, ReportID::ParseNotAOperator, Token::TypeToString(type));
 
         if ((TokenType::Less <= type) && (type <= TokenType::GraterOrEqual)) {
             ConsumeToken();
-            m_reporter.Report(pos, ReportID::ParseOverrideCompare, Token::TypeToString(type));
+            m_reporter.Report(invalid, ReportID::ParseOverrideCompare, Token::TypeToString(type));
         }
         else if (type == TokenType::Equal || type == TokenType::NotEqual) {
             ConsumeToken();
-            m_reporter.Report(pos, ReportID::ParseOverrideEquals, Token::TypeToString(type));
+            m_reporter.Report(invalid, ReportID::ParseOverrideEquals, Token::TypeToString(type));
         }
     }
     else {
@@ -576,22 +581,14 @@ Declaration* Parser::ParseTaskDeclaration() {
             case TokenType::DoLast: {
                 ActionKind kind;
 
-                switch (m_token.Type) {
-                    case TokenType::Do:
-                        kind = ActionKind::Do;
-                        break;
-
-                    case TokenType::DoFirst:
-                        kind = ActionKind::DoFirst;
-                        break;
-
-                    case TokenType::DoLast:
-                        kind = ActionKind::DoLast;
-                        break;
-
-                    default:
-                        NOT_REACHABLE;
-                        break;
+                if (m_token == TokenType::Do) {
+                    kind = ActionKind::Do;
+                }
+                else if (m_token == TokenType::DoFirst) {
+                    kind = ActionKind::DoFirst;
+                }
+                else /* (m_token == TokenType::DoLast) */ {
+                    kind = ActionKind::DoLast;
                 }
 
                 auto pos = ConsumeToken();
@@ -639,11 +636,6 @@ Declaration* Parser::ParseVariableDeclaration() {
         }
 
         ConsumeToken();
-    }
-
-    if (!_const && !var) {
-        // Insert phony position
-        var = m_token.GetPosition();
     }
 
     auto name = RequireIdentifier();

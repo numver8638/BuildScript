@@ -1,7 +1,7 @@
 /*
  * Parser.Misc.cpp
  * - Syntax analyzer for BuildScript language.
- *   This file contains partial code of parser that parses expression.
+ *   This file contains partial code of parser that shares among the parser.
  *
  * Copyright (c) 2019~2021 numver8638(신진환, Jinhwan Shin)
  * Released under the MIT License.

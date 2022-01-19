@@ -10,7 +10,6 @@
 #include <BuildScript/Compiler/Parse/Parser.h>
 
 #include <tuple>
-#include <stack>
 
 #include <BuildScript/Compiler/AST/Expressions.h>
 #include <BuildScript/Compiler/AST/Statements.h>
@@ -326,15 +325,13 @@ Expression* Parser::ParsePostfixExpression() {
                 std::vector<SourcePosition> commas;
                 auto open = ConsumeToken();
 
-                items.push_back(expr);
-
                 if (m_token != TokenType::RightParen) {
                     ParseExpressionList(items, commas);
                 }
 
                 auto close = RequireToken(TokenType::RightParen);
 
-                expr = InvocationExpression::Create(m_context, open, items, commas, close);
+                expr = InvocationExpression::Create(m_context, expr, open, items, commas, close);
                 break;
             }
 
@@ -383,13 +380,7 @@ Expression* Parser::ParsePrimaryExpression() {
         case TokenType::Do:
         case TokenType::DoFirst:
         case TokenType::DoLast:
-        case TokenType::DependsOn: {
-            // These are contextual keywords and valid identifier when out of task scope.
-            auto range = ConsumeTokenRange();
-
-            return LiteralExpression::CreateVariable(m_context, { range, m_source.GetString(range) });
-        }
-
+        case TokenType::DependsOn:
         case TokenType::Identifier: {
             auto name = RequireIdentifier();
             return LiteralExpression::CreateVariable(m_context, name);
@@ -559,7 +550,7 @@ Expression* Parser::ParseClosure() {
         Expression* body;
 
         if (m_token == TokenType::Pass) {
-            body = PassExpression::Create(m_context, ConsumeTokenRange());
+            body = PassExpression::Create(m_context, ConsumeToken());
         }
         else {
             body = ParseExpression();
