@@ -42,16 +42,21 @@ inline AssignOp ToAssignOp(const Token& token) {
     return table[static_cast<size_t>(token.Type) - static_cast<size_t>(TokenType::Assign)];
 }
 
-static inline bool IsStartOfVariableDeclaration(const Token& token) {
-    return token == TokenType::Var || token == TokenType::Const || token == TokenType::Static;
-}
-
 ASTNode* Parser::ParseLocalDeclarationOrStatement() {
-    if (IsStartOfVariableDeclaration(m_token)) {
-        return ParseVariableDeclaration();
-    }
-    else {
-        return ParseStatement();
+    switch (m_token.Type) {
+        case TokenType::Var:
+        case TokenType::Const:
+        case TokenType::Static:
+            return ParseVariableDeclaration();
+
+        case TokenType::Export:
+            return ParseExportDeclaration();
+
+        case TokenType::Import:
+            return ParseImportDeclaration();
+
+        default:
+            return ParseStatement();
     }
 }
 
