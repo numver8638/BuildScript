@@ -28,16 +28,8 @@ ScriptDeclaration* ScriptDeclaration::Create(Context& context, std::string name,
     return node;
 }
 
-const ASTNode* ScriptDeclaration::GetChild(size_t index) const {
-    return (index < m_count) ? At<ASTNode*>(index) : nullptr;
-}
-
 ImportDeclaration* ImportDeclaration::Create(Context& context, SourcePosition _import, Expression* path) {
     return new (context.GetAllocator()) ImportDeclaration(_import, path);
-}
-
-const ASTNode* ImportDeclaration::GetChild(size_t index) const {
-    return (index == 0) ? m_path : nullptr;
 }
 
 ExportDeclaration*
@@ -46,21 +38,9 @@ ExportDeclaration::Create(Context& context, SourcePosition _export, Identifier n
     return new (context.GetAllocator()) ExportDeclaration(_export, std::move(name), assign, value);
 }
 
-const ASTNode* ExportDeclaration::GetChild(size_t index) const {
-    return (index == 0) ? m_value : nullptr;
-}
-
 FunctionDeclaration*
 FunctionDeclaration::Create(Context& context, SourcePosition def, Identifier name, Parameters* param, Statement* body) {
     return new (context.GetAllocator()) FunctionDeclaration(def, std::move(name), param, body);
-}
-
-const ASTNode* FunctionDeclaration::GetChild(size_t index) const {
-    switch (index) {
-        case 0: return m_params;
-        case 1: return m_body;
-        default: return nullptr;
-    }
 }
 
 ClassDeclaration*
@@ -74,10 +54,6 @@ ClassDeclaration::Create(Context& context, SourcePosition _class, Identifier nam
     node->SetTrailObjects<Declaration*>(nodes.data(), nodes.size());
 
     return node;
-}
-
-const ASTNode* ClassDeclaration::GetChild(size_t index) const {
-    return (index < m_count) ? At<Declaration*>(index) : nullptr;
 }
 
 TaskDeclaration*
@@ -100,10 +76,6 @@ TaskDeclaration::Create(Context& context, SourcePosition task, Identifier name, 
     return node;
 }
 
-const ASTNode* TaskDeclaration::GetChild(size_t index) const {
-    return (index < m_count) ? At<Declaration*>(index) : nullptr;
-}
-
 VariableDeclaration*
 VariableDeclaration::Create(Context& context, SourcePosition _const, SourcePosition var, Identifier name,
                             SourcePosition assign, Expression* value) {
@@ -124,22 +96,10 @@ VariableDeclaration::Create(Context& context, SourcePosition _const, SourcePosit
     return new (context.GetAllocator()) VariableDeclaration(pos, kind, std::move(name), assign, value);
 }
 
-const ASTNode* VariableDeclaration::GetChild(size_t index) const {
-    return (index == 0) ? m_value : nullptr;
-}
-
 TaskInputsDeclaration*
 TaskInputsDeclaration::Create(Context& context, SourcePosition inputs, Expression* inputsValue, SourcePosition with,
                               Expression* withValue) {
     return new (context.GetAllocator()) TaskInputsDeclaration(inputs, inputsValue, with, withValue);
-}
-
-const ASTNode* TaskInputsDeclaration::GetChild(size_t index) const {
-    switch (index) {
-        case 0: return m_inputsValue;
-        case 1: return m_withValue;
-        default: return nullptr;
-    }
 }
 
 TaskOutputsDeclaration*
@@ -148,21 +108,9 @@ TaskOutputsDeclaration::Create(Context& context, SourcePosition outputs, Express
     return new (context.GetAllocator()) TaskOutputsDeclaration(outputs, outputsValue, from, fromValue);
 }
 
-const ASTNode* TaskOutputsDeclaration::GetChild(size_t index) const {
-    switch (index) {
-        case 0: return m_outputsValue;
-        case 1: return m_fromValue;
-        default: return nullptr;
-    }
-}
-
 TaskActionDeclaration*
 TaskActionDeclaration::Create(Context& context, ActionKind kind, SourcePosition pos, Statement* body) {
     return new (context.GetAllocator()) TaskActionDeclaration(kind, pos, body);
-}
-
-const ASTNode* TaskActionDeclaration::GetChild(size_t index) const {
-    return (index == 0) ? m_body : nullptr;
 }
 
 TaskPropertyDeclaration*
@@ -170,29 +118,13 @@ TaskPropertyDeclaration::Create(Context& context, Identifier name, SourcePositio
     return new (context.GetAllocator()) TaskPropertyDeclaration(std::move(name), assign, value);
 }
 
-const ASTNode* TaskPropertyDeclaration::GetChild(size_t index) const {
-    return (index == 0) ? m_value : nullptr;
-}
-
 ClassInitDeclaration*
 ClassInitDeclaration::Create(Context& context, SourcePosition init, Parameters* params, Statement* body) {
     return new (context.GetAllocator()) ClassInitDeclaration(init, params, body);
 }
 
-const ASTNode* ClassInitDeclaration::GetChild(size_t index) const {
-    switch (index) {
-        case 0: return m_params;
-        case 1: return m_body;
-        default: return nullptr;
-    }
-}
-
 ClassDeinitDeclaration* ClassDeinitDeclaration::Create(Context& context, SourcePosition deinit, Statement* body) {
     return new (context.GetAllocator()) ClassDeinitDeclaration(deinit, body);
-}
-
-const ASTNode* ClassDeinitDeclaration::GetChild(size_t index) const {
-    return (index == 0) ? m_body : nullptr;
 }
 
 ClassFieldDeclaration*
@@ -215,22 +147,10 @@ ClassFieldDeclaration::Create(Context& context, SourcePosition _const, SourcePos
     return new (context.GetAllocator()) ClassFieldDeclaration(pos, kind, std::move(name), assign, value);
 }
 
-const ASTNode* ClassFieldDeclaration::GetChild(size_t index) const {
-    return (index == 0) ? m_value : nullptr;
-}
-
 ClassMethodDeclaration*
 ClassMethodDeclaration::Create(Context& context, SourcePosition _static, SourcePosition def, Identifier name,
                                Parameters* params, Statement* body) {
     return new (context.GetAllocator()) ClassMethodDeclaration(_static, def, std::move(name), params, body);
-}
-
-const ASTNode* ClassMethodDeclaration::GetChild(size_t index) const {
-    switch (index) {
-        case 0: return m_params;
-        case 1: return m_body;
-        default: return nullptr;
-    }
 }
 
 ClassPropertyDeclaration*
@@ -243,20 +163,8 @@ ClassPropertyDeclaration::Create(Context& context, SourcePosition get, SourcePos
     return new (context.GetAllocator()) ClassPropertyDeclaration(pos, std::move(name), isGetter, body);
 }
 
-const ASTNode* ClassPropertyDeclaration::GetChild(size_t index) const {
-    return (index == 0) ? m_body : nullptr;
-}
-
 ClassOperatorDeclaration*
 ClassOperatorDeclaration::Create(Context& context, SourcePosition _operator, OperatorKind kind,
                                  std::array<SourcePosition, 2> pos, Parameters* params, Statement* body) {
     return new (context.GetAllocator()) ClassOperatorDeclaration(_operator, kind, pos, params, body);
-}
-
-const ASTNode* ClassOperatorDeclaration::GetChild(size_t index) const {
-    switch (index) {
-        case 0: return m_params;
-        case 1: return m_body;
-        default: return nullptr;
-    }
 }

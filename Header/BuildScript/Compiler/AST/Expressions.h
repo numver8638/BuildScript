@@ -63,6 +63,12 @@ namespace BuildScript {
             : Expression(Kind), m_range(range) {}
 
     public:
+        /**
+         * @brief Get a range of erroneous expression.
+         * @return the range of the expression.
+         */
+        SourceRange GetRange() const { return m_range; }
+
         static InvalidExpression* Create(Context& context, SourceRange range);
     }; // end class InvalidExpression
 
@@ -102,8 +108,6 @@ namespace BuildScript {
         TernaryExpression(Expression* valueT, SourcePosition _if, Expression* cond,
                           SourcePosition _else, Expression* valueF)
             : Expression(Kind), m_valueT(valueT), m_if(_if), m_cond(cond), m_else(_else), m_valueF(valueF) {}
-
-        const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
 
     public:
         /**
@@ -186,17 +190,15 @@ namespace BuildScript {
                          Expression* right)
             : Expression(Kind), m_left(left), m_op(op), m_pos(pos), m_right(right) {}
 
-        const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
-
     public:
         /**
          * @brief Get left hand side expression.
-         * @return
+         * @return an @c Expression representing left hand side expression.
          */
         const Expression* GetLeft() const { return m_left; }
 
         /**
-         * @brief
+         * @brief Get an operation of the expression.
          * @return
          */
         BinaryOp GetOp() const { return m_op; }
@@ -215,7 +217,7 @@ namespace BuildScript {
 
         /**
          * @brief Get right hand side expression.
-         * @return
+         * @return an @c Expression representing right hand side expression.
          */
         const Expression* GetRight() const { return m_right; }
 
@@ -224,7 +226,7 @@ namespace BuildScript {
     }; // end class BinaryExpression
 
     /**
-     * @brief
+     * @brief Represents unary operator.
      */
     enum class UnaryOp {
         Identity,
@@ -247,8 +249,6 @@ namespace BuildScript {
 
         UnaryExpression(UnaryOp op, SourcePosition pos, Expression* expr)
             : Expression(Kind), m_op(op), m_pos(pos), m_expr(expr) {}
-
-        const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
 
     public:
         /**
@@ -289,8 +289,6 @@ namespace BuildScript {
                           Expression* target)
             : Expression(Kind), m_defined(defined), m_id(std::move(id)), m_in(in), m_target(target) {}
 
-        const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
-
     public:
         /**
          * @brief Get a position of 'defined' keyword.
@@ -303,6 +301,12 @@ namespace BuildScript {
          * @return
          */
         const Identifier& GetID() const { return m_id; }
+
+        /**
+         * @brief
+         * @return
+         */
+        bool HasTarget() const { return (bool)m_in; }
 
         /**
          * @brief Get a position of 'in' keyword.
@@ -334,8 +338,6 @@ namespace BuildScript {
         RaiseExpression(SourcePosition raise, Expression* target)
             : Expression(Kind), m_raise(raise), m_target(target) {}
 
-        const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
-
     public:
         /**
          * @brief Get a position of 'raise' keyword.
@@ -366,8 +368,6 @@ namespace BuildScript {
 
         MemberAccessExpression(Expression* target, SourcePosition dot, Identifier name)
             : Expression(Kind), m_target(target), m_dot(dot), m_name(std::move(name)) {}
-
-        const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
 
     public:
         /**
@@ -412,9 +412,7 @@ namespace BuildScript {
             : Expression(Kind), m_target(target), m_open(open), m_close(close), m_count(count) {}
 
         size_t GetTrailCount(OverloadToken<Expression*>) const { return m_count; } // TrailObjects support.
-        size_t GetTrailCount(OverloadToken<SourcePosition>) const { return GetArguementCount(); } // TrailObjects support.
-
-        const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
+        size_t GetTrailCount(OverloadToken<SourcePosition>) const { return GetArgumentCount(); } // TrailObjects support.
 
     public:
         /**
@@ -433,26 +431,19 @@ namespace BuildScript {
          * @brief
          * @return
          */
-        ASTIterator GetArguments() const { return { this, 1 }; }
+        TrailIterator<Expression*> GetArguments() const { return GetTrailObjects<Expression*>(); }
 
         /**
          * @brief Get count of arguments.
          * @return a count of arguments.
          */
-        size_t GetArguementCount() const { return (m_count > 1) ? m_count - 1 : 0; }
+        size_t GetArgumentCount() const { return (m_count > 1) ? m_count - 1 : 0; }
 
         /**
          * @brief
          * @return
          */
-        TrailIterator<const SourcePosition> GetCommaPositions() const { return GetTrailObjects<SourcePosition>(); }
-
-        /**
-         * @brief
-         * @param index
-         * @return a @c SourcePosition representing where ',' positioned.
-         */
-        SourcePosition GetCommaPositionAt(size_t index) const { return At<SourcePosition>(index); }
+        TrailIterator<SourcePosition> GetCommaPositions() const { return GetTrailObjects<SourcePosition>(); }
 
         /**
          * @brief Get a position of ')'.
@@ -480,8 +471,6 @@ namespace BuildScript {
 
         SubscriptExpression(Expression* target, SourcePosition open, Expression* index, SourcePosition close)
             : Expression(Kind), m_target(target), m_open(open), m_index(index), m_close(close) {}
-
-        const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
 
     public:
         /**
@@ -527,8 +516,6 @@ namespace BuildScript {
         ParenthesizedExpression(SourcePosition open, SourcePosition close, Expression* expr)
             : Expression(Kind), m_open(open), m_close(close), m_expr(expr) {}
 
-        const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
-
     public:
         /**
          * @brief Get a position of '('.
@@ -573,15 +560,18 @@ namespace BuildScript {
         size_t GetTrailCount(OverloadToken<Expression*>) const { return m_count; }
         size_t GetTrailCount(OverloadToken<SourcePosition>) const { return (m_count == 0) ? 0 : m_count - 1; }
 
-        const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
-
     public:
         /**
          * @brief
-         * @param index
-         * @return a @c SourcePosition representing where ',' positioned.
+         * @return
          */
-        SourcePosition GetCommaPositionAt(size_t index) const { return At<SourcePosition>(index); }
+        TrailIterator<Expression*> GetItems() const { return GetTrailObjects<Expression*>(); }
+
+        /**
+         * @brief
+         * @return
+         */
+        TrailIterator<SourcePosition> GetCommas() const { return GetTrailObjects<SourcePosition>(); }
 
         /**
          * @brief Get a position of '['.
@@ -614,8 +604,6 @@ namespace BuildScript {
 
         KeyValuePair(Expression* key, SourcePosition colon, Expression* value)
             : Expression(Kind), m_key(key), m_colon(colon), m_value(value) {}
-
-        const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
 
     public:
         /**
@@ -660,15 +648,18 @@ namespace BuildScript {
         size_t GetTrailCount(OverloadToken<Expression*>) const { return m_count; }
         size_t GetTrailCount(OverloadToken<SourcePosition>) const { return m_count - 1; }
 
-        ASTNode* GetChild(size_t index) const override; // ASTIterator support.
-
     public:
         /**
          * @brief
-         * @param index
          * @return
          */
-        SourcePosition GetCommaPositionAt(size_t index) const { return At<SourcePosition>(index); }
+        TrailIterator<Expression*> GetItems() const { return GetTrailObjects<Expression*>(); }
+
+        /**
+         * @brief
+         * @return
+         */
+        TrailIterator<SourcePosition> GetCommas() const { return GetTrailObjects<SourcePosition>(); }
 
         /**
          * @brief Get a position of '{'.
@@ -702,8 +693,6 @@ namespace BuildScript {
         ClosureExpression(SourcePosition arrow, Parameters* params, ASTNode* body)
             : Expression(Kind), m_arrow(arrow), m_params(params), m_body(body) {}
 
-        ASTNode* GetChild(size_t index) const override; // ASTIterator support.
-
     public:
         /**
          * @brief Get a position of '=>'.
@@ -730,14 +719,14 @@ namespace BuildScript {
      * @brief
      */
     enum class LiteralType {
-        None,
-        Variable,
-        Self,
-        Super,
-        Integer,
-        Float,
-        Boolean,
-        String
+        None,       //!<
+        Variable,   //!<
+        Self,       //!<
+        Super,      //!<
+        Integer,    //!<
+        Float,      //!<
+        Boolean,    //!<
+        String      //!<
     }; // end class LiteralType
 
     /**
@@ -762,30 +751,43 @@ namespace BuildScript {
 
         size_t GetTrailCount(OverloadToken<Expression*>) const { return m_count; } // TrailObjects support.
 
-        ASTNode* GetChild(size_t index) const override; // ASTIterator support.
-
     public:
         /**
-         * @brief
+         * @brief Get a position of the literal.
+         * @return
+         */
+        SourcePosition GetPosition() const { return m_range.Begin; }
+
+        /**
+         * @brief Get a range of the literal.
+         * @return
+         */
+        SourceRange GetRange() const { return m_range; }
+
+        /**
+         * @brief Get a type of the literal.
          * @return
          */
         LiteralType GetLiteralType() const { return m_type; }
 
         /**
-         * @brief
-         * @return
+         * @brief Get value of the literal as integer.
+         * @return an integer value.
+         * @warning This member function may throw if the literal is not an integer.
          */
         int64_t AsInteger() const { return std::get<int64_t>(m_value); }
 
         /**
-         * @brief
-         * @return
+         * @brief Get value of the literal as float.
+         * @return a float value.
+         * @warning This member function may throw if the literal is not a float.
          */
         double AsFloat() const { return std::get<double>(m_value); }
 
         /**
-         * @brief
-         * @return
+         * @brief Get value of the literal as boolean.
+         * @return a boolean value.
+         * @warning This member function may throw if the literal is not a boolean.
          */
         bool AsBoolean() const { return std::get<bool>(m_value); }
 
@@ -804,11 +806,24 @@ namespace BuildScript {
             return m_count > 0;
         }
 
+        /**
+         * @brief Get count of interpolated expressions.
+         * @return
+         */
+        size_t GetInterpolationCount() const { return m_count; }
+
+        /**
+         * @brief
+         * @return
+         */
+        TrailIterator<Expression*> GetInterpolations() const { return GetTrailObjects<Expression*>(); }
+
         // GetRawString() const;
 
         /**
          * @brief
          * @return
+         * @warning Value may empty
          */
         ValueUnion GetRawValue() const { return m_value; }
 

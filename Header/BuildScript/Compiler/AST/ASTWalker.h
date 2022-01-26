@@ -1,6 +1,6 @@
 /*
  * ASTWalker.h
- * - .
+ * - Iterate nodes in AST.
  *
  * Copyright (c) 2019~2021 numver8638(신진환, Jinhwan Shin)
  * Released under the MIT License.
@@ -22,38 +22,24 @@ namespace BuildScript {
 #undef V
 
     /**
-     * @brief
-     */
-    enum class WalkerFlags {
-        Continue,       //!< Continue walking on AST.
-        SkipChildren,   //!< Continue but skip children.
-        Abort           //!< Stop walking on AST.
-    }; // end enum WalkerFlags
-
-    /**
-     * @brief
+     * @brief Iterate nodes in AST.
      */
     class ASTWalker {
-    private:
-        void Enter(const ASTNode*);
-        void Leave(const ASTNode*);
-
     protected:
-        virtual WalkerFlags OnEnterNode(const Parameters&) { return WalkerFlags::Continue; }
-        virtual void OnLeaveNode(const Parameters&) {}
+        virtual void Walk(const Parameters* node);
+        virtual void Walk(const Label* node);
 
-        virtual WalkerFlags OnEnterNode(const Label&) { return WalkerFlags::Continue; }
-        virtual void OnLeaveNode(const Label&) {}
+        virtual void Walk(const Declaration* node);
+        virtual void Walk(const Statement* node);
+        virtual void Walk(const Expression* node);
 
-        #define V(name, kind) \
-        virtual WalkerFlags OnEnterNode(const name&) { return WalkerFlags::Continue; } \
-        virtual void OnLeaveNode(const name&) {}
-
+    #define V(name, kind) \
+        virtual void Walk(const name* node);
         DECL_LIST(V)
         STMT_LIST(V)
         EXPR_LIST(V)
 
-        #undef V
+    #undef V
 
     public:
         virtual ~ASTWalker() = default;

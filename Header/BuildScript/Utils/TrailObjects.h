@@ -13,10 +13,211 @@
 #include <vector>
 #include <memory>
 #include <type_traits>
+#include <iterator>
 
 #include <BuildScript/Utils/PointerArith.h>
 
 namespace BuildScript {
+    /**
+     * @brief Immutable iterator for @c TrailObject.
+     * @tparam T the type of element to iterate.
+     */
+    template <typename T>
+    class TrailIterator {
+        template <typename, typename...> friend class TrailObjects;
+
+    public:
+        using size_type = std::size_t;
+        using difference_type = std::ptrdiff_t;
+        using value_type = const T;
+        using pointer = const T*;
+        using reference = const T&;
+
+    private:
+        pointer m_base;
+        size_type m_length;
+
+    public:
+        TrailIterator(pointer base, size_type length)
+            : m_base(base), m_length(length) {}
+
+        class Cursor {
+        private:
+            pointer m_ptr;
+
+        public:
+            using size_type = TrailIterator::size_type;
+            using difference_type = TrailIterator::difference_type;
+            using value_type = TrailIterator::value_type;
+            using pointer = TrailIterator::pointer;
+            using reference = TrailIterator::reference;
+
+            explicit Cursor(pointer pointer) : m_ptr(pointer) {}
+
+            bool operator ==(Cursor other) const { return m_ptr == other.m_ptr; }
+            bool operator !=(Cursor other) const { return !(*this == other); /*NOLINT*/ }
+
+            Cursor& operator +=(difference_type n) {
+                m_ptr += n;
+                return *this;
+            }
+            Cursor operator +(difference_type n) {
+                auto temp = *this;
+                temp += n;
+                return temp;
+            }
+            friend Cursor operator +(difference_type, Cursor);
+            Cursor& operator ++() { return (*this += 1); }
+            Cursor operator ++(int) { return *this + 1; }
+
+            Cursor& operator -=(difference_type n) {
+                m_ptr -= n;
+                return *this;
+            }
+            Cursor operator -(difference_type n) {
+                auto temp = *this;
+                temp -= n;
+                return temp;
+            }
+            Cursor& operator --() { return (*this -= 1); }
+            Cursor operator --(int) { return (*this - 1); }
+            friend Cursor operator -(difference_type, Cursor);
+
+            difference_type operator -(Cursor other) const { return m_ptr - other.m_ptr; }
+            reference operator [](size_type index) const { return *(m_ptr + index); }
+            reference operator *() const { return *m_ptr; }
+            reference operator ->() const { return *m_ptr; }
+
+            bool operator <(Cursor other) const { return m_ptr < other.m_ptr; }
+            bool operator >(Cursor other) const { return other < *this; }
+            bool operator <=(Cursor other) const { return !(*this > other); /*NOLINT*/}
+            bool operator >=(Cursor other) const { return !(*this < other); /*NOLINT*/}
+        };
+
+        Cursor begin() const { return Cursor{ m_base }; }
+        Cursor end() const { return Cursor{ m_base + m_length }; }
+
+        reference operator [](size_type index) const {
+            assert((index < m_length) && "out of bound");
+
+            return *(m_base + index);
+        }
+
+        size_t size() const { return m_length; }
+    }; // end class TrailIterator<T>
+
+    template <typename T>
+    typename TrailIterator<T>::Cursor operator +(typename TrailIterator<T>::Cursor::difference_type n,
+                                                 typename TrailIterator<T>::Cursor cursor) {
+        return cursor += n;
+    }
+
+    template <typename T>
+    typename TrailIterator<T>::Cursor operator -(typename TrailIterator<T>::Cursor::difference_type n,
+                                                 typename TrailIterator<T>::Cursor cursor) {
+        return cursor -= n;
+    }
+
+    /**
+     * @brief Mutable iterator for @c TrailObject.
+     * @tparam T the type of element to iterate.
+     */
+    template <typename T>
+    class MutableTrailIterator {
+        template <typename, typename...> friend class TrailObjects;
+
+    public:
+        using size_type = std::size_t;
+        using difference_type = std::ptrdiff_t;
+        using value_type = T;
+        using pointer = T*;
+        using reference = T&;
+
+    private:
+        pointer m_base;
+        size_type m_length;
+
+    public:
+        MutableTrailIterator(pointer base, size_type length)
+            : m_base(base), m_length(length) {}
+
+        class Cursor {
+        private:
+            pointer m_ptr;
+
+        public:
+            using size_type = MutableTrailIterator::size_type;
+            using difference_type = MutableTrailIterator::difference_type;
+            using value_type = MutableTrailIterator::value_type;
+            using pointer = MutableTrailIterator::pointer;
+            using reference = MutableTrailIterator::reference;
+
+            explicit Cursor(pointer pointer) : m_ptr(pointer) {}
+
+            bool operator ==(Cursor other) const { return false; }
+            bool operator !=(Cursor other) const { return !(*this == other); /*NOLINT*/ }
+
+            Cursor& operator +=(difference_type n) {
+                m_ptr += n;
+                return *this;
+            }
+            Cursor operator +(difference_type n) {
+                auto temp = *this;
+                temp += n;
+                return temp;
+            }
+            friend Cursor operator +(difference_type, Cursor);
+            Cursor& operator ++() { return (*this += 1); }
+            Cursor operator ++(int) { return *this + 1; }
+
+            Cursor& operator -=(difference_type n) {
+                m_ptr -= n;
+                return *this;
+            }
+            Cursor operator -(difference_type n) {
+                auto temp = *this;
+                temp -= n;
+                return temp;
+            }
+            Cursor& operator --() { return (*this -= 1); }
+            Cursor operator --(int) { return (*this - 1); }
+            friend Cursor operator -(difference_type, Cursor);
+
+            difference_type operator -(Cursor other) const { return m_ptr - other.m_ptr; }
+            reference operator [](difference_type index) { return *(m_ptr + index); }
+            reference operator *() { return *m_ptr; }
+            reference operator ->() { return *m_ptr; }
+
+            bool operator <(Cursor other) const { return m_ptr < other.m_ptr; }
+            bool operator >(Cursor other) const { return other < *this; }
+            bool operator <=(Cursor other) const { return !(*this > other); /*NOLINT*/}
+            bool operator >=(Cursor other) const { return !(*this < other); /*NOLINT*/}
+        };
+
+        Cursor begin() { return Cursor{ m_base }; }
+        Cursor end() { return Cursor{ m_base + m_length }; }
+
+        reference operator [](size_type index) {
+            assert((index < m_length) && "out of bound");
+
+            return *(m_base + index);
+        }
+
+        size_type size() const { return m_length; }
+    }; // end class MutableTrailIterator<T>
+
+    template <typename T>
+    typename MutableTrailIterator<T>::Cursor operator +(typename MutableTrailIterator<T>::Cursor::difference_type n,
+                                                        typename MutableTrailIterator<T>::Cursor cursor) {
+        return cursor += n;
+    }
+
+    template <typename T>
+    typename MutableTrailIterator<T>::Cursor operator -(typename MutableTrailIterator<T>::Cursor::difference_type n,
+                                                        typename MutableTrailIterator<T>::Cursor cursor) {
+        return cursor -= n;
+    }
+
     /**
      * @brief Implements variable length array in class.
      *
@@ -82,7 +283,7 @@ namespace BuildScript {
     protected:
         /**
          * @brief Expand parameter packs with T.
-         * @tparam T Type ... expand to.
+         * @tparam T the type that expand to.
          */
         template <typename, typename T>
         using expand_pack_t = T;
@@ -172,71 +373,6 @@ namespace BuildScript {
         }
 
     public:
-        /**
-         * @brief Wrapper for range-based-for-loop.
-         * @tparam T type of the element.
-         */
-        template <typename T>
-        class TrailIterator {
-            friend TrailObjects;
-
-        private:
-            T* m_base;
-            size_t m_length;
-
-            TrailIterator(T* base, size_t length)
-                : m_base(base), m_length(length) {}
-
-        public:
-            struct iterator {
-                friend TrailIterator;
-
-            private:
-                T* m_base;
-                size_t m_index;
-
-                iterator(const T* base, size_t index)
-                    : m_base(base), m_index(index) {}
-
-            public:
-                using iterator_category = std::forward_iterator_tag;
-                using value_type = T;
-                using difference_type = std::ptrdiff_t;
-                using pointer = value_type*;
-                using reference = value_type&;
-                using const_reference = const value_type&;
-
-                iterator(const iterator&) = default;
-                iterator& operator =(const iterator&) = default;
-
-                reference operator *() const {
-                    return m_base[m_index];
-                }
-
-                reference operator ->() const {
-                    return m_base[m_index];
-                }
-
-                bool operator !=(const iterator& other) const {
-                    return (m_base != other.m_base) || (m_index != other.m_index);
-                }
-
-                iterator& operator ++() {
-                    ++m_index;
-                    return *this;
-                }
-
-                iterator operator ++(int) {
-                    auto old = *this;
-                    operator ++();
-                    return old;
-                }
-            };
-
-            iterator begin() { return iterator(m_base, 0); }
-            iterator end() { return iterator(m_base, m_length); }
-        }; // end class TrailIterator
-
         TrailObjects() { static_assert(std::is_final_v<BaseType>, "BaseType is not final."); }
         TrailObjects(const TrailObjects&) = delete;
         TrailObjects(TrailObjects&&) = delete;
@@ -270,10 +406,10 @@ namespace BuildScript {
          * @tparam T the desired type.
          * @param begin start index of the array. default is 0.
          * @param end end index of the array. default is max value of @c size_t.
-         * @return a writable TrailIterator<T>.
+         * @return a @c MutableTrailIterator<T>.
          */
         template <typename T>
-        TrailIterator<T> GetTrailObjects(size_t begin = 0, size_t end = size_t_max_v) {
+        MutableTrailIterator<T> GetTrailObjects(size_t begin = 0, size_t end = size_t_max_v) {
             if (end == size_t_max_v) {
                 end = GetCount<T>();
             }
@@ -289,10 +425,10 @@ namespace BuildScript {
          * @tparam T the desired type.
          * @param begin start index of the array. default is 0.
          * @param end end index of the array. default is max value of @c size_t.
-         * @return a readonly @c TrailIterator<T>.
+         * @return a @c TrailIterator<T>.
          */
         template <typename T>
-        TrailIterator<const T> GetTrailObjects(size_t begin = 0, size_t end = size_t_max_v) const {
+        TrailIterator<T> GetTrailObjects(size_t begin = 0, size_t end = size_t_max_v) const {
             if (end == size_t_max_v) {
                 end = GetCount<T>();
             }

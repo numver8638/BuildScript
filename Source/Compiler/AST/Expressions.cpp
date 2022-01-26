@@ -27,35 +27,14 @@ TernaryExpression::Create(Context& context, Expression* valueT, SourcePosition _
     return new (context.GetAllocator()) TernaryExpression(valueT, _if, condition, _else, valueF);
 }
 
-const ASTNode* TernaryExpression::GetChild(size_t index) const {
-    switch (index) {
-        case 0: return m_valueT;
-        case 1: return m_cond;
-        case 2: return m_valueF;
-        default: return nullptr;
-    }
-}
-
 BinaryExpression*
 BinaryExpression::Create(Context& context, Expression* left, BinaryOp op, std::array<SourcePosition, 2> pos,
                          Expression* right) {
     return new (context.GetAllocator()) BinaryExpression(left, op, pos, right);
 }
 
-const ASTNode* BinaryExpression::GetChild(size_t index) const {
-    switch (index) {
-        case 0: return m_left;
-        case 1: return m_right;
-        default: return nullptr;
-    }
-}
-
 UnaryExpression* UnaryExpression::Create(Context& context, UnaryOp op, SourcePosition pos, Expression* expr) {
     return new (context.GetAllocator()) UnaryExpression(op, pos, expr);
-}
-
-const ASTNode* UnaryExpression::GetChild(size_t index) const {
-    return (index == 0) ? m_expr : nullptr;
 }
 
 DefinedExpression*
@@ -64,25 +43,13 @@ DefinedExpression::Create(Context& context, SourcePosition defined, Identifier i
     return new (context.GetAllocator()) DefinedExpression(defined, std::move(id), in, expr);
 }
 
-const ASTNode* DefinedExpression::GetChild(size_t index) const {
-    return (index == 0) ? m_target : nullptr;
-}
-
 RaiseExpression* RaiseExpression::Create(Context& context, SourcePosition raise, Expression* expr) {
     return new (context.GetAllocator()) RaiseExpression(raise, expr);
-}
-
-const ASTNode* RaiseExpression::GetChild(size_t index) const {
-    return (index == 0) ? m_target : nullptr;
 }
 
 MemberAccessExpression*
 MemberAccessExpression::Create(Context& context, Expression* target, SourcePosition dot, Identifier name) {
     return new (context.GetAllocator()) MemberAccessExpression(target, dot, std::move(name));
-}
-
-const ASTNode* MemberAccessExpression::GetChild(size_t index) const {
-    return (index == 0) ? m_target : nullptr;
 }
 
 InvocationExpression*
@@ -101,36 +68,15 @@ InvocationExpression::Create(Context& context, Expression* target, SourcePositio
     return node;
 }
 
-const ASTNode* InvocationExpression::GetChild(size_t index) const {
-    if (index == 0) {
-        return m_target;
-    }
-    else {
-        return (index < GetArguementCount()) ? At<Expression*>(index - 1) : nullptr;
-    }
-}
-
 SubscriptExpression*
 SubscriptExpression::Create(Context& context, Expression* target, SourcePosition open, Expression* index,
                             SourcePosition close) {
     return new (context.GetAllocator()) SubscriptExpression(target, open, index, close);
 }
 
-const ASTNode* SubscriptExpression::GetChild(size_t index) const {
-    switch (index) {
-        case 0: return m_target;
-        case 1: return m_index;
-        default: return nullptr;
-    }
-}
-
 ParenthesizedExpression*
 ParenthesizedExpression::Create(Context& context, SourcePosition open, Expression* expr, SourcePosition close) {
     return new (context.GetAllocator()) ParenthesizedExpression(open, close, expr);
-}
-
-const ASTNode* ParenthesizedExpression::GetChild(size_t index) const {
-    return (index == 0) ? m_expr : nullptr;
 }
 
 ListExpression*
@@ -148,20 +94,8 @@ ListExpression::Create(Context& context, SourcePosition open, const std::vector<
     return node;
 }
 
-const ASTNode* ListExpression::GetChild(size_t index) const {
-    return (index < m_count) ? At<Expression*>(index) : nullptr;
-}
-
 KeyValuePair* KeyValuePair::Create(Context& context, Expression* key, SourcePosition colon, Expression* value) {
     return new (context.GetAllocator()) KeyValuePair(key, colon, value);
-}
-
-const ASTNode* KeyValuePair::GetChild(size_t index) const {
-    switch (index) {
-        case 0: return m_key;
-        case 1: return m_value;
-        default: return nullptr;
-    }
 }
 
 MapExpression*
@@ -179,21 +113,9 @@ MapExpression::Create(Context& context, SourcePosition open, const std::vector<E
     return node;
 }
 
-ASTNode* MapExpression::GetChild(size_t index) const {
-    return (index < m_count) ? At<Expression*>(index) : nullptr;
-}
-
 ClosureExpression*
 ClosureExpression::Create(Context& context, Parameters* params, SourcePosition arrow, ASTNode* body) {
     return new (context.GetAllocator()) ClosureExpression(arrow, params, body);
-}
-
-ASTNode* ClosureExpression::GetChild(size_t index) const {
-    switch (index) {
-        case 0: return m_params;
-        case 1: return m_body;
-        default: return nullptr;
-    }
 }
 
 LiteralExpression* LiteralExpression::CreateVariable(Context& context, const Identifier& id) {
@@ -234,8 +156,4 @@ LiteralExpression* LiteralExpression::CreateSelf(Context& context, SourceRange r
 
 LiteralExpression* LiteralExpression::CreateSuper(Context& context, SourceRange range) {
     return new (context.GetAllocator()) LiteralExpression(range, LiteralType::Super, {});
-}
-
-ASTNode* LiteralExpression::GetChild(size_t index) const {
-    return (m_type == LiteralType::String && (index < m_count)) ? At<Expression*>(index) : nullptr;
 }

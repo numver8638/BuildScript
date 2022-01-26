@@ -214,674 +214,982 @@ void ASTDumper::Dump(const ASTNode* root) {
 
     m_writer = &W;
 
-    Walk(root);
+    super::Walk(root);
 
     std::cout << std::endl;
 }
 
-WalkerFlags ASTDumper::OnEnterNode(const Parameters& node) {
+void ASTDumper::Walk(const Parameters* node) {
     writer() << "<< Parameters >>" << EOL;
 
     writer() << Indent;
+    {
+        writer() << "- OpenParenPosition: " << node->GetOpenParenPosition() << EOL;
+        writer() << "- CloseParenPosition: " << node->GetCloseParenPosition() << EOL;
+        writer() << "- HasVariadicArgs: " << node->HasVariadicArgument() << EOL;
+        writer() << "- Parameters:" << EOL << Indent;
 
-    writer() << "- OpenParenPosition: " << node.GetOpenParenPosition() << EOL;
-    writer() << "- CloseParenPosition: " << node.GetCloseParenPosition() << EOL;
-    writer() << "- HasVariadicArgs: " << node.HasVariadicArgument() << EOL;
-    writer() << "- Parameters:" << EOL << Indent;
-
-    auto index = 0;
-    for (const auto& name : node.GetParameterNames()) {
-        writer() << "<< Parameter #" << index << " >>" << EOL << Indent;
-
-        writer() << "- Name: " << name << EOL;
-        // writer() << "- CommaPosition: " << node.GetCommaPositionAt(index) << EOL;
-
-        ++index;
-
-        writer() << Dedent;
+        auto index = 0;
+        for (const auto& name : node->GetParameterNames()) {
+            writer() << "<< Parameter #" << index++ << " >>" << EOL << Indent;
+            {
+                writer() << "- Name: " << name << EOL;
+            }
+            writer() << Dedent;
+        }
     }
-
     writer() << Dedent;
-
-    return WalkerFlags::Continue;
-}
-
-WalkerFlags ASTDumper::OnEnterNode(const InvalidDeclaration& node) {
-    writer() << "<< InvalidDeclaration >>" << EOL << Indent;
-    return WalkerFlags::Continue;
-}
-
-WalkerFlags ASTDumper::OnEnterNode(const ScriptDeclaration& node) {
-    writer() << "<< ScriptNode >>" << EOL << Indent;
-    writer() << "- Name: " << node.GetName() << EOL;
-
-    return WalkerFlags::Continue;
-}
-
-WalkerFlags ASTDumper::OnEnterNode(const TaskInputsDeclaration& node) {
-    writer() << "<< TaskInputsDeclaration >>" << EOL << Indent;
-    writer() << "- InputsKeywordPosition: " << node.GetInputsPosition() << EOL;
-    writer() << "- WithKeywordPosition: " << node.GetWithPosition() << EOL;
-
-    return WalkerFlags::Continue;
-}
-
-WalkerFlags ASTDumper::OnEnterNode(const TaskOutputsDeclaration& node) {
-    writer() << "<< TaskOutputsDeclaration >>" << EOL << Indent;
-    writer() << "- OutputsKeywordPosition: " << node.GetOutputsPosition() << EOL;
-    writer() << "- FromKeywordPosition: " << node.GetFromPosition() << EOL;
-
-    return WalkerFlags::Continue;
-}
-
-WalkerFlags ASTDumper::OnEnterNode(const TaskActionDeclaration& node) {
-    writer() << "<< TaskActionDeclaration >>" << EOL << Indent;
-    writer() << "- KeywordPosition: " << node.GetKeywordPosition() << EOL;
-
-    return WalkerFlags::Continue;
-}
-
-WalkerFlags ASTDumper::OnEnterNode(const TaskPropertyDeclaration& node) {
-    writer() << "<< TaskPropertyDeclaration >>" << EOL << Indent;
-
-    writer() << "- Name: " << node.GetName() << EOL;
-    writer() << "- AssignPosition: " << node.GetAssignPosition() << EOL;
-
-    return WalkerFlags::Continue;
 }
 
 // Declarations
-WalkerFlags ASTDumper::OnEnterNode(const TaskDeclaration& node) {
-    writer() << "<< TaskDeclaration >>" << EOL ;
-
-    writer() << Indent;
-
-    writer() << "- TaskKeywordPosition: " << node.GetTaskPosition() << EOL;
-    writer() << "- Name: " << node.GetName() << EOL;
-
-    if (node.HasExtends()) {
-        writer() << "- ExtendsKeywordPosition: " << node.GetExtendsPosition() << EOL;
-        writer() << "- ExtendsName: " << node.GetExtendName() << EOL;
+void ASTDumper::Walk(const InvalidDeclaration* node) {
+    writer() << "<< InvalidDeclaration >>" << EOL << Indent;
+    {
+        writer() << "- Range: " << node->GetRange() << EOL;
     }
+    writer() << Dedent;
+}
 
-    if (node.HasDependsOn()) {
-        writer() << "- DependsOnKeywordPosition: " << node.GetDependsOnPosition() << EOL;
-        writer() << "- Dependencies: " << EOL;
-
-        writer() << Indent;
-
-        auto index = 0;
-        for (const auto& name : node.GetDependencyNames()) {
-            writer() << " - DepName #" << index << ": " << name << EOL;
-            // writer() << " - CommaPosition: " << list->GetCommaPositionAt(index) << EOL;
-            ++index;
+void ASTDumper::Walk(const ScriptDeclaration* node) {
+    writer() << "<< ScriptNode >>" << EOL << Indent;
+    {
+        writer() << "- Name: " << node->GetName() << EOL;
+        writer() << "- Nodes:" << EOL << Indent;
+        {
+            super::Walk(node);
         }
-
         writer() << Dedent;
     }
-
-    writer() << "- OpenBracePosition: " << node.GetOpenBracePosition() << EOL;
-    writer() << "- CloseBracePosition: " << node.GetCloseBracePosition() << EOL;
-
-    return WalkerFlags::Continue;
+    writer() << Dedent;
 }
 
-WalkerFlags ASTDumper::OnEnterNode(const ClassDeclaration& node) {
-    writer() << "<< ClassDeclaration >>" << EOL;
-
-    writer() << Indent;
-
-    writer() << "- ClassKeywordPosition: " << node.GetClassPosition() << EOL;
-    writer() << "- Name: " << node.GetName() << EOL;
-
-    if (node.HasExtends()) {
-        writer() << "- ExtendsKeywordPosition: " << node.GetExtendsPosition() << EOL;
-        writer() << "- ExtendsName: " << node.GetExtendName() << EOL;
+void ASTDumper::Walk(const TaskInputsDeclaration* node) {
+    writer() << "<< TaskInputsDeclaration >>" << EOL << Indent;
+    {
+        writer() << "- InputsKeywordPosition: " << node->GetInputsPosition() << EOL;
+        writer() << "- WithKeywordPosition: " << node->GetWithPosition() << EOL;
+        writer() << "- Inputs:" << EOL << Indent;
+        {
+            super::Walk(node->GetInputsValue());
+        }
+        writer() << Dedent;
+        if (node->HasWith()) {
+            writer() << "- With:" << EOL << Indent;
+            {
+                super::Walk(node->GetWithValue());
+            }
+            writer() << Dedent;
+        }
     }
-
-    writer() << "- OpenBracePosition: " << node.GetOpenBracePosition() << EOL;
-    writer() << "- CloseBracePosition: " << node.GetCloseBracePosition() << EOL;
-
-    return WalkerFlags::Continue;
+    writer() << Dedent;
 }
 
-WalkerFlags ASTDumper::OnEnterNode(const FunctionDeclaration& node) {
-    writer() << "<< FunctionDeclaration >>" << EOL;
-
-    writer() << Indent;
-
-    writer() << "- DefKeywordPosition: " << node.GetDefPosition() << EOL;
-    writer() << "- Name: " << node.GetName() << EOL;
-
-
-    return WalkerFlags::Continue;
-}
-
-WalkerFlags ASTDumper::OnEnterNode(const ImportDeclaration& node) {
-    writer() << "<< ImportDeclaration >>" << EOL;
-
-    writer() << Indent;
-
-    writer() << "- ImportKeywordPosition: " << node.GetImportPosition() << EOL;
-
-    return WalkerFlags::Continue;
-}
-
-WalkerFlags ASTDumper::OnEnterNode(const ExportDeclaration& node) {
-    writer() << "<< ExportDeclaration >>" << EOL;
-
-    writer() << Indent;
-
-    writer() << "- ExportKeywordPosition: " << node.GetExportPosition() << EOL;
-    writer() << "- Name: " << node.GetName() << EOL;
-    if (node.HasValue()) {
-        writer() << "- AssignPosition: " << node.GetAssignPosition() << EOL;
+void ASTDumper::Walk(const TaskOutputsDeclaration* node) {
+    writer() << "<< TaskOutputsDeclaration >>" << EOL << Indent;
+    {
+        writer() << "- OutputsKeywordPosition: " << node->GetOutputsPosition() << EOL;
+        writer() << "- FromKeywordPosition: " << node->GetFromPosition() << EOL;
+        writer() << "- Outputs:" << EOL << Indent;
+        {
+            super::Walk(node->GetOutputsValue());
+        }
+        writer() << Dedent;
+        if (node->HasFrom()) {
+            writer() << "- From:" << EOL << Indent;
+            {
+                super::Walk(node->GetFromValue());
+            }
+            writer() << Dedent;
+        }
     }
-
-
-    return WalkerFlags::Continue;
+    writer() << Dedent;
 }
 
-WalkerFlags ASTDumper::OnEnterNode(const VariableDeclaration& node) {
-    writer() << "<< VariableDeclaration >>" << EOL;
-
-    writer() << Indent;
-
-    if (node.IsConst()) {
-        writer() << "- ConstKeywordPosition: " << node.GetConstPosition() << EOL;
+void ASTDumper::Walk(const TaskActionDeclaration* node) {
+    writer() << "<< TaskActionDeclaration >>" << EOL << Indent;
+    {
+        writer() << "- KeywordPosition: " << node->GetKeywordPosition() << EOL;
+        writer() << "- Body:" << EOL << Indent;
+        {
+            super::Walk(node->GetBody());
+        }
+        writer() << Dedent;
     }
-    else {
-        writer() << "- VarKeywordPosition: " << node.GetVarPosition() << EOL;
-    }
-
-    writer() << "- Const: " << node.IsConst() << EOL;
-    writer() << "- Name: " << node.GetName() << EOL;
-    writer() << "- AssignPosition: " << node.GetAssignPosition() << EOL;
-
-    return WalkerFlags::Continue;
+    writer() << Dedent;
 }
 
-// ClassMembers
-WalkerFlags ASTDumper::OnEnterNode(const ClassInitDeclaration& node) {
-    writer() << "<< ClassInitDeclaration >>" << EOL;
-
-    writer() << Indent;
-
-    writer() << "- InitKeywordPosition: " << node.GetInitPosition() << EOL;
-
-    return WalkerFlags::Continue;
+void ASTDumper::Walk(const TaskPropertyDeclaration* node) {
+    writer() << "<< TaskPropertyDeclaration >>" << EOL << Indent;
+    {
+        writer() << "- Name: " << node->GetName() << EOL;
+        writer() << "- AssignPosition: " << node->GetAssignPosition() << EOL;
+        writer() << "- Value:" << EOL << Indent;
+        {
+            super::Walk(node->GetValue());
+        }
+        writer() << Dedent;
+    }
+    writer() << Dedent;
 }
 
-WalkerFlags ASTDumper::OnEnterNode(const ClassDeinitDeclaration& node) {
-    writer() << "<< ClassDeinitDeclaration >>" << EOL;
+void ASTDumper::Walk(const TaskDeclaration* node) {
+    writer() << "<< TaskDeclaration >>" << EOL << Indent;
+    {
+        writer() << "- TaskKeywordPosition: " << node->GetTaskPosition() << EOL;
+        writer() << "- Name: " << node->GetName() << EOL;
 
-    writer() << Indent;
+        if (node->HasExtends()) {
+            writer() << "- ExtendsKeywordPosition: " << node->GetExtendsPosition() << EOL;
+            writer() << "- ExtendsName: " << node->GetExtendName() << EOL;
+        }
 
-    writer() << "- DeinitKeywordPosition: " << node.GetDeinitPosition() << EOL;
+        if (node->HasDependsOn()) {
+            writer() << "- DependsOnKeywordPosition: " << node->GetDependsOnPosition() << EOL;
+            writer() << "- Dependencies: " << EOL << Indent;
+            {
+                auto index = 0;
+                for (const auto& name: node->GetDependencyNames()) {
+                    writer() << " - Dependency #" << index << ": " << name << EOL;
+                    ++index;
+                }
+            }
+            writer() << Dedent;
+        }
 
-    return WalkerFlags::Continue;
+        writer() << "- OpenBracePosition: " << node->GetOpenBracePosition() << EOL;
+        writer() << "- CloseBracePosition: " << node->GetCloseBracePosition() << EOL;
+        writer() << "- Members:" << EOL << Indent;
+        {
+            super::Walk(node);
+        }
+        writer() << Dedent;
+    }
+    writer() << Dedent;
 }
 
-WalkerFlags ASTDumper::OnEnterNode(const ClassFieldDeclaration& node) {
-    writer() << "<< ClassFieldDeclaration >>" << EOL;
+void ASTDumper::Walk(const ClassDeclaration* node) {
+    writer() << "<< ClassDeclaration >>" << EOL << Indent;
+    {
+        writer() << "- ClassKeywordPosition: " << node->GetClassPosition() << EOL;
+        writer() << "- Name: " << node->GetName() << EOL;
 
-    writer() << Indent;
+        if (node->HasExtends()) {
+            writer() << "- ExtendsKeywordPosition: " << node->GetExtendsPosition() << EOL;
+            writer() << "- ExtendsName: " << node->GetExtendName() << EOL;
+        }
 
-    writer() << "- Static: " << node.IsStatic() << EOL;
-    writer() << "- Const: " << node.IsConst() << EOL;
-
-    if (node.IsConst()) {
-        writer() << "- ConstKeywordPosition: " << node.GetConstPosition() << EOL;
+        writer() << "- OpenBracePosition: " << node->GetOpenBracePosition() << EOL;
+        writer() << "- CloseBracePosition: " << node->GetCloseBracePosition() << EOL;
+        writer() << "- Members:" << EOL << Indent;
+        {
+            super::Walk(node);
+        }
+        writer() << Dedent;
     }
-
-    if (node.IsStatic()) {
-        writer() << "- StaticKeywordPosition: " << node.GetStaticPosition() << EOL;
-    }
-
-    writer() << "- AssignPosition: " << node.GetAssignPosition() << EOL;
-    writer() << "- Name:" << node.GetName() << EOL;
-
-    return WalkerFlags::Continue;
+    writer() << Dedent;
 }
 
-WalkerFlags ASTDumper::OnEnterNode(const ClassMethodDeclaration& node) {
-    writer() << "<< ClassMethodDeclaration >>" << EOL;
-
-    writer() << Indent;
-
-    writer() << "- DefKeywordPosition: " << node.GetDefPosition() << EOL;
-    writer() << "- Static: " << node.IsStatic() << EOL;
-
-    if (node.IsStatic()) {
-        writer() << "- StaticKeywordPosition: " << node.GetStaticPosition() << EOL;
+void ASTDumper::Walk(const ClassInitDeclaration* node) {
+    writer() << "<< ClassInitDeclaration >>" << EOL << Indent;
+    {
+        writer() << "- InitKeywordPosition: " << node->GetInitPosition() << EOL;
+        writer() << "- Parameters:" << EOL << Indent;
+        {
+            super::Walk(node->GetParameters());
+        }
+        writer() << Dedent;
+        writer() << "- Body:" << EOL << Indent;
+        {
+            super::Walk(node->GetBody());
+        }
+        writer() << Dedent;
     }
-
-    writer() << "- Name: " << node.GetName() << EOL;
-
-    return WalkerFlags::Continue;
+    writer() << Dedent;
 }
 
-WalkerFlags ASTDumper::OnEnterNode(const ClassPropertyDeclaration& node) {
-    writer() << "<< ClassPropertyDeclaration >>" << EOL;
-
-    writer() << Indent;
-
-    if (node.IsGetter()) {
-        writer() << "- GetKeywordPosition: " << node.GetGetPosition() << EOL;
+void ASTDumper::Walk(const ClassDeinitDeclaration* node) {
+    writer() << "<< ClassDeinitDeclaration >>" << EOL << Indent;
+    {
+        writer() << "- DeinitKeywordPosition: " << node->GetDeinitPosition() << EOL;
+        writer() << "- Body:" << EOL << Indent;
+        {
+            super::Walk(node->GetBody());
+        }
+        writer() << Dedent;
     }
-    else {
-        writer() << "- SetKeywordPosition: " << node.GetSetPosition() << EOL;
-    }
-
-    writer() << "- Name: " << node.GetName() << EOL;
-    writer() << "- Type: " << (node.IsGetter() ? "Getter" : "Setter") << EOL;
-
-    return WalkerFlags::Continue;
+    writer() << Dedent;
 }
 
-WalkerFlags ASTDumper::OnEnterNode(const ClassOperatorDeclaration& node) {
-    writer() << "<< ClassOperatorDeclaration >>" << EOL;
-
-    writer() << Indent;
-
-    writer() << "- OperatorKeywordPosition: " << node.GetOperatorPosition() << EOL;
-    writer() << "- OperatorPosition: " << node.GetFirstOperatorPosition() << EOL;
-
-    if (node.GetOperatorKind() == OperatorKind::Index) {
-        writer() << "- SecondaryOperatorPosition: " << node.GetSecondOperatorPosition() << EOL;
+void ASTDumper::Walk(const ClassFieldDeclaration* node) {
+    writer() << "<< ClassFieldDeclaration >>" << EOL << Indent;
+    {
+        if (node->IsStatic()) {
+            writer() << "- StaticKeywordPosition: " << node->GetStaticPosition() << EOL;
+        }
+        else {
+            writer() << "- ConstKeywordPosition: " << node->GetConstPosition() << EOL;
+        }
+        writer() << "- Name: " << node->GetName() << EOL;
+        writer() << "- AssignPosition: " << node->GetAssignPosition() << EOL;
+        writer() << "- Value:" << EOL << Indent;
+        {
+            super::Walk(node->GetValue());
+        }
+        writer() << Dedent;
     }
+    writer() << Dedent;
+}
 
-    writer() << "- OperatorKind: " << node.GetOperatorKind() << EOL;
+void ASTDumper::Walk(const ClassMethodDeclaration* node) {
+    writer() << "<< ClassMethodDeclaration >>" << EOL << Indent;
+    {
+        writer() << "- DefKeywordPosition: " << node->GetDefPosition() << EOL;
+        if (node->IsStatic()) {
+            writer() << "- StaticKeywordPosition: " << node->GetStaticPosition() << EOL;
+        }
+        writer() << "- Name: " << node->GetName() << EOL;
+        writer() << "- Parameters:" << EOL << Indent;
+        {
+            super::Walk(node->GetParameters());
+        }
+        writer() << Dedent;
+        writer() << "- Body:" << EOL << Indent;
+        {
+            super::Walk(node->GetBody());
+        }
+        writer() << Dedent;
+    }
+    writer() << Dedent;
+}
 
+void ASTDumper::Walk(const ClassPropertyDeclaration* node) {
+    writer() << "<< ClassPropertyDeclaration >>" << EOL << Indent;
+    {
+        if (node->IsGetter()) {
+            writer() << "- GetKeywordPosition: " << node->GetGetPosition() << EOL;
+        }
+        else {
+            writer() << "- SetKeywordPosition: " << node->GetSetPosition() << EOL;
+        }
+        writer() << "- Name: " << node->GetName() << EOL;
+        writer() << "- Body:" << EOL << Indent;
+        {
+            super::Walk(node->GetBody());
+        }
+        writer() << Dedent;
+    }
+    writer() << Dedent;
+}
 
-    return WalkerFlags::Continue;
+void ASTDumper::Walk(const ClassOperatorDeclaration* node) {
+    writer() << "<< ClassOperatorDeclaration >>" << EOL << Indent;
+    {
+        writer() << "- OperatorKeywordPosition: " << node->GetOperatorPosition() << EOL;
+        writer() << "- OperatorKind: " << node->GetOperatorKind() << EOL;
+        if (node->GetOperatorKind() == OperatorKind::Index) {
+            writer() << "- OperatorPosition: " << node->GetFirstOperatorPosition() << ", "
+                << node->GetSecondOperatorPosition() << EOL;
+        }
+        else {
+            writer() << "- OperatorPosition: " << node->GetFirstOperatorPosition() << EOL;
+        }
+        writer() << "- Parameters:" << EOL << Indent;
+        {
+            super::Walk(node->GetParameters());
+        }
+        writer() << Dedent;
+        writer() << "- Body:" << EOL << Indent;
+        {
+            super::Walk(node->GetBody());
+        }
+        writer() << Dedent;
+    }
+    writer() << Dedent;
+}
+
+void ASTDumper::Walk(const FunctionDeclaration* node) {
+    writer() << "<< FunctionDeclaration >>" << EOL << Indent;
+    {
+        writer() << "- DefKeywordPosition: " << node->GetDefPosition() << EOL;
+        writer() << "- Name: " << node->GetName() << EOL;
+        writer() << "- Parameters:" << EOL << Indent;
+        {
+            super::Walk(node->GetParameters());
+        }
+        writer() << Dedent;
+        writer() << "- Body:" << EOL << Indent;
+        {
+            super::Walk(node->GetBody());
+        }
+        writer() << Dedent;
+    }
+    writer() << Dedent;
+}
+
+void ASTDumper::Walk(const ImportDeclaration* node) {
+    writer() << "<< ImportDeclaration >>" << EOL << Indent;
+    {
+        writer() << "- ImportKeywordPosition: " << node->GetImportPosition() << EOL;
+        writer() << "- Path:" << EOL << Indent;
+        {
+            super::Walk(node->GetPath());
+        }
+        writer() << Dedent;
+    }
+    writer() << Dedent;
+}
+
+void ASTDumper::Walk(const ExportDeclaration* node) {
+    writer() << "<< ExportDeclaration >>" << EOL << Indent;
+    {
+        writer() << "- ExportKeywordPosition: " << node->GetExportPosition() << EOL;
+        writer() << "- Name: " << node->GetName() << EOL;
+        if (node->HasValue()) {
+            writer() << "- AssignPosition: " << node->GetAssignPosition() << EOL;
+            writer() << "- Value:" << EOL << Indent;
+            {
+                super::Walk(node->GetValue());
+            }
+            writer() << Dedent;
+        }
+    }
+    writer() << Dedent;
+}
+
+void ASTDumper::Walk(const VariableDeclaration* node) {
+    writer() << "<< VariableDeclaration >>" << EOL << Indent;
+    {
+        if (node->IsConst()) {
+            writer() << "- ConstKeywordPosition: " << node->GetConstPosition() << EOL;
+        }
+        else {
+            writer() << "- VarKeywordPosition: " << node->GetVarPosition() << EOL;
+        }
+
+        writer() << "- Const: " << node->IsConst() << EOL;
+        writer() << "- Name: " << node->GetName() << EOL;
+        writer() << "- AssignPosition: " << node->GetAssignPosition() << EOL;
+        writer() << "- Value:" << EOL << Indent;
+        {
+            super::Walk(node->GetValue());
+        }
+        writer() << Dedent;
+    }
+    writer() << Dedent;
 }
 
 // Statements
-WalkerFlags ASTDumper::OnEnterNode(const InvalidStatement& node) {
+void ASTDumper::Walk(const InvalidStatement* node) {
     writer() << "<< InvalidStatement >>" << EOL << Indent;
-
-    return WalkerFlags::Continue;
-}
-
-WalkerFlags ASTDumper::OnEnterNode(const ArrowStatement& node) {
-    writer() << "<< ArrowStatement >>" << EOL;
-    writer() << Indent;
-
-    writer() << "- ArrowPosition: " << node.GetArrowPosition() << EOL;
-
-
-    return WalkerFlags::Continue;
-}
-
-WalkerFlags ASTDumper::OnEnterNode(const BlockStatement& node) {
-    writer() << "<< BlockStatement >>" << EOL;
-    writer() << Indent;
-
-    writer() << "- OpenBrace: " << node.GetOpenBracePosition() << EOL;
-    writer() << "- CloseBrace: " << node.GetCloseBracePosition() << EOL;
-
-
-    return WalkerFlags::Continue;
-}
-
-WalkerFlags ASTDumper::OnEnterNode(const IfStatement& node) {
-    writer() << "<< IfStatement >>" << EOL;
-
-    writer() << Indent;
-
-    writer() << "- IfKeyword: " << node.GetIfPosition() << EOL;
-    writer() << "- ElseKeyword: " << node.GetElsePosition() << EOL;
-
-
-    return WalkerFlags::Continue;
-}
-
-WalkerFlags ASTDumper::OnEnterNode(const Label& node) {
-    writer() << "<< Label >>" << EOL << Indent;
-
-    if (node.IsDefault()) {
-        writer() << "- DefaultKeywordPosition: " << node.GetDefaultPosition() << EOL;
-        writer() << "- ColonPosition: " << node.GetColonPosition() << EOL;
+    {
+        writer() << "- Range: " << node->GetRange() << EOL;
     }
-    else {
-        writer() << "- CaseKeywordPosition: " << node.GetCasePosition() << EOL;
-        writer() << "- ColonPosition: " << node.GetColonPosition() << EOL;
-    }
-
-
-    return WalkerFlags::Continue;
-}
-
-WalkerFlags ASTDumper::OnEnterNode(const LabeledStatement& node) {
-    writer() << "<< LabeledStatement >>" << EOL;
-    writer() << Indent;
-
-    return WalkerFlags::Continue;
-}
-
-WalkerFlags ASTDumper::OnEnterNode(const MatchStatement& node) {
-    writer() << "<< MatchStatement >>" << EOL;
-
-    writer() << Indent;
-
-    writer() << "- MatchKeywordPosition: " << node.GetMatchPosition() << EOL;
-
-    return WalkerFlags::Continue;
-}
-
-WalkerFlags ASTDumper::OnEnterNode(const ForStatement& node) {
-    writer() << "<< ForStatement >>" << EOL;
-
-    writer() << Indent;
-
-    writer() << "- ForKeywordPosition: " << node.GetForPosition() << EOL;
-    writer() << "- Parameter:" << node.GetParameterName() << EOL << Indent;
-
     writer() << Dedent;
-
-    writer() << "- InKeywordPosition: " << node.GetInPosition() << EOL;
-
-
-    return WalkerFlags::Continue;
 }
 
-WalkerFlags ASTDumper::OnEnterNode(const WhileStatement& node) {
-    writer() << "<< WhileStatement >>" << EOL;
-
-    writer() << Indent;
-
-    writer() << "- WhileKeywordPosition: " << node.GetWhilePosition() << EOL;
-
-
-    return WalkerFlags::Continue;
-}
-
-WalkerFlags ASTDumper::OnEnterNode(const WithStatement& node) {
-    writer() << "<< WithStatement >>" << EOL;
-
-    writer() << Indent;
-
-    writer() << "- WithKeywordPosition: " << node.GetWithPosition() << EOL;
-
-    if (node.HasCapture()) {
-        writer() << "- AsKeywordPosition: " << node.GetAsPosition() << EOL;
-        writer() << "- CaptureName: " << node.GetCaptureName() << EOL;
+void ASTDumper::Walk(const ArrowStatement* node) {
+    writer() << "<< ArrowStatement >>" << EOL << Indent;
+    {
+        writer() << "- ArrowPosition: " << node->GetArrowPosition() << EOL;
+        writer() << "- Expression:" << EOL << Indent;
+        {
+            super::Walk(node->GetExpression());
+        }
+        writer() << Dedent;
     }
-
-    return WalkerFlags::Continue;
+    writer() << Dedent;
 }
 
-WalkerFlags ASTDumper::OnEnterNode(const ExceptStatement& node) {
+void ASTDumper::Walk(const BlockStatement* node) {
+    writer() << "<< BlockStatement >>" << EOL << Indent;
+    {
+        writer() << "- OpenBrace: " << node->GetOpenBracePosition() << EOL;
+        writer() << "- CloseBrace: " << node->GetCloseBracePosition() << EOL;
+        writer() << "- Nodes:" << EOL << Indent;
+        {
+            super::Walk(node);
+        }
+        writer() << Dedent;
+    }
+    writer() << Dedent;
+}
+
+void ASTDumper::Walk(const IfStatement* node) {
+    writer() << "<< IfStatement >>" << EOL << Indent;
+    {
+        writer() << "- IfKeyword: " << node->GetIfPosition() << EOL;
+        writer() << "- ElseKeyword: " << node->GetElsePosition() << EOL;
+        writer() << "- Condition:" << EOL << Indent;
+        {
+            super::Walk(node->GetCondition());
+        }
+        writer() << Dedent;
+        writer() << "- IfBlock:" << EOL << Indent;
+        {
+            super::Walk(node->GetIfBody());
+        }
+        writer() << Dedent;
+        if (node->HasElse()) {
+            writer() << "- ElseBlock:" << EOL << Indent;
+            {
+                super::Walk(node->GetElseBody());
+            }
+            writer() << Dedent;
+        }
+    }
+    writer() << Dedent;
+}
+
+void ASTDumper::Walk(const Label* node) {
+    writer() << "<< Label >>" << EOL << Indent;
+    {
+        if (node->IsDefault()) {
+            writer() << "- DefaultKeywordPosition: " << node->GetDefaultPosition() << EOL;
+            writer() << "- ColonPosition: " << node->GetColonPosition() << EOL;
+        }
+        else {
+            writer() << "- CaseKeywordPosition: " << node->GetCasePosition() << EOL;
+            writer() << "- ColonPosition: " << node->GetColonPosition() << EOL;
+            writer() << "- Value:" << EOL << Indent;
+            {
+                super::Walk(node->GetCaseValue());
+            }
+            writer() << Dedent;
+        }
+    }
+    writer() << Dedent;
+}
+
+void ASTDumper::Walk(const LabeledStatement* node) {
+    writer() << "<< LabeledStatement >>" << EOL << Indent;
+    {
+        writer() << "- Labels:" << EOL << Indent;
+        {
+            for (const auto* label : node->GetLabels()) {
+                Walk(label);
+            }
+        }
+        writer() << Dedent;
+        writer() << "- Nodes:" << EOL << Indent;
+        {
+            for (const auto* e : node->GetNodes()) {
+                super::Walk(e);
+            }
+        }
+        writer() << Dedent;
+    }
+    writer() << Dedent;
+}
+
+void ASTDumper::Walk(const MatchStatement* node) {
+    writer() << "<< MatchStatement >>" << EOL << Indent;
+    {
+        writer() << "- MatchKeywordPosition: " << node->GetMatchPosition() << EOL;
+        writer() << "- Condition:" << EOL << Indent;
+        {
+            super::Walk(node->GetCondition());
+        }
+        writer() << Dedent;
+        writer() << "- Statements:" << EOL << Indent;
+        {
+            for (const auto* stmt : node->GetStatements()) {
+                super::Walk(stmt);
+            }
+        }
+        writer() << Dedent;
+    }
+    writer() << Dedent;
+}
+
+void ASTDumper::Walk(const ForStatement* node) {
+    writer() << "<< ForStatement >>" << EOL << Indent;
+    {
+        writer() << "- ForKeywordPosition: " << node->GetForPosition() << EOL;
+        writer() << "- Parameter:" << node->GetParameterName() << EOL;
+        writer() << "- InKeywordPosition: " << node->GetInPosition() << EOL;
+        writer() << "- Expression:" << EOL << Indent;
+        {
+            super::Walk(node->GetExpression());
+        }
+        writer() << Dedent;
+        writer() << "- Body:" << EOL << Indent;
+        {
+            super::Walk(node->GetBody());
+        }
+        writer() << Dedent;
+    }
+    writer() << Dedent;
+}
+
+void ASTDumper::Walk(const WhileStatement* node) {
+    writer() << "<< WhileStatement >>" << EOL << Indent;
+    {
+        writer() << "- WhileKeywordPosition: " << node->GetWhilePosition() << EOL;
+        writer() << "- Condition:" << EOL << Indent;
+        {
+            super::Walk(node->GetCondition());
+        }
+        writer() << Dedent;
+        writer() << "- Body:" << EOL << Indent;
+        {
+            super::Walk(node->GetBody());
+        }
+        writer() << Dedent;
+    }
+    writer() << Dedent;
+}
+
+void ASTDumper::Walk(const WithStatement* node) {
+    writer() << "<< WithStatement >>" << EOL << Indent;
+    {
+        writer() << "- WithKeywordPosition: " << node->GetWithPosition() << EOL;
+        if (node->HasCapture()) {
+            writer() << "- AsKeywordPosition: " << node->GetAsPosition() << EOL;
+            writer() << "- CaptureName: " << node->GetCaptureName() << EOL;
+        }
+        writer() << "- Expression:" << EOL << Indent;
+        {
+            super::Walk(node->GetExpression());
+        }
+        writer() << Dedent;
+        writer() << "- Body:" << EOL << Indent;
+        {
+            super::Walk(node->GetBody());
+        }
+        writer() << Dedent;
+    }
+    writer() << Dedent;
+}
+
+void ASTDumper::Walk(const ExceptStatement* node) {
     writer() << "<< ExceptClause >>" << EOL << Indent;
+    {
+        writer() << "- ExceptKeywordPosition: " << node->GetExceptPosition() << EOL;
+        writer() << "- Typename: " << node->GetTypename() << EOL;
 
-    writer() << "- ExceptKeywordPosition: " << node.GetExceptPosition() << EOL;
-    writer() << "- Typename: " << node.GetTypename() << EOL;
+        if (node->HasCapture()) {
+            writer() << "- AsKeywordPosition: " << node->GetAsPosition() << EOL;
+            writer() << "- CaptureName: " << node->GetCaptureName() << EOL;
+        }
 
-    if (node.HasCapture()) {
-        writer() << "- AsKeywordPosition: " << node.GetAsPosition() << EOL;
-        writer() << "- CaptureName: " << node.GetCaptureName() << EOL;
+        writer() << "- Body:" << EOL << Indent;
+        {
+            super::Walk(node->GetBody());
+        }
+        writer() << Dedent;
     }
-
-    return WalkerFlags::Continue;
+    writer() << Dedent;
 }
 
-WalkerFlags ASTDumper::OnEnterNode(const FinallyStatement& node) {
+void ASTDumper::Walk(const FinallyStatement* node) {
     writer() << "<< FinallyClause >>" << EOL << Indent;
-
-    writer() << "- FinallyKeywordPosition: " << node.GetFinallyPosition() << EOL;
-
-    return WalkerFlags::Continue;
-}
-
-WalkerFlags ASTDumper::OnEnterNode(const TryStatement& node) {
-    writer() << "<< TryStatement >>" << EOL;
-
-    writer() << Indent;
-
-    writer() << "- TryKeywordPosition: " << node.GetTryPosition() << EOL;
-
-    return WalkerFlags::Continue;
-}
-
-WalkerFlags ASTDumper::OnEnterNode(const BreakStatement& node) {
-    writer() << "<< BreakStatement >>" << EOL;
-
-    writer() << Indent;
-
-    writer() << "- BreakKeywordPosition: " << node.GetBreakPosition() << EOL;
-
-    if (node.IsConditional()) {
-        writer() << "- IfKeywordPosition: " << node.GetIfPosition() << EOL;
+    {
+        writer() << "- FinallyKeywordPosition: " << node->GetFinallyPosition() << EOL;
+        writer() << "- Body:" << EOL << Indent;
+        {
+            super::Walk(node->GetBody());
+        }
+        writer() << Dedent;
     }
-
-    return WalkerFlags::Continue;
+    writer() << Dedent;
 }
 
-WalkerFlags ASTDumper::OnEnterNode(const ContinueStatement& node) {
-    writer() << "<< ContinueStatement >>" << EOL;
-
-    writer() << Indent;
-
-    writer() << "- ContinueKeywordPosition: " << node.GetContinuePosition() << EOL;
-
-    if (node.IsConditional()) {
-        writer() << "- IfKeywordPosition: " << node.GetIfPosition() << EOL;
+void ASTDumper::Walk(const TryStatement* node) {
+    writer() << "<< TryStatement >>" << EOL << Indent;
+    {
+        writer() << "- TryKeywordPosition: " << node->GetTryPosition() << EOL;
+        writer() << "- Body:" << EOL << Indent;
+        {
+            super::Walk(node->GetBody());
+        }
+        writer() << Dedent;
+        writer() << "- Handlers:" << EOL << Indent;
+        {
+            for (const auto* handler : node->GetHandlers()) {
+                super::Walk(handler);
+            }
+        }
+        writer() << Dedent;
     }
-
-    return WalkerFlags::Continue;
+    writer() << Dedent;
 }
 
-WalkerFlags ASTDumper::OnEnterNode(const ReturnStatement& node) {
-    writer() << "<< ReturnStatement >>" << EOL;
+void ASTDumper::Walk(const BreakStatement* node) {
+    writer() << "<< BreakStatement >>" << EOL << Indent;
+    {
+        writer() << "- BreakKeywordPosition: " << node->GetBreakPosition() << EOL;
 
-    writer() << Indent;
-
-    writer() << "- ReturnKeywordPosition: " << node.GetReturnPosition() << EOL;
-
-    return WalkerFlags::Continue;
+        if (node->IsConditional()) {
+            writer() << "- IfKeywordPosition: " << node->GetIfPosition() << EOL;
+            writer() << "- Condition:" << EOL << Indent;
+            {
+                super::Walk(node->GetCondition());
+            }
+            writer() << Dedent;
+        }
+    }
+    writer() << Dedent;
 }
 
-WalkerFlags ASTDumper::OnEnterNode(const AssertStatement& node) {
-    writer() << "<< AssertStatement >>" << EOL;
+void ASTDumper::Walk(const ContinueStatement* node) {
+    writer() << "<< ContinueStatement >>" << EOL << Indent;
+    {
+        writer() << "- ContinueKeywordPosition: " << node->GetContinuePosition() << EOL;
 
-    writer() << Indent;
-
-    writer() << "- AssertKeywordPosition: " << node.GetAssertPosition() << EOL;
-    writer() << "- ColonPosition: " << node.GetColonPosition() << EOL;
-
-    return WalkerFlags::Continue;
+        if (node->IsConditional()) {
+            writer() << "- IfKeywordPosition: " << node->GetIfPosition() << EOL;
+            writer() << "- Condition:" << EOL << Indent;
+            {
+                super::Walk(node->GetCondition());
+            }
+            writer() << Dedent;
+        }
+    }
+    writer() << Dedent;
 }
 
-WalkerFlags ASTDumper::OnEnterNode(const PassStatement& node) {
-    writer() << "<< PassStatement >>" << EOL;
-
-    writer() << Indent;
-
-    writer() << "- PassKeywordPosition: " << node.GetPassPosition() << EOL;
-
-    return WalkerFlags::Continue;
+void ASTDumper::Walk(const ReturnStatement* node) {
+    writer() << "<< ReturnStatement >>" << EOL << Indent;
+    {
+        writer() << "- ReturnKeywordPosition: " << node->GetReturnPosition() << EOL;
+        if (node->HasReturnValue()) {
+            writer() << "- ReturnValue:" << EOL << Indent;
+            {
+                super::Walk(node->GetReturnValue());
+            }
+            writer() << Dedent;
+        }
+    }
+    writer() << Dedent;
 }
 
-WalkerFlags ASTDumper::OnEnterNode(const AssignStatement& node) {
-    writer() << "<< AssignStatement >>" << EOL;
+void ASTDumper::Walk(const AssertStatement* node) {
+    writer() << "<< AssertStatement >>" << EOL << Indent;
+    {
+        writer() << "- AssertKeywordPosition: " << node->GetAssertPosition() << EOL;
 
-    writer() << Indent;
+        writer() << "- Condition:" << EOL << Indent;
+        {
+            super::Walk(node->GetCondition());
+        }
+        writer() << Dedent;
+        if (node->HasMessage()) {
+            writer() << "- ColonPosition: " << node->GetColonPosition() << EOL;
+            writer() << "- Message:" << EOL << Indent;
+            {
+                super::Walk(node->GetMessage());
+            }
+            writer() << Dedent;
+        }
+    }
+    writer() << Dedent;
+}
 
-    writer() << "- Operation: " << node.GetOp() << EOL;
-    writer() << "- OperatorPosition: " << node.GetOpPosition() << EOL;
+void ASTDumper::Walk(const PassStatement* node) {
+    writer() << "<< PassStatement >>" << EOL << Indent;
+    {
+        writer() << "- PassKeywordPosition: " << node->GetPassPosition() << EOL;
+    }
+    writer() << Dedent;
+}
 
-    return WalkerFlags::Continue;
+void ASTDumper::Walk(const AssignStatement* node) {
+    writer() << "<< AssignStatement >>" << EOL << Indent;
+    {
+        writer() << "- Operation: " << node->GetOp() << EOL;
+        writer() << "- OperatorPosition: " << node->GetOpPosition() << EOL;
+        writer() << "- Target:" << EOL << Indent;
+        {
+            super::Walk(node->GetTarget());
+        }
+        writer() << Dedent;
+        writer() << "- Value:" << EOL << Indent;
+        {
+            super::Walk(node->GetValue());
+        }
+        writer() << Dedent;
+    }
+    writer() << Dedent;
 }
 
 // Expressions
-WalkerFlags ASTDumper::OnEnterNode(const InvalidExpression& node) {
+void ASTDumper::Walk(const InvalidExpression* node) {
     writer() << "<< InvalidExpression >>" << EOL << Indent;
-
-    return WalkerFlags::Continue;
+    {
+        writer() << "- Range: " << node->GetRange() << EOL;
+    }
+    writer() << Dedent;
 }
 
-WalkerFlags ASTDumper::OnEnterNode(const PassExpression& node) {
+void ASTDumper::Walk(const PassExpression* node) {
     writer() << "<< PassExpression >>" << EOL << Indent;
-
-    return WalkerFlags::Continue;
+    {
+        writer() << "- PassKeywordPosition: " << node->GetPassPosition() << EOL;
+    }
+    writer() << Dedent;
 }
 
-WalkerFlags ASTDumper::OnEnterNode(const TernaryExpression& node) {
-    writer() << "<< ConditionalExpression >>" << EOL;
-
-    writer() << Indent;
-        writer() << "- IfKeywordPosition: " << node.GetIfPosition() << EOL;
-        writer() << "- ElseKeywordPosition: " << node.GetElsePosition() << EOL;
-
-    return WalkerFlags::Continue;
+void ASTDumper::Walk(const TernaryExpression* node) {
+    writer() << "<< ConditionalExpression >>" << EOL << Indent;
+    {
+        writer() << "- IfKeywordPosition: " << node->GetIfPosition() << EOL;
+        writer() << "- ElseKeywordPosition: " << node->GetElsePosition() << EOL;
+        writer() << "- Condition:" << EOL << Indent;
+        {
+            super::Walk(node->GetCondition());
+        }
+        writer() << Dedent;
+        writer() << "- ValueOnTrue:" << EOL << Indent;
+        {
+            super::Walk(node->GetValueOnTrue());
+        }
+        writer() << Dedent;
+        writer() << "- ValueOnFalse:" << EOL << Indent;
+        {
+            super::Walk(node->GetValueOnFalse());
+        }
+        writer() << Dedent;
+    }
+    writer() << Dedent;
 }
 
-WalkerFlags ASTDumper::OnEnterNode(const BinaryExpression& node) {
-    writer() << "<< BinaryExpression >>" << EOL;
+void ASTDumper::Walk(const BinaryExpression* node) {
+    writer() << "<< BinaryExpression >>" << EOL << Indent;
+    {
+        writer() << "- Operation: " << node->GetOp() << EOL;
+        writer() << "- OperatorPosition: " << node->GetFirstOpPosition() << EOL;
 
-    writer() << Indent;
-        writer() << "- Operation: " << node.GetOp() << EOL;
-        writer() << "- OperatorPosition: " << node.GetFirstOpPosition() << EOL;
-
-        if (node.GetOp() == BinaryOp::NotIn || node.GetOp() == BinaryOp::IsNot) {
-            writer() << "- SecondaryOperatorPosition: " << node.GetSecondOpPosition() << EOL;
+        if (node->GetOp() == BinaryOp::NotIn || node->GetOp() == BinaryOp::IsNot) {
+            writer() << "- SecondaryOperatorPosition: " << node->GetSecondOpPosition() << EOL;
         }
 
-
-    return WalkerFlags::Continue;
-}
-
-WalkerFlags ASTDumper::OnEnterNode(const UnaryExpression& node) {
-    writer() << "<< UnaryExpression >>" << EOL;
-
-    writer() << Indent;
-        writer() << "- Operation: " << node.GetOp() << EOL;
-        writer() << "- OperatorPosition: " << node.GetOpPosition() << EOL;
-
-    return WalkerFlags::Continue;
-}
-
-WalkerFlags ASTDumper::OnEnterNode(const DefinedExpression& node) {
-    writer() << "<< DefinedExpression >>" << EOL;
-
-    writer() << Indent;
-        writer() << "- DefinedKeywordPosition: " << node.GetDefinedPosition() << EOL;
-        writer() << "- ID: " << node.GetID() << EOL;
-
-        if (node.GetInPosition().IsValid()) {
-            writer() << "- InKeywordPosition: " << node.GetInPosition() << EOL;
+        writer() << "- Left:" << EOL << Indent;
+        {
+            super::Walk(node->GetLeft());
         }
-
-    return WalkerFlags::Continue;
+        writer() << Dedent;
+        writer() << "- Right:" << EOL << Indent;
+        {
+            super::Walk(node->GetRight());
+        }
+        writer() << Dedent;
+    }
+    writer() << Dedent;
 }
 
-WalkerFlags ASTDumper::OnEnterNode(const RaiseExpression& node) {
-    writer() << "<< RaiseExpression >>" << EOL;
-
-    writer() << Indent;
-
-    writer() << "- RaiseKeywordPosition: " << node.GetRaisePosition() << EOL;
-
-    return WalkerFlags::Continue;
+void ASTDumper::Walk(const UnaryExpression* node) {
+    writer() << "<< UnaryExpression >>" << EOL << Indent;
+    {
+        writer() << "- Operation: " << node->GetOp() << EOL;
+        writer() << "- OperatorPosition: " << node->GetOpPosition() << EOL;
+        writer() << "- Expression:" << EOL << Indent;
+        {
+            super::Walk(node->GetExpression());
+        }
+        writer() << Dedent;
+    }
+    writer() << Dedent;
 }
 
-WalkerFlags ASTDumper::OnEnterNode(const MemberAccessExpression& node) {
-    writer() << "<< MemberAccessExpression >>" << EOL;
+void ASTDumper::Walk(const DefinedExpression* node) {
+    writer() << "<< DefinedExpression >>" << EOL  << Indent;
+    {
+        writer() << "- DefinedKeywordPosition: " << node->GetDefinedPosition() << EOL;
+        writer() << "- ID: " << node->GetID() << EOL;
 
-    writer() << Indent;
-        writer() << "- MemberName: " << node.GetMemberName() << EOL;
-        writer() << "- DotPosition: " << node.GetDotPosition() << EOL;
-
-    return WalkerFlags::Continue;
+        if (node->GetInPosition().IsValid()) {
+            writer() << "- InKeywordPosition: " << node->GetInPosition() << EOL;
+            writer() << "- Target:" << EOL << Indent;
+            {
+                super::Walk(node->GetTarget());
+            }
+            writer() << Dedent;
+        }
+    }
+    writer() << Dedent;
 }
 
-WalkerFlags ASTDumper::OnEnterNode(const SubscriptExpression& node) {
-    writer() << "<< SubscriptExpression >>" << EOL;
-
-    writer() << Indent;
-        writer() << "- OpenSquarePosition: " << node.GetOpenSquarePosition() << EOL;
-        writer() << "- CloseSquarePosition: " << node.GetCloseSquarePosition() << EOL;
-
-    return WalkerFlags::Continue;
+void ASTDumper::Walk(const RaiseExpression* node) {
+    writer() << "<< RaiseExpression >>" << EOL << Indent;
+    {
+        writer() << "- RaiseKeywordPosition: " << node->GetRaisePosition() << EOL;
+        writer() << "- Target:" << EOL << Indent;
+        {
+            super::Walk(node->GetTarget());
+        }
+        writer() << Dedent;
+    }
+    writer() << Dedent;
 }
 
-WalkerFlags ASTDumper::OnEnterNode(const InvocationExpression& node) {
-    writer() << "<< InvocationExpression >>" << EOL;
-
-    writer() << Indent;
-        writer() << "- OpenParenPosition: " << node.GetOpenParenPosition() << EOL;
-        writer() << "- CloseParenPosition: " << node.GetCloseParenPosition() << EOL;
-
-    return WalkerFlags::Continue;
+void ASTDumper::Walk(const MemberAccessExpression* node) {
+    writer() << "<< MemberAccessExpression >>" << EOL << Indent;
+    {
+        writer() << "- MemberName: " << node->GetMemberName() << EOL;
+        writer() << "- DotPosition: " << node->GetDotPosition() << EOL;
+        writer() << "- Target:" << EOL << Indent;
+        {
+            super::Walk(node->GetTarget());
+        }
+        writer() << Dedent;
+    }
+    writer() << Dedent;
 }
 
-WalkerFlags ASTDumper::OnEnterNode(const ParenthesizedExpression& node) {
-    writer() << "<< ParenthesizedExpression >>" << EOL;
-
-    writer() << Indent;
-        writer() << "- OpenParenPosition: " << node.GetOpenParenPosition() << EOL;
-        writer() << "- CloseParenPosition: " << node.GetCloseParenPosition() << EOL;
-
-
-    return WalkerFlags::Continue;
+void ASTDumper::Walk(const SubscriptExpression* node) {
+    writer() << "<< SubscriptExpression >>" << EOL << Indent;
+    {
+        writer() << "- OpenSquarePosition: " << node->GetOpenSquarePosition() << EOL;
+        writer() << "- CloseSquarePosition: " << node->GetCloseSquarePosition() << EOL;
+        writer() << "- Target:" << EOL << Indent;
+        {
+            super::Walk(node->GetTarget());
+        }
+        writer() << Dedent;
+        writer() << "- Index:" << EOL << Indent;
+        {
+            super::Walk(node->GetIndex());
+        }
+        writer() << Dedent;
+    }
+    writer() << Dedent;
 }
 
-WalkerFlags ASTDumper::OnEnterNode(const LiteralExpression& node) {
-    writer() << "<< LiteralExpression >>" << EOL;
-
-    writer() << Indent;
-        writer() << "- LiteralType: " << node.GetLiteralType() << EOL;
-        // writer() << "- RawValue: " << m_source.GetString(node.GetRange()) << EOL;
-
-
-    return WalkerFlags::Continue;
+void ASTDumper::Walk(const InvocationExpression* node) {
+    writer() << "<< InvocationExpression >>" << EOL << Indent;
+    {
+        writer() << "- OpenParenPosition: " << node->GetOpenParenPosition() << EOL;
+        writer() << "- CloseParenPosition: " << node->GetCloseParenPosition() << EOL;
+        writer() << "- Target:" << EOL << Indent;
+        {
+            super::Walk(node->GetTarget());
+        }
+        writer() << Dedent;
+        writer() << "- Arguments:" << EOL << Indent;
+        {
+            auto index = 0;
+            for (const auto* expr : node->GetArguments()) {
+                writer() << "- Argument #" << index << ":" << EOL << Indent;
+                {
+                    super::Walk(expr);
+                }
+                writer() << Dedent;
+            }
+        }
+        writer() << Dedent;
+    }
+    writer() << Dedent;
 }
 
-WalkerFlags ASTDumper::OnEnterNode(const ListExpression& node) {
-    writer() << "<< ListExpression >>" << EOL;
-
-    writer() << Indent;
-        writer() << "- OpenSquarePosition: " << node.GetOpenSquarePosition() << EOL;
-        writer() << "- CloseSquarePosition: " << node.GetCloseSquarePosition() << EOL;
-
-
-    return WalkerFlags::Continue;
+void ASTDumper::Walk(const ParenthesizedExpression* node) {
+    writer() << "<< ParenthesizedExpression >>" << EOL << Indent;
+    {
+        writer() << "- OpenParenPosition: " << node->GetOpenParenPosition() << EOL;
+        writer() << "- CloseParenPosition: " << node->GetCloseParenPosition() << EOL;
+        writer() << "- InnerExpression:" << EOL << Indent;
+        {
+            super::Walk(node->GetInnerExpression());
+        }
+        writer() << Dedent;
+    }
+    writer() << Dedent;
 }
 
-WalkerFlags ASTDumper::OnEnterNode(const KeyValuePair& node) {
+void ASTDumper::Walk(const LiteralExpression* node) {
+    writer() << "<< LiteralExpression >>" << EOL << Indent;
+    {
+        writer() << "- LiteralType: " << node->GetLiteralType() << EOL;
+        writer() << "- RawValue: " << m_source.GetString(node->GetRange()) << EOL;
+
+        if (node->GetLiteralType() == LiteralType::String && node->HasInterpolations()) {
+            writer() << "- Interpolations:" << EOL << Indent;
+            {
+                auto index = 0;
+                for (const auto* expr : node->GetInterpolations()) {
+                    writer() << "- Interpolation #" << index << ":" << EOL << Indent;
+                    {
+                        super::Walk(expr);
+                    }
+                    writer() << Dedent;
+                }
+            }
+        }
+    }
+    writer() << Dedent;
+}
+
+void ASTDumper::Walk(const ListExpression* node) {
+    writer() << "<< ListExpression >>" << EOL << Indent;
+    {
+        writer() << "- OpenSquarePosition: " << node->GetOpenSquarePosition() << EOL;
+        writer() << "- CloseSquarePosition: " << node->GetCloseSquarePosition() << EOL;
+        writer() << "- Items:" << EOL << Indent;
+        {
+            auto index = 0;
+            for (const auto* expr: node->GetItems()) {
+                writer() << "- Item #" << index << ":" << EOL << Indent;
+                {
+                    super::Walk(expr);
+                }
+                writer() << Dedent;
+            }
+        }
+    }
+    writer() << Dedent;
+}
+
+void ASTDumper::Walk(const KeyValuePair* node) {
     writer() << "<< KeyValuePair >>" << EOL << Indent;
-    writer() << "- ColonPosition: " << node.GetColonPosition() << EOL;
-    return WalkerFlags::Continue;
+    {
+        writer() << "- ColonPosition: " << node->GetColonPosition() << EOL;
+        writer() << "- Key:" << EOL << Indent;
+        {
+            super::Walk(node->GetKey());
+        }
+        writer() << Dedent;
+        writer() << "- Value:" << EOL << Indent;
+        {
+            super::Walk(node->GetValue());
+        }
+        writer() << Dedent;
+    }
+    writer() << Dedent;
 }
 
-WalkerFlags ASTDumper::OnEnterNode(const MapExpression& node) {
-    writer() << "<< MapExpression >>" << EOL;
-
-    writer() << Indent;
-        writer() << "- OpenBracePosition: " << node.GetOpenBracePosition() << EOL;
-        writer() << "- CloseBracePosition: " << node.GetCloseBracePosition() << EOL;
-
-    return WalkerFlags::Continue;
+void ASTDumper::Walk(const MapExpression* node) {
+    writer() << "<< MapExpression >>" << EOL << Indent;
+    {
+        writer() << "- OpenBracePosition: " << node->GetOpenBracePosition() << EOL;
+        writer() << "- CloseBracePosition: " << node->GetCloseBracePosition() << EOL;
+        writer() << "- Arguments:" << EOL << Indent;
+        {
+            auto index = 0;
+            for (const auto* expr: node->GetItems()) {
+                writer() << "- Item #" << index << ":" << EOL << Indent;
+                {
+                    super::Walk(expr);
+                }
+                writer() << Dedent;
+            }
+        }
+    }
+    writer() << Dedent;
 }
 
-WalkerFlags ASTDumper::OnEnterNode(const ClosureExpression& node) {
-    writer() << "<< ClosureExpression >>" << EOL;
-
-    writer() << Indent;
-
-    writer() << "- ArrowPosition: " << node.GetArrowPosition() << EOL;
-
-
-    return WalkerFlags::Continue;
+void ASTDumper::Walk(const ClosureExpression* node) {
+    writer() << "<< ClosureExpression >>" << EOL << Indent;
+    {
+        writer() << "- ArrowPosition: " << node->GetArrowPosition() << EOL;
+        writer() << "- Parameters:" << EOL << Indent;
+        {
+            super::Walk(node->GetParameters());
+        }
+        writer() << Dedent;
+        writer() << "- Body:" << EOL << Indent;
+        {
+            super::Walk(node->GetBody());
+        }
+        writer() << Dedent;
+    }
+    writer() << Dedent;
 }
-
-void ASTDumper::OnLeaveNode(const Parameters&) { writer() << Dedent; }
-void ASTDumper::OnLeaveNode(const Label&) { writer() << Dedent; }
-#define V(name, _) \
-    void ASTDumper::OnLeaveNode(const name&) { writer() << Dedent; }
-
-DECL_LIST(V)
-STMT_LIST(V)
-EXPR_LIST(V)
-#undef V

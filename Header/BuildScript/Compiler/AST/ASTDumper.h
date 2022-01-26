@@ -18,7 +18,9 @@ namespace BuildScript {
     /**
      * @brief Print AST in stdout.
      */
-    class ASTDumper final : public ASTWalker, NonCopyable {
+    class ASTDumper final : ASTWalker, NonCopyable {
+        using super = ASTWalker;
+
     private:
         class ASTWriter;
 
@@ -27,15 +29,11 @@ namespace BuildScript {
 
         ASTWriter& writer() { return *m_writer; }
 
-        WalkerFlags OnEnterNode(const Parameters&) override;
-        void OnLeaveNode(const Parameters&) override;
-
-        WalkerFlags OnEnterNode(const Label&) override;
-        void OnLeaveNode(const Label&) override;
+        void Walk(const Parameters*) override;
+        void Walk(const Label*) override;
 
     #define V(name, _) \
-        WalkerFlags OnEnterNode(const name&) override; \
-        void OnLeaveNode(const name&) override;
+        void Walk(const name*) override;
 
         DECL_LIST(V)
         STMT_LIST(V)

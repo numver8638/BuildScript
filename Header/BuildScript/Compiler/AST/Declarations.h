@@ -64,6 +64,12 @@ namespace BuildScript {
             : Declaration(Kind), m_range(range) {}
 
     public:
+        /**
+         * @brief Get a range of erroneous declaration.
+         * @return the range of the declaration.
+         */
+        SourceRange GetRange() const { return m_range; }
+
         static InvalidDeclaration* Create(Context& context, SourceRange range);
     }; // end class InvalidDeclaration
 
@@ -85,14 +91,18 @@ namespace BuildScript {
 
         size_t GetTrailCount(OverloadToken<ASTNode*>) const { return m_count; } // TrailObjects support.
 
-        const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
-
     public:
         /**
          * @brief Get name of the script. Same with relative path of the script.
          * @return the name of the script.
          */
         std::string_view GetName() const { return m_name; }
+
+        /**
+         * @brief Get children nodes of the declaration.
+         * @return a @c TrailIterator that iterates children nodes of the declaration.
+         */
+        TrailIterator<ASTNode*> GetNodes() const { return GetTrailObjects<ASTNode*>(); }
 
         static ScriptDeclaration* Create(Context& context, std::string name, const std::vector<ASTNode*>& nodes);
     }; // end class ScriptDeclaration
@@ -110,8 +120,6 @@ namespace BuildScript {
 
         ImportDeclaration(SourcePosition _import, Expression* path)
             : Declaration(Kind), m_import(_import), m_path(path) {}
-
-        const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
 
     public:
         /**
@@ -146,8 +154,6 @@ namespace BuildScript {
                           Expression* value)
             : Declaration(Kind), m_export(_export), m_name(std::move(name)), m_assign(assign), m_value(value) {}
 
-        const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
-
     public:
         /**
          * @brief Get a position of 'export' keyword.
@@ -162,8 +168,8 @@ namespace BuildScript {
         const Identifier& GetName() const { return m_name; }
 
         /**
-         * @brief
-         * @return
+         * @brief Check the declaration has assigned value.
+         * @return @c true if the declaration has assigned value otherwise @c false.
          */
         bool HasValue() const { return (bool)m_assign; }
 
@@ -200,8 +206,6 @@ namespace BuildScript {
 
         FunctionDeclaration(SourcePosition def, Identifier name, Parameters* param, Statement* body)
             : Declaration(Kind), m_def(def), m_name(std::move(name)), m_params(param), m_body(body) {}
-
-        const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
 
     public:
         /**
@@ -257,8 +261,6 @@ namespace BuildScript {
 
         size_t GetTrailCount(OverloadToken<Declaration*>) const { return m_count; } // TrailObjects support.
 
-        const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
-
     public:
         /**
          * @brief Get a position of 'class' keyword.
@@ -273,17 +275,21 @@ namespace BuildScript {
         const Identifier& GetName() const { return m_name; }
 
         /**
-         * @brief
-         * @return
+         * @brief Check the declaration inherits other class.
+         * @return @c true if the declaration inherits other class otherwise @c false.
          */
         bool HasExtends() const { return (bool)m_extends; }
 
         /**
-         * @brief
-         * @return
+         * @brief Get a position of 'extends' keyword.
+         * @return a @c SourcePosition representing where 'extends' keyword positioned.
          */
         SourcePosition GetExtendsPosition() const { return m_extends; }
 
+        /**
+         * @brief Get name of super class.
+         * @return an @c Identifier representing name of super class.
+         */
         const Identifier& GetExtendName() const { return m_extendName; }
 
         /**
@@ -297,6 +303,12 @@ namespace BuildScript {
          * @return a @c SourcePosition representing where '}' positioned.
          */
         SourcePosition GetCloseBracePosition() const { return m_close; }
+
+        /**
+         * @brief Get members of the declaration.
+         * @return a @c TrailIterator that iterates members of the declaration.
+         */
+        TrailIterator<Declaration*> GetMembers() const { return GetTrailObjects<Declaration*>(); }
 
         static ClassDeclaration*
         Create(Context& context, SourcePosition _class, Identifier name, SourcePosition extends, Identifier extendName,
@@ -335,8 +347,6 @@ namespace BuildScript {
         size_t GetTrailCount(OverloadToken<Identifier>) const { return m_depsCount; }
         size_t GetTrailCount(OverloadToken<SourcePosition>) const { return (m_depsCount == 0) ? 0 : (m_depsCount - 1); }
 
-        const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
-
     public:
         /**
          * @brief Get a position of 'task' keyword.
@@ -350,21 +360,47 @@ namespace BuildScript {
          */
         const Identifier& GetName() const { return m_name; }
 
+        /**
+         * @brief Check the declaration extends other task.
+         * @return @c true if the declaration extends other task otherwise @c false.
+         */
         bool HasExtends() const { return (bool)m_extends; }
 
+        /**
+         * @brief Get a position of 'extends' keyword.
+         * @return a @c SourcePosition representing where 'extends' keyword positioned.
+         */
         SourcePosition GetExtendsPosition() const { return m_extends; }
 
+        /**
+         * @brief Get name of extended task.
+         * @return an @c Identifier representing name of extended task.
+         */
         const Identifier& GetExtendName() const { return m_extendName; }
 
+        /**
+         * @brief Check the declaration has dependencies.
+         * @return @c true if the declaration has dependencies otherwise @c false.
+         */
         bool HasDependsOn() const { return (bool)m_dependsOn; }
 
+        /**
+         * @brief Get a position of 'dependsOn' keyword.
+         * @return a @c SourcePosition representing where 'dependsOn' keyword positioned.
+         */
         SourcePosition GetDependsOnPosition() const { return m_dependsOn; }
 
-        TrailIterator<const Identifier> GetDependencyNames() const { return GetTrailObjects<Identifier>(); }
+        /**
+         * @brief
+         * @return
+         */
+        TrailIterator<Identifier> GetDependencyNames() const { return GetTrailObjects<Identifier>(); }
 
-        const Identifier& GetDependecyNameAt(size_t index) const { return At<Identifier>(index); }
-
-        SourcePosition GetCommaPositionAt(size_t index) const { return At<SourcePosition>(index); }
+        /**
+         * @brief
+         * @return
+         */
+        TrailIterator<SourcePosition> GetCommaPositions() const { return GetTrailObjects<SourcePosition>(); }
 
         /**
          * @brief Get a position of '{'.
@@ -377,6 +413,12 @@ namespace BuildScript {
          * @return a @c SourcePosition representing where '}' positioned.
          */
         SourcePosition GetCloseBracePosition() const { return m_close; }
+
+        /**
+         * @brief Get members of the declaration.
+         * @return a @c TrailIterator that iterates members of the declaration.
+         */
+        TrailIterator<Declaration*> GetMembers() const { return GetTrailObjects<Declaration*>(); }
 
         static TaskDeclaration*
         Create(Context& context, SourcePosition task, Identifier name, SourcePosition extends, Identifier extendName,
@@ -415,8 +457,6 @@ namespace BuildScript {
             assert((m_kind !=  SpecifierKind::Static) && "kind of variable cannot be 'static'");
         }
 
-        const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
-
     public:
         /**
          * @brief Get a position of 'var' keyword.
@@ -424,7 +464,7 @@ namespace BuildScript {
          * @note Maybe empty if variable is const.
          */
         SourcePosition GetVarPosition() const {
-            return (m_kind == SpecifierKind::Var) ? SourcePosition::Empty() : m_keyword;
+            return (m_kind == SpecifierKind::Var) ? m_keyword : SourcePosition::Empty();
         }
 
         /**
@@ -486,8 +526,6 @@ namespace BuildScript {
             : Declaration(Kind), m_inputs(inputs), m_inputsValue(inputsValue), m_with(with),
               m_withValue(withValue) {}
 
-        const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
-
     public:
         /**
          * @brief Get a position of 'inputs' keyword.
@@ -495,7 +533,17 @@ namespace BuildScript {
          */
         SourcePosition GetInputsPosition() const { return m_inputs; }
 
+        /**
+         * @brief
+         * @return
+         */
         const Expression* GetInputsValue() const { return m_inputsValue; }
+
+        /**
+         * @brief
+         * @return
+         */
+        bool HasWith() const { return (bool)m_with; }
 
         /**
          * @brief Get a position of 'with' keyword.
@@ -503,6 +551,10 @@ namespace BuildScript {
          */
         SourcePosition GetWithPosition() const { return m_with; }
 
+        /**
+         * @brief
+         * @return
+         */
         const Expression* GetWithValue() const { return m_withValue; }
 
         static TaskInputsDeclaration*
@@ -528,8 +580,6 @@ namespace BuildScript {
             : Declaration(Kind), m_outputs(outputs), m_outputsValue(outputsValue), m_from(from),
               m_fromValue(fromValue) {}
 
-        const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
-
     public:
         /**
          * @brief Get a position of 'outputs' keyword.
@@ -537,7 +587,17 @@ namespace BuildScript {
          */
         SourcePosition GetOutputsPosition() const { return m_outputs; }
 
+        /**
+         * @brief
+         * @return
+         */
         const Expression* GetOutputsValue() const { return m_outputsValue; }
+
+        /**
+         * @brief
+         * @return
+         */
+        bool HasFrom() const { return (bool)m_from; }
 
         /**
          * @brief Get a position of 'from' keyword.
@@ -545,6 +605,10 @@ namespace BuildScript {
          */
         SourcePosition GetFromPosition() const { return m_from; }
 
+        /**
+         * @brief
+         * @return
+         */
         const Expression* GetFromValue() const { return m_fromValue; }
 
         static TaskOutputsDeclaration*
@@ -572,8 +636,6 @@ namespace BuildScript {
 
         TaskActionDeclaration(ActionKind kind, SourcePosition pos, Statement* body)
             : Declaration(Kind), m_kind(kind), m_pos(pos), m_body(body) {}
-
-        const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
 
     public:
         /**
@@ -612,8 +674,6 @@ namespace BuildScript {
         TaskPropertyDeclaration(Identifier name, SourcePosition assign, Expression* value)
             : Declaration(Kind), m_name(std::move(name)), m_assign(assign), m_value(value) {}
 
-        const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
-
     public:
         /**
          * @brief Get name of the property.
@@ -627,6 +687,10 @@ namespace BuildScript {
          */
         SourcePosition GetAssignPosition() const { return m_assign; }
 
+        /**
+         * @brief Get an expression represents initial value of the property.
+         * @return an @c Expression representing initial value.
+         */
         const Expression* GetValue() const { return m_value; }
 
         static TaskPropertyDeclaration*
@@ -650,8 +714,6 @@ namespace BuildScript {
 
         ClassInitDeclaration(SourcePosition init, Parameters* params, Statement* body)
             : Declaration(Kind), m_init(init), m_params(params), m_body(body) {}
-
-        const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
 
     public:
         /**
@@ -688,8 +750,6 @@ namespace BuildScript {
 
         ClassDeinitDeclaration(SourcePosition deinit, Statement* body)
             : Declaration(Kind), m_deinit(deinit), m_body(body) {}
-
-        const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
 
     public:
         /**
@@ -728,11 +788,17 @@ namespace BuildScript {
             assert((m_kind != SpecifierKind::Var) && "kind of field cannot be 'var'.");
         }
 
-        const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
-
     public:
+        /**
+         * @brief
+         * @return
+         */
         bool IsConst() const { return (m_kind == SpecifierKind::Const); }
 
+        /**
+         * @brief
+         * @return
+         */
         bool IsStatic() const { return (m_kind == SpecifierKind::Static); }
 
         /**
@@ -761,6 +827,10 @@ namespace BuildScript {
          */
         SourcePosition GetAssignPosition() const { return m_assign; }
 
+        /**
+         * @brief Get an expression represents initial value of the declaration.
+         * @return an @c Expression representing initial value.
+         */
         const Expression* GetValue() const { return m_value; }
 
         static ClassFieldDeclaration*
@@ -787,9 +857,11 @@ namespace BuildScript {
             : Declaration(Kind), m_static(_static), m_def(def), m_name(std::move(name)), m_params(params),
               m_body(body) {}
 
-        const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
-
     public:
+        /**
+         * @brief
+         * @return
+         */
         bool IsStatic() const { return (bool)m_static; }
 
         /**
@@ -845,11 +917,17 @@ namespace BuildScript {
             : Declaration(Kind), m_keyword(keyword), m_name(std::move(name)), m_isGetter(isGetter),
               m_body(body) {}
 
-        const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
-
     public:
+        /**
+         * @brief
+         * @return
+         */
         bool IsGetter() const { return m_isGetter; }
 
+        /**
+         * @brief
+         * @return
+         */
         bool IsSetter() const { return !m_isGetter; }
 
         /**
@@ -900,8 +978,6 @@ namespace BuildScript {
                                  Parameters* params, Statement* body)
             : Declaration(Kind), m_operator(_operator), m_kind(kind), m_pos(pos), m_params(params),
               m_body(body) {}
-
-        const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
 
     public:
         /**

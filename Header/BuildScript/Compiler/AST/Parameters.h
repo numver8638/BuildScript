@@ -51,17 +51,17 @@ namespace BuildScript {
          */
         SourcePosition GetCloseParenPosition() const { return m_close; }
 
-        TrailIterator<const Identifier> GetParameterNames() const { return GetTrailObjects<Identifier>(); }
+        /**
+         * @brief
+         * @return
+         */
+        TrailIterator<Identifier> GetParameterNames() const { return GetTrailObjects<Identifier>(); }
 
         /**
          * @brief Get a count of parameters.
          * @return a count of parameters.
          */
-        size_t GetParameterCount() const { return m_count; }
-
-        const Identifier& GetParameterNameAt(size_t index) const { return At<Identifier>(index); }
-
-        SourcePosition GetCommaPositionAt(size_t index) const { return At<SourcePosition>(index); }
+        int GetParameterCount() const { return static_cast<int>(m_count); }
 
         /**
          * @brief Check parameter list has variadic arguments.
@@ -79,6 +79,10 @@ namespace BuildScript {
         Create(Context& context, SourcePosition open, const std::vector<Identifier>& params,
                const std::vector<SourcePosition>& commas, SourcePosition ellipsis, SourcePosition close);
     }; // end class Parameters
+
+    inline Parameters* ASTNode::AsParameters() {
+        return IsParameters() ? static_cast<Parameters*>(this) : nullptr; // NOLINT
+    }
 
     inline const Parameters* ASTNode::AsParameters() const {
         return IsParameters() ? static_cast<const Parameters*>(this) : nullptr; // NOLINT

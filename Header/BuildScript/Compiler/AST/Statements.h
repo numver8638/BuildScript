@@ -38,9 +38,7 @@ namespace BuildScript {
         Return,
         Assert,
         Pass,
-        Assign,
-
-        Expression
+        Assign
     }; // end enum StatementKind
 
     /**
@@ -57,6 +55,12 @@ namespace BuildScript {
             : Statement(Kind), m_range(range) {}
 
     public:
+        /**
+         * @brief Get a range of erroneous statement.
+         * @return the range of the statement.
+         */
+        SourceRange GetRange() const { return m_range; }
+
         static InvalidStatement* Create(Context& context, SourceRange range);
     }; // end class InvalidStatement
 
@@ -79,8 +83,6 @@ namespace BuildScript {
 
         size_t GetTrailCount(OverloadToken<ASTNode*>) const { return m_count; } // TrailObjects support.
 
-        const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
-
     public:
         /**
          * @brief Get a position of '{'.
@@ -93,6 +95,12 @@ namespace BuildScript {
          * @return a @c SourcePosition representing where '}' positioned.
          */
         SourcePosition GetCloseBracePosition() const { return m_close; }
+
+        /**
+         * @brief
+         * @return
+         */
+        TrailIterator<ASTNode*> GetNodes() const { return GetTrailObjects<ASTNode*>(); }
 
         static BlockStatement*
         Create(Context& context, SourcePosition open, const std::vector<ASTNode*>& nodes, SourcePosition close);
@@ -111,8 +119,6 @@ namespace BuildScript {
 
         ArrowStatement(SourcePosition arrow, Expression* expr)
             : Statement(Kind), m_arrow(arrow), m_expr(expr) {}
-
-        const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
 
     public:
         /**
@@ -149,8 +155,6 @@ namespace BuildScript {
             : Statement(Kind), m_if(_if), m_condition(condition), m_ifBody(ifBody), m_else(_else),
               m_elseBody(elseBody) {}
 
-        const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
-
     public:
         /**
          * @brief Get a position of 'if' keyword.
@@ -169,6 +173,12 @@ namespace BuildScript {
          * @return
          */
         const Statement* GetIfBody() const { return m_ifBody; }
+
+        /**
+         * @brief
+         * @return
+         */
+        bool HasElse() const { return (bool)m_else; }
 
         /**
          * @brief Get a position of 'else' keyword.
@@ -211,8 +221,6 @@ namespace BuildScript {
 
         size_t GetTrailCount(OverloadToken<Statement*>) const { return m_count; } // TrailObjects support.
 
-        const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
-
     public:
         /**
          * @brief Get a position of 'match' keyword.
@@ -238,6 +246,12 @@ namespace BuildScript {
          */
         SourcePosition GetCloseBracePosition() const { return m_close; }
 
+        /**
+         * @brief
+         * @return
+         */
+        TrailIterator<Statement*> GetStatements() const { return GetTrailObjects<Statement*>(); }
+
         static MatchStatement*
         Create(Context& context, SourcePosition match, Expression* condition, SourcePosition open,
                const std::vector<Statement*>& nodes, SourcePosition close);
@@ -253,10 +267,10 @@ namespace BuildScript {
         SourcePosition m_colon;
         bool m_isDefault;
 
+        mutable int m_eval;
+
         Label(SourcePosition pos, Expression* value, SourcePosition colon, bool isDefault)
             : ASTNode(ASTKind::Label), m_value(value), m_pos(pos), m_colon(colon), m_isDefault(isDefault) {}
-
-        const ASTNode* GetChild(size_t index) const override; // ASTIterator support
 
     public:
         /**
@@ -282,8 +296,21 @@ namespace BuildScript {
         /**
          * @brief
          * @return
+         * @note may be @c nullptr if the label does not represents case label.
          */
         const Expression* GetCaseValue() const { return m_value; }
+
+        /**
+         * @brief
+         * @return
+         */
+        int GetEvaluatedCaseValue() const { return m_eval; }
+
+        /**
+         * @brief
+         * @param value
+         */
+        void SetEvaluatedCaseValue(int value) const { m_eval = value; }
 
         /**
          * @brief Get a position of ':'.
@@ -294,6 +321,10 @@ namespace BuildScript {
         static Label*
         Create(Context& context, SourcePosition _case, SourcePosition _default, Expression* expr, SourcePosition colon);
     }; // end class Label
+
+    inline Label* ASTNode::AsLabel() {
+        return IsLabel() ? static_cast<Label*>(this) : nullptr; // NOLINT
+    }
 
     inline const Label* ASTNode::AsLabel() const {
         return IsLabel() ? static_cast<const Label*>(this) : nullptr; // NOLINT
@@ -318,20 +349,18 @@ namespace BuildScript {
         size_t GetTrailCount(OverloadToken<Label*>) const { return m_labelCount; } // TrailObjects support.
         size_t GetTrailCount(OverloadToken<ASTNode*>) const { return m_stmtCount; } // TrailObjects support.
 
-        const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
-
     public:
         /**
          * @brief
          * @return
          */
-        ASTIterator GetLabels() const { return ASTIterator(this); }
+        TrailIterator<Label*> GetLabels() const { return GetTrailObjects<Label*>(); }
 
         /**
          * @brief
          * @return
          */
-        ASTIterator GetStatements() const { return ASTIterator(this); }
+        TrailIterator<ASTNode*> GetNodes() const { return GetTrailObjects<ASTNode*>(); }
 
         static LabeledStatement*
         Create(Context& context, const std::vector<Label*>& labels, const std::vector<ASTNode*>& nodes);
@@ -355,8 +384,6 @@ namespace BuildScript {
                      Statement* body)
             : Statement(Kind), m_for(_for), m_param(std::move(param)), m_in(_in), m_expr(expr), m_body(body) {}
 
-        const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
-
     public:
         /**
          * @brief Get a position of 'for' keyword.
@@ -364,6 +391,10 @@ namespace BuildScript {
          */
         SourcePosition GetForPosition() const { return m_for; }
 
+        /**
+         * @brief
+         * @return
+         */
         const Identifier& GetParameterName() const { return m_param; }
 
         /**
@@ -403,8 +434,6 @@ namespace BuildScript {
 
         WhileStatement(SourcePosition _while, Expression* cond, Statement* body)
             : Statement(Kind), m_while(_while), m_condition(cond), m_body(body) {}
-
-        const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
 
     public:
         /**
@@ -446,8 +475,6 @@ namespace BuildScript {
                       Statement* body)
             : Statement(Kind), m_with(with), m_expr(expr), m_as(as), m_capture(std::move(capture)), m_body(body) {}
 
-        const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
-
     public:
         /**
          * @brief Get a position of 'with' keyword.
@@ -486,7 +513,8 @@ namespace BuildScript {
          */
         const Statement* GetBody() const { return m_body; }
 
-        static WithStatement* Create(Context& context, SourcePosition with, Expression* expr, SourcePosition as, Identifier capture, Statement* body);
+        static WithStatement* Create(Context& context, SourcePosition with, Expression* expr, SourcePosition as,
+                                     Identifier capture, Statement* body);
     }; // end class WithStatement
 
     /**
@@ -507,8 +535,6 @@ namespace BuildScript {
 
         size_t GetTrailCount(OverloadToken<Statement*>) const { return m_count; }
 
-        const ASTNode* GetChild(size_t index) const override;
-
     public:
         /**
          * @brief Get a position of 'try' keyword.
@@ -526,7 +552,7 @@ namespace BuildScript {
          * @brief
          * @return
          */
-        ASTIterator GetHandlers() const { return ASTIterator(this); }
+        TrailIterator<Statement*> GetHandlers() const { return GetTrailObjects<Statement*>(1); }
 
         static TryStatement* Create(Context& context, SourcePosition tryPos, const std::vector<Statement*>& handlers);
     }; // end class TryStatement
@@ -549,8 +575,6 @@ namespace BuildScript {
                         Identifier capture, Statement* body)
             : Statement(Kind), m_except(exceptPos), m_typename(std::move(_typename)), m_as(as),
               m_capture(std::move(capture)), m_body(body) {}
-
-        const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
 
     public:
         /**
@@ -609,8 +633,6 @@ namespace BuildScript {
         FinallyStatement(SourcePosition finallyPos, Statement* body)
             : Statement(Kind), m_finally(finallyPos), m_body(body) {}
 
-        const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
-
     public:
         /**
          * @brief Get a position of 'finally' keyword.
@@ -642,8 +664,6 @@ namespace BuildScript {
         BreakStatement(SourcePosition _break, SourcePosition _if, Expression* condition)
             : Statement(Kind), m_break(_break), m_if(_if), m_condition(condition) {}
 
-        const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
-
     public:
         /**
          * @brief Get a position of 'break' keyword.
@@ -670,7 +690,8 @@ namespace BuildScript {
          */
         const Expression* GetCondition() const { return m_condition; }
 
-        static BreakStatement* Create(Context& context, SourcePosition _break, SourcePosition _if, Expression* condition);
+        static BreakStatement*
+        Create(Context& context, SourcePosition _break, SourcePosition _if, Expression* condition);
     }; // end class BreakStatement
 
     /**
@@ -687,8 +708,6 @@ namespace BuildScript {
 
         ContinueStatement(SourcePosition _continue, SourcePosition _if, Expression* condition)
             : Statement(Kind), m_continue(_continue), m_if(_if), m_condition(condition) {}
-
-        const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
 
     public:
         /**
@@ -734,8 +753,6 @@ namespace BuildScript {
         ReturnStatement(SourcePosition _return, Expression* retval)
             : Statement(Kind), m_return(_return), m_retval(retval) {}
 
-        const ASTNode* GetChild(size_t index) const override; // ASTIterator support.
-
     public:
         /**
          * @brief Get a position of 'return' keyword.
@@ -775,8 +792,6 @@ namespace BuildScript {
                         Expression* message)
             : Statement(Kind), m_assert(_assert), m_condition(condition), m_colon(colon), m_message(message) {}
 
-        const ASTNode* GetChild(size_t index) const override; // ASTIterator support
-
     public:
         /**
          * @brief Get a position of 'assert' keyword.
@@ -795,6 +810,12 @@ namespace BuildScript {
          * @return a @c SourcePosition representing where ':' positioned.
          */
         SourcePosition GetColonPosition() const { return m_colon; }
+
+        /**
+         * @brief
+         * @return
+         */
+        bool HasMessage() const { return (bool)m_colon; }
 
         /**
          * @brief
@@ -862,8 +883,6 @@ namespace BuildScript {
 
         AssignStatement(Expression* target, AssignOp op, SourcePosition pos, Expression* value)
             : Statement(Kind), m_target(target), m_op(op), m_pos(pos), m_value(value) {}
-
-        const ASTNode* GetChild(size_t index) const override; // ASTIterator support
 
     public:
         /**
