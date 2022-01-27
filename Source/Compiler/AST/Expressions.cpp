@@ -28,9 +28,20 @@ TernaryExpression::Create(Context& context, Expression* valueT, SourcePosition _
 }
 
 BinaryExpression*
-BinaryExpression::Create(Context& context, Expression* left, BinaryOp op, std::array<SourcePosition, 2> pos,
-                         Expression* right) {
+BinaryExpression::Create(Context& context, Expression* left, BinaryOp op, SourcePosition pos, Expression* right) {
     return new (context.GetAllocator()) BinaryExpression(left, op, pos, right);
+}
+
+TypeTestExpression*
+TypeTestExpression::Create(Context& context, Expression* left, std::array<SourcePosition, 2> pos, bool negate,
+                           Identifier type) {
+    return new (context.GetAllocator()) TypeTestExpression(left, pos, negate, std::move(type));
+}
+
+ContainmentTestExpression*
+ContainmentTestExpression::Create(Context& context, Expression* value, std::array<SourcePosition, 2> pos, bool negate,
+                                  Expression* target) {
+    return new (context.GetAllocator()) ContainmentTestExpression(value, pos, negate, target);
 }
 
 UnaryExpression* UnaryExpression::Create(Context& context, UnaryOp op, SourcePosition pos, Expression* expr) {

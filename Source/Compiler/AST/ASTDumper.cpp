@@ -957,11 +957,7 @@ void ASTDumper::Walk(const BinaryExpression* node) {
     writer() << "<< BinaryExpression >>" << EOL << Indent;
     {
         writer() << "- Operation: " << node->GetOp() << EOL;
-        writer() << "- OperatorPosition: " << node->GetFirstOpPosition() << EOL;
-
-        if (node->GetOp() == BinaryOp::NotIn || node->GetOp() == BinaryOp::IsNot) {
-            writer() << "- SecondaryOperatorPosition: " << node->GetSecondOpPosition() << EOL;
-        }
+        writer() << "- OperatorPosition: " << node->GetOpPosition() << EOL;
 
         writer() << "- Left:" << EOL << Indent;
         {
@@ -971,6 +967,44 @@ void ASTDumper::Walk(const BinaryExpression* node) {
         writer() << "- Right:" << EOL << Indent;
         {
             super::Walk(node->GetRight());
+        }
+        writer() << Dedent;
+    }
+    writer() << Dedent;
+}
+
+void ASTDumper::Walk(const TypeTestExpression* node) {
+    writer() << "<< TypeTestExpression >>" << EOL << Indent;
+    {
+        writer() << "- IsPosition: " << node->GetIsPosition() << EOL;
+        if (node->IsNegative()) {
+            writer() << "- NotPosition: " << node->GetNotPosition() << EOL;
+        }
+        writer() << "- Typename: " << node->GetTypename() << EOL;
+        writer() << "- Target:" << EOL << Indent;
+        {
+            super::Walk(node->GetTarget());
+        }
+        writer() << Dedent;
+    }
+    writer() << Dedent;
+}
+
+void ASTDumper::Walk(const ContainmentTestExpression* node) {
+    writer() << "<< ContainmentTestExpression >>" << EOL << Indent;
+    {
+        if (node->IsNegative()) {
+            writer() << "- NotPosition: " << node->GetNotPosition() << EOL;
+        }
+        writer() << "- InPosition: " << node->GetInPosition() << EOL;
+        writer() << "- Value:" << EOL << Indent;
+        {
+            super::Walk(node->GetValue());
+        }
+        writer() << Dedent;
+        writer() << "- Target:" << EOL << Indent;
+        {
+            super::Walk(node->GetTarget());
         }
         writer() << Dedent;
     }

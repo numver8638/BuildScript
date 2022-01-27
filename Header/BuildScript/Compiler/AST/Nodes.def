@@ -60,6 +60,8 @@
     V(KeyValuePair, KeyValue) \
     V(TernaryExpression, Ternary) \
     V(BinaryExpression, Binary) \
+    V(TypeTestExpression, TypeTest) \
+    V(ContainmentTestExpression, ContainmentTest) \
     V(UnaryExpression, Unary) \
     V(DefinedExpression, Defined) \
     V(RaiseExpression, Raise) \

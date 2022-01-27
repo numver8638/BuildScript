@@ -68,12 +68,6 @@ static std::tuple<int, BinaryOp> GetRank(TokenType type) {
             return { 3, BinaryOp::Grater };
         case TokenType::GraterOrEqual:
             return { 3, BinaryOp::GraterOrEqual };
-        case TokenType::Is:
-            return { 3, BinaryOp::Is };
-        case TokenType::In:
-            return { 3, BinaryOp::In };
-        case TokenType::Not:
-            return { 3, BinaryOp::NotIn };
 
         // equality_expression
         case TokenType::Equal:
@@ -144,8 +138,16 @@ Expression* Parser::ParseTernaryExpression() {
  *  | relative_expression '<=' binary_or_expression
  *  | relative_expression '>' binary_or_expression
  *  | relative_expression '>=' binary_or_expression
- *  | relative_expression 'is' ('not')? binary_or_expression
- *  | relative_expression ('not')? 'in' binary_or_expression
+ *  | type_test_expression
+ *  | containment_test_expression
+ *  ;
+ *
+ * type_test_expression
+ *  | relative_expression 'is' ('not')? identifier
+ *  ;
+ *
+ * containment_test_expression
+ *  | relative_expression ('not')? 'in' postfix_expression
  *  ;
  *
  * binary_or_expression
@@ -188,22 +190,34 @@ Expression* Parser::ParseBinaryExpression(int rank) {
     auto [_rank, op] = GetRank(m_token.Type);
 
     if (_rank < rank) {
+        std::array<SourcePosition, 2> pos;
+        bool negate;
+
+        // test if the expression is type test expression
+        if (m_token == TokenType::Is) {
+            pos[0] = ConsumeToken();
+            negate = ConsumeIf(TokenType::Not, pos[1]);
+            auto type = RequireIdentifier();
+
+            left = TypeTestExpression::Create(m_context, left, pos, negate, std::move(type));
+        }
+        // test if the expression is containment test expression
+        else if (m_token == TokenType::Not || m_token == TokenType::In) {
+            negate = (m_token == TokenType::Not);
+            pos[0] = ConsumeToken();
+
+            if (negate) { pos[1] = RequireToken(TokenType::In); }
+
+            auto* target = ParsePostfixExpression();
+
+            left = ContainmentTestExpression::Create(m_context, left, pos, negate, target);
+        }
+        // Otherwise, end of binary expression is reached.
+
         return left;
     }
 
-    std::array<SourcePosition, 2> pos;
-    pos[0] = ConsumeToken();
-
-    // Check 'not' after 'is'.
-    if (op == BinaryOp::Is && ConsumeIf(TokenType::Not, pos[1])) {
-        op = BinaryOp::IsNot;
-    }
-
-    // Check 'in' after 'not'.
-    if (op == BinaryOp::NotIn) {
-        pos[1] = RequireToken(TokenType::In);
-    }
-
+    auto pos = ConsumeToken();
     auto* right = ParseBinaryExpression(rank);
 
     return BinaryExpression::Create(m_context, left, op, pos, right);

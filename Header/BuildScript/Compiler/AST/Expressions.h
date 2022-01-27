@@ -29,7 +29,11 @@ namespace BuildScript {
         KeyValue,   // Used for map expression
 
         Ternary,
+
+        // Binary expressions
         Binary,
+        TypeTest,
+        ContainmentTest,
 
         // Unary expressions
         Unary,
@@ -163,10 +167,6 @@ namespace BuildScript {
         LessOrEqual,
         Grater,
         GraterOrEqual,
-        Is,
-        IsNot,
-        In,
-        NotIn,
         Equal,
         NotEqual,
         LogicalAnd,
@@ -183,11 +183,10 @@ namespace BuildScript {
     private:
         Expression* m_left;
         BinaryOp m_op;
-        std::array<SourcePosition, 2> m_pos;
+        SourcePosition m_pos;
         Expression* m_right;
 
-        BinaryExpression(Expression* left, BinaryOp op, std::array<SourcePosition, 2> pos,
-                         Expression* right)
+        BinaryExpression(Expression* left, BinaryOp op, SourcePosition pos, Expression* right)
             : Expression(Kind), m_left(left), m_op(op), m_pos(pos), m_right(right) {}
 
     public:
@@ -204,16 +203,10 @@ namespace BuildScript {
         BinaryOp GetOp() const { return m_op; }
 
         /**
-         * @brief Get a position of first operator.
+         * @brief Get a position of the operator.
          * @return a @c SourcePosition representing where first operator positioned.
          */
-        const SourcePosition& GetFirstOpPosition() const { return m_pos[0]; }
-
-        /**
-         * @brief Get a position of second operator.
-         * @return a @c SourcePosition representing where second operator positioned.
-         */
-        const SourcePosition& GetSecondOpPosition() const { return m_pos[1]; }
+        SourcePosition GetOpPosition() const { return m_pos; }
 
         /**
          * @brief Get right hand side expression.
@@ -222,8 +215,113 @@ namespace BuildScript {
         const Expression* GetRight() const { return m_right; }
 
         static BinaryExpression*
-        Create(Context& context, Expression* left, BinaryOp op, std::array<SourcePosition, 2> pos, Expression* right);
+        Create(Context& context, Expression* left, BinaryOp op, SourcePosition pos, Expression* right);
     }; // end class BinaryExpression
+
+    /**
+     * @brief Represents type testing expression.
+     */
+    class TypeTestExpression final : public Expression {
+    public:
+        static constexpr auto Kind = ExpressionKind::TypeTest;
+
+    private:
+        Expression* m_target;
+        std::array<SourcePosition, 2> m_pos;
+        bool m_negative;
+        Identifier m_type;
+
+        TypeTestExpression(Expression* target, std::array<SourcePosition, 2> pos, bool negative, Identifier type)
+            : Expression(Kind), m_target(target), m_pos(pos), m_negative(negative), m_type(std::move(type)) {}
+
+    public:
+        /**
+         * @brief Get the target of the test.
+         * @return an @c Expression representing the target.
+         */
+        const Expression* GetTarget() const { return m_target; }
+
+        /**
+         * @brief Check the expression is negative form.
+         * @return @c true if the expression is negative otherwise @c false.
+         */
+        bool IsNegative() const { return m_negative; }
+
+        /**
+         * @brief Get a position of 'is' keyword.
+         * @return a @c SourcePosition representing where 'is' keyword positioned.
+         */
+        SourcePosition GetIsPosition() const { return m_pos[0]; }
+
+        /**
+         * @brief Get a position of 'not' keyword.
+         * @return a @c SourcePosition representing where 'not' keyword positioned.
+         * @note Return value maybe empty if the expression is not negate expression.
+         */
+        SourcePosition GetNotPosition() const { return m_pos[1]; }
+
+        /**
+         * @brief Get name of the type.
+         * @return an @c Identifier representing the typename.
+         */
+        const Identifier& GetTypename() const { return m_type; }
+
+        static TypeTestExpression*
+        Create(Context& context, Expression* left, std::array<SourcePosition, 2> pos, bool negative, Identifier type);
+    }; // end class TypeTestExpression
+
+    /**
+     * @brief Represents expression that tests the target contains the value.
+     */
+    class ContainmentTestExpression final : public Expression {
+    public:
+        static constexpr auto Kind = ExpressionKind::ContainmentTest;
+
+    private:
+        Expression* m_value;
+        std::array<SourcePosition, 2> m_pos;
+        bool m_negative;
+        Expression* m_target;
+
+        ContainmentTestExpression(Expression* value, std::array<SourcePosition, 2> pos, bool negative,
+                                  Expression* target)
+            : Expression(Kind), m_value(value), m_pos(pos), m_negative(negative), m_target(target) {}
+
+    public:
+        /**
+         * @brief Get the value of the test.
+         * @return an @c Expression representing the value.
+         */
+        const Expression* GetValue() const { return m_value; }
+
+        /**
+         * @brief Check the expression is negative form.
+         * @return @c true if the expression is negative otherwise @c false.
+         */
+        bool IsNegative() const { return m_negative; }
+
+        /**
+         * @brief Get a position of 'in' keyword.
+         * @return a @c SourcePosition representing where 'in' keyword positioned.
+         */
+        SourcePosition GetInPosition() const { return m_negative ? m_pos[1] : m_pos[0]; }
+
+        /**
+         * @brief Get a position of 'not' keyword.
+         * @return a @c SourcePosition representing where 'not' keyword positioned.
+         * @note Return value maybe empty if the expression is not negate expression.
+         */
+        SourcePosition GetNotPosition() const { return m_negative ? m_pos[0] : SourcePosition::Empty(); }
+
+        /**
+         * @brief Get the target of the test.
+         * @return an @c Expression representing the target.
+         */
+        const Expression* GetTarget() const { return m_target; }
+
+        static ContainmentTestExpression* Create(Context& context, Expression* value, std::array<SourcePosition, 2> pos,
+                                                 bool negative, Expression* target);
+    }; // end class ContainmentTestExpression
 
     /**
      * @brief Represents unary operator.

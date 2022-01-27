@@ -286,6 +286,15 @@ void ASTWalker::Walk(const BinaryExpression* node) {
     Walk(node->GetRight());
 }
 
+void ASTWalker::Walk(const TypeTestExpression* node) {
+    Walk(node->GetTarget());
+}
+
+void ASTWalker::Walk(const ContainmentTestExpression* node) {
+    Walk(node->GetValue());
+    Walk(node->GetTarget());
+}
+
 void ASTWalker::Walk(const UnaryExpression* node) {
     Walk(node->GetExpression());
 }
