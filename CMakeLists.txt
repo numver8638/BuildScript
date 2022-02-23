@@ -25,8 +25,8 @@ endif ()
 project(BuildScript VERSION 0.0.1
                     LANGUAGES CXX)
 
-set(BOOST_VERSION "1.75.0")
-set(FMT_VERSION "7.1.0")
+set(BOOST_VERSION "1.78.0")
+set(FMT_VERSION "8.1.1")
 
 # Find required packages
 set(Boost_USE_STATIC_LIBS ON)
