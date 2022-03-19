@@ -15,6 +15,10 @@
 #include <BuildScript/Utils/NonCopyable.h>
 
 namespace BuildScript {
+    struct CompileOptions; // Defined in <BuildScript/Compiler/CompileOptions.h>
+    class ErrorReporter; // Defined in <BuildScript/Compiler/ErrorReporter.h>
+    class SourceText; // Defined in <BuildScript/Compiler/SourceText.h>
+
     /**
      * @brief Shared data during compile.
      */
@@ -22,8 +26,37 @@ namespace BuildScript {
     private:
         ManagedObjectAllocator m_allocator;
 
+        const CompileOptions& m_options;
+        SourceText& m_source;
+        ErrorReporter& m_reporter;
+
     public:
+        Context(const CompileOptions& options, SourceText& source, ErrorReporter& reporter)
+            : m_options(options), m_source(source), m_reporter(reporter) {}
+
+        /**
+         * @brief Get an allocator.
+         * @return a reference of @c ManagedObjectAllocator.
+         */
         ManagedObjectAllocator& GetAllocator() { return m_allocator; }
+
+        /**
+         * @brief Get an options of current compile.
+         * @return readonly reference of @c CompileOptions.
+         */
+        const CompileOptions& GetOptions() const { return m_options; }
+
+        /**
+         * @brief Get current compiling source text.
+         * @return a reference of @c SourceText.
+         */
+        SourceText& GetSource() { return m_source; }
+
+        /**
+         * @brief Get an reporter.
+         * @return a reference of @c ErrorReporter.
+         */
+        ErrorReporter& GetReporter() { return m_reporter; }
     }; // end class Context
 } // end namespace BuildScript
 

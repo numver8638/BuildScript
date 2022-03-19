@@ -98,6 +98,9 @@ namespace BuildScript {
         Expression* ParseMap();
         Expression* ParseClosure();
 
+        Parser(SourceText& source, Parser* self)
+            : ParserBase(source, self->m_context.GetReporter()), m_context(self->m_context) {}
+
     public:
         /**
          * @brief Syntax analyzer for BuildScript language.
@@ -105,8 +108,8 @@ namespace BuildScript {
          * @param reporter an @c ErrorReporter to collect errors.
          * @param context a @c Context.
          */
-        Parser(SourceText& source, ErrorReporter& reporter, Context& context)
-            : ParserBase(source, reporter), m_context(context) {}
+        explicit Parser(Context& context)
+            : ParserBase(context.GetSource(), context.GetReporter()), m_context(context) {}
 
         /**
          * @brief Parse script.

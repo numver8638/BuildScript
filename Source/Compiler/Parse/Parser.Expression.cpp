@@ -472,7 +472,7 @@ Expression* Parser::ParseString() {
 
     for (const auto& range : interpolations) {
         SourceText partial(m_source, range);
-        Parser parser(partial, m_reporter, m_context);
+        Parser parser(partial, this);
 
         auto* expr = parser.ParseExpression();
         exprs.push_back(expr);
