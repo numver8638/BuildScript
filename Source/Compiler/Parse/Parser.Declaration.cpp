@@ -475,7 +475,53 @@ Declaration* Parser::ParseClassOperator() {
  * task_body
  *  : '{' task_item* '}'
  *  ;
- *
+ */
+Declaration* Parser::ParseTaskDeclaration() {
+    assert(m_token == TokenType::Task);
+
+    const auto ParseExtends = [&](SourcePosition &extends, Identifier &name) -> void {
+        if (ConsumeIf(TokenType::Extends, extends)) {
+            name = RequireIdentifier();
+        }
+    };
+    const auto ParseDependsOn =
+        [&](SourcePosition &dependsOn, std::vector<Identifier> &names, std::vector<SourcePosition> &commas)  {
+        if (ConsumeIf(TokenType::DependsOn, dependsOn)) {
+            ParseNameList(names, commas);
+        }
+    };
+
+    auto task = ConsumeToken();
+    auto name = RequireIdentifier();
+    SourcePosition extends, dependsOn;
+    Identifier extendsName;
+    std::vector<Identifier> depnames;
+    std::vector<SourcePosition> commas;
+
+    ParseExtends(extends, extendsName);
+    ParseDependsOn(dependsOn, depnames, commas);
+
+    // Check for reversed extends/dependsOn clause
+    if (extends && m_token == TokenType::Extends) {
+        m_reporter.Report(m_token.GetPosition(), ReportID::ParseReversedExtendsClause);
+
+        ParseExtends(extends, extendsName);
+    }
+
+    auto open = RequireToken(TokenType::LeftBrace);
+
+    std::vector<Declaration*> nodes;
+    while (!OneOf<TokenType::RightBrace, TokenType::EndOfFile>()) {
+        nodes.push_back(ParseTaskMember());
+    }
+
+    auto close = RequireToken(TokenType::RightBrace);
+
+    return TaskDeclaration::Create(m_context, task, std::move(name), extends, std::move(extendsName),
+        dependsOn, depnames, commas, open, nodes, close);
+}
+
+/*
  * task_item
  *  : inputs_clause
  *  | outputs_clause
@@ -509,20 +555,7 @@ Declaration* Parser::ParseClassOperator() {
  *  : 'doLast' block
  *  ;
  */
-Declaration* Parser::ParseTaskDeclaration() {
-    assert(m_token == TokenType::Task);
-
-    const auto ParseExtends = [&](SourcePosition &extends, Identifier &name) -> void {
-        if (ConsumeIf(TokenType::Extends, extends)) {
-            name = RequireIdentifier();
-        }
-    };
-    const auto ParseDependsOn =
-        [&](SourcePosition &dependsOn, std::vector<Identifier> &names, std::vector<SourcePosition> &commas)  {
-        if (ConsumeIf(TokenType::DependsOn, dependsOn)) {
-            ParseNameList(names, commas);
-        }
-    };
+Declaration* Parser::ParseTaskMember() {
     const auto SkipFilter = [](TokenType type) {
         switch (type) {
             case TokenType::Inputs:
@@ -538,110 +571,74 @@ Declaration* Parser::ParseTaskDeclaration() {
         }
     };
 
-    auto task = ConsumeToken();
-    auto name = RequireIdentifier();
-    SourcePosition extends, dependsOn;
-    Identifier extendsName;
-    std::vector<Identifier> depnames;
-    std::vector<SourcePosition> commas;
+    switch (m_token.Type) {
+        // Inputs clause
+        case TokenType::Inputs: {
+            auto pos = ConsumeToken();
+            auto* value = ParseExpression();
+            SourcePosition with;
+            Expression* withValue = nullptr;
 
-    ParseExtends(extends, extendsName);
-    ParseDependsOn(dependsOn, depnames, commas);
-
-    // Check for reversed extends/dependsOn clause
-    if (extends && m_token == TokenType::Extends) {
-        m_reporter.Report(m_token.GetPosition(), ReportID::ParseReversedExtendsClause);
-
-        ParseExtends(extends, extendsName);
-    }
-
-    auto open = RequireToken(TokenType::LeftBrace);
-
-    std::vector<Declaration*> nodes;
-    while (!OneOf<TokenType::RightBrace, TokenType::EndOfFile>()) {
-        Declaration* node;
-
-        switch (m_token.Type) {
-            // Inputs clause
-            case TokenType::Inputs: {
-                auto pos = ConsumeToken();
-                auto* value = ParseExpression();
-                SourcePosition with;
-                Expression* withValue = nullptr;
-
-                if (ConsumeIf(TokenType::With, with)) {
-                    withValue = ParseExpression();
-                }
-
-                RequireEOL();
-                node = TaskInputsDeclaration::Create(m_context, pos, value, with, withValue);
-                break;
+            if (ConsumeIf(TokenType::With, with)) {
+                withValue = ParseExpression();
             }
 
-            // Outputs clause
-            case TokenType::Outputs: {
-                auto pos = ConsumeToken();
-                auto* value = ParseExpression();
-                SourcePosition from;
-                Expression* fromValue = nullptr;
-
-                if (ConsumeIf(TokenType::From, from)) {
-                    fromValue = ParseExpression();
-                }
-
-                RequireEOL();
-                node = TaskOutputsDeclaration::Create(m_context, pos, value, from, fromValue);
-                break;
-            }
-
-            // Property
-            case TokenType::Identifier: {
-                auto propName = RequireIdentifier(); // always succeed.
-                auto assign = RequireToken(TokenType::Assign);
-                auto* value = ParseExpression();
-
-                RequireEOL();
-
-                node = TaskPropertyDeclaration::Create(m_context, std::move(propName), assign, value);
-                break;
-            }
-
-            // Action clauses
-            case TokenType::Do:
-            case TokenType::DoFirst:
-            case TokenType::DoLast: {
-                ActionKind kind;
-
-                if (m_token == TokenType::Do) {
-                    kind = ActionKind::Do;
-                }
-                else if (m_token == TokenType::DoFirst) {
-                    kind = ActionKind::DoFirst;
-                }
-                else /* (m_token == TokenType::DoLast) */ {
-                    kind = ActionKind::DoLast;
-                }
-
-                auto pos = ConsumeToken();
-                auto* body = ParseBody();
-
-                node = TaskActionDeclaration::Create(m_context, kind, pos, body);
-                break;
-            }
-
-            default:
-                m_reporter.Report(m_token.GetPosition(), ReportID::ParseExpectTaskItem);
-                node = InvalidDeclaration::Create(m_context, SkipBraces(StopBeforeBrace, SkipFilter));
-                break;
+            RequireEOL();
+            return TaskInputsDeclaration::Create(m_context, pos, value, with, withValue);
         }
 
-        nodes.push_back(node);
+        // Outputs clause
+        case TokenType::Outputs: {
+            auto pos = ConsumeToken();
+            auto* value = ParseExpression();
+            SourcePosition from;
+            Expression* fromValue = nullptr;
+
+            if (ConsumeIf(TokenType::From, from)) {
+                fromValue = ParseExpression();
+            }
+
+            RequireEOL();
+            return TaskOutputsDeclaration::Create(m_context, pos, value, from, fromValue);
+        }
+
+        // Property
+        case TokenType::Identifier: {
+            auto propName = RequireIdentifier(); // always succeed.
+            auto assign = RequireToken(TokenType::Assign);
+            auto* value = ParseExpression();
+
+            RequireEOL();
+
+            return TaskPropertyDeclaration::Create(m_context, std::move(propName), assign, value);
+        }
+
+        // Action clauses
+        case TokenType::Do:
+        case TokenType::DoFirst:
+        case TokenType::DoLast: {
+            ActionKind kind;
+
+            if (m_token == TokenType::Do) {
+                kind = ActionKind::Do;
+            }
+            else if (m_token == TokenType::DoFirst) {
+                kind = ActionKind::DoFirst;
+            }
+            else /* (m_token == TokenType::DoLast) */ {
+                kind = ActionKind::DoLast;
+            }
+
+            auto pos = ConsumeToken();
+            auto* body = ParseBody();
+
+            return TaskActionDeclaration::Create(m_context, kind, pos, body);
+        }
+
+        default:
+            m_reporter.Report(m_token.GetPosition(), ReportID::ParseExpectTaskItem);
+            return InvalidDeclaration::Create(m_context, SkipBraces(StopBeforeBrace, SkipFilter));
     }
-
-    auto close = RequireToken(TokenType::RightBrace);
-
-    return TaskDeclaration::Create(m_context, task, std::move(name), extends, std::move(extendsName),
-        dependsOn, depnames, commas, open, nodes, close);
 }
 
 /*

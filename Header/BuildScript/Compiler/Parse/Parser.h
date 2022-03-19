@@ -62,6 +62,7 @@ namespace BuildScript {
         Declaration* ParseClassProperty();
         Declaration* ParseClassOperator();
         Declaration* ParseTaskDeclaration();
+        Declaration* ParseTaskMember();
         Declaration* ParseVariableDeclaration();
 
         // Parser.Statement.cpp
