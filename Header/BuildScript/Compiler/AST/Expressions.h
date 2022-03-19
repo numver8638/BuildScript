@@ -26,7 +26,6 @@ namespace BuildScript {
         Invalid,
 
         Pass,       // Used for empty closure.
-        KeyValue,   // Used for map expression
 
         Ternary,
 
@@ -691,44 +690,12 @@ namespace BuildScript {
     /**
      * @brief Represents key and value in map.
      */
-    class KeyValuePair final : public Expression {
-    public:
-        static constexpr auto Kind = ExpressionKind::KeyValue;
-
-    private:
-        Expression* m_key;
-        SourcePosition m_colon;
-        Expression* m_value;
-
-        KeyValuePair(Expression* key, SourcePosition colon, Expression* value)
-            : Expression(Kind), m_key(key), m_colon(colon), m_value(value) {}
-
-    public:
-        /**
-         * @brief
-         * @return
-         */
-        Expression* GetKey() const { return m_key; }
-
-        /**
-         * @brief Get a position of ':'.
-         * @return a @c SourcePosition representing where ':' positioned.
-         */
-        SourcePosition GetColonPosition() const { return m_colon; }
-
-        /**
-         * @brief
-         * @return
-         */
-        Expression* GetValue() const { return m_value; }
-
-        static KeyValuePair* Create(Context& context, Expression* key, SourcePosition colon, Expression* value);
-    }; // end class KeyValuePair
+    using KeyValuePair = std::tuple<Expression*, SourcePosition, Expression*>;
 
     /**
      * @brief Represents map.
      */
-    class MapExpression final : public Expression, TrailObjects<MapExpression, Expression*, SourcePosition> {
+    class MapExpression final : public Expression, TrailObjects<MapExpression, KeyValuePair, SourcePosition> {
         friend TrailObjects;
 
     public:
@@ -743,7 +710,7 @@ namespace BuildScript {
             : Expression(Kind), m_open(open), m_close(close), m_count(count) {}
 
         // TrailObjects support.
-        size_t GetTrailCount(OverloadToken<Expression*>) const { return m_count; }
+        size_t GetTrailCount(OverloadToken<KeyValuePair>) const { return m_count; }
         size_t GetTrailCount(OverloadToken<SourcePosition>) const { return m_count - 1; }
 
     public:
@@ -751,7 +718,7 @@ namespace BuildScript {
          * @brief
          * @return
          */
-        TrailIterator<Expression*> GetItems() const { return GetTrailObjects<Expression*>(); }
+        TrailIterator<KeyValuePair> GetItems() const { return GetTrailObjects<KeyValuePair>(); }
 
         /**
          * @brief
@@ -772,7 +739,7 @@ namespace BuildScript {
         SourcePosition GetCloseBracePosition() const { return m_close; }
 
         static MapExpression*
-        Create(Context& context, SourcePosition open, const std::vector<Expression*>& items,
+        Create(Context& context, SourcePosition open, const std::vector<KeyValuePair>& items,
                const std::vector<SourcePosition>& commas, SourcePosition close);
     }; // end class MapExpression
 

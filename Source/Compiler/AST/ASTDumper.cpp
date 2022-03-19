@@ -1172,24 +1172,6 @@ void ASTDumper::Walk(const ListExpression* node) {
     writer() << Dedent;
 }
 
-void ASTDumper::Walk(const KeyValuePair* node) {
-    writer() << "<< KeyValuePair >>" << EOL << Indent;
-    {
-        writer() << "- ColonPosition: " << node->GetColonPosition() << EOL;
-        writer() << "- Key:" << EOL << Indent;
-        {
-            super::Walk(node->GetKey());
-        }
-        writer() << Dedent;
-        writer() << "- Value:" << EOL << Indent;
-        {
-            super::Walk(node->GetValue());
-        }
-        writer() << Dedent;
-    }
-    writer() << Dedent;
-}
-
 void ASTDumper::Walk(const MapExpression* node) {
     writer() << "<< MapExpression >>" << EOL << Indent;
     {
@@ -1198,10 +1180,20 @@ void ASTDumper::Walk(const MapExpression* node) {
         writer() << "- Arguments:" << EOL << Indent;
         {
             auto index = 0;
-            for (const auto* expr: node->GetItems()) {
+            for (auto& [key, colon, value] : node->GetItems()) {
                 writer() << "- Item #" << index << ":" << EOL << Indent;
                 {
-                    super::Walk(expr);
+                    writer() << "- ColonPosition: " << colon << EOL;
+                    writer() << "- Key:" << EOL << Indent;
+                    {
+                        super::Walk(key);
+                    }
+                    writer() << Dedent;
+                    writer() << "- Value:" << EOL << Indent;
+                    {
+                        super::Walk(value);
+                    }
+                    writer() << Dedent;
                 }
                 writer() << Dedent;
             }

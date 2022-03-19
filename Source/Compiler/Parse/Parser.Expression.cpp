@@ -520,7 +520,7 @@ Expression* Parser::ParseMap() {
     assert(m_token == TokenType::LeftBrace);
 
     auto open = ConsumeToken();
-    std::vector<Expression*> items;
+    std::vector<KeyValuePair> items;
     std::vector<SourcePosition> commas;
 
     if (m_token != TokenType::RightBrace) {
@@ -534,7 +534,7 @@ Expression* Parser::ParseMap() {
 
             hasComma = ConsumeIf(TokenType::Comma, comma);
 
-            items.push_back(KeyValuePair::Create(m_context, key, colon, value));
+            items.emplace_back(key, colon, value);
             if (hasComma) {
                 commas.push_back(comma);
             }

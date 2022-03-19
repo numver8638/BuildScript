@@ -334,12 +334,9 @@ void ASTWalker::Walk(const ListExpression* node) {
 }
 
 void ASTWalker::Walk(const MapExpression* node) {
-    for (const auto* item : node->GetItems()) {
-        // Shortcut: Expressions in MapExpression always KeyValuePair.
-        const auto* kv = item->As<KeyValuePair>();
-        NEVER_BE_NULL(kv);
-
-        Walk(kv);
+    for (auto& [key, _, value] : node->GetItems()) {
+        Walk(key);
+        Walk(value);
     }
 }
 

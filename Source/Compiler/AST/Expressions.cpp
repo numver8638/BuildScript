@@ -105,12 +105,8 @@ ListExpression::Create(Context& context, SourcePosition open, const std::vector<
     return node;
 }
 
-KeyValuePair* KeyValuePair::Create(Context& context, Expression* key, SourcePosition colon, Expression* value) {
-    return new (context.GetAllocator()) KeyValuePair(key, colon, value);
-}
-
 MapExpression*
-MapExpression::Create(Context& context, SourcePosition open, const std::vector<Expression*>& items,
+MapExpression::Create(Context& context, SourcePosition open, const std::vector<KeyValuePair>& items,
                       const std::vector<SourcePosition>& commas, SourcePosition close) {
     assert(((items.size() < 2 && commas.empty()) || ((items.size() - 1) == commas.size()))
             && "count of expressions and commas does not match.");
