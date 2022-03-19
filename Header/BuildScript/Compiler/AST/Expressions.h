@@ -16,6 +16,7 @@
 #include <vector>
 
 #include <BuildScript/Compiler/AST/ASTNode.h>
+#include <BuildScript/Compiler/Utils/Value.h>
 #include <BuildScript/Compiler/Identifier.h>
 #include <BuildScript/Utils/TrailObjects.h>
 
@@ -117,7 +118,7 @@ namespace BuildScript {
          * @brief Get expression when condition is true.
          * @return
          */
-        const Expression* GetValueOnTrue() const { return m_valueT; }
+        Expression* GetValueOnTrue() const { return m_valueT; }
 
         /**
          * @brief Get a position of 'if' keyword.
@@ -129,7 +130,7 @@ namespace BuildScript {
          * @brief Get an expression represents condition.
          * @return
          */
-        const Expression* GetCondition() const { return m_cond; }
+        Expression* GetCondition() const { return m_cond; }
 
         /**
          * @brief Get a position of 'else' keyword.
@@ -141,7 +142,7 @@ namespace BuildScript {
          * @brief Get an expression when condition is false.
          * @return
          */
-        const Expression* GetValueOnFalse() const { return m_valueF; }
+        Expression* GetValueOnFalse() const { return m_valueF; }
 
         static TernaryExpression*
         Create(Context& context, Expression* valueT, SourcePosition _if, Expression* condition, SourcePosition _else,
@@ -193,7 +194,7 @@ namespace BuildScript {
          * @brief Get left hand side expression.
          * @return an @c Expression representing left hand side expression.
          */
-        const Expression* GetLeft() const { return m_left; }
+        Expression* GetLeft() const { return m_left; }
 
         /**
          * @brief Get an operation of the expression.
@@ -211,7 +212,7 @@ namespace BuildScript {
          * @brief Get right hand side expression.
          * @return an @c Expression representing right hand side expression.
          */
-        const Expression* GetRight() const { return m_right; }
+        Expression* GetRight() const { return m_right; }
 
         static BinaryExpression*
         Create(Context& context, Expression* left, BinaryOp op, SourcePosition pos, Expression* right);
@@ -238,7 +239,7 @@ namespace BuildScript {
          * @brief Get the target of the test.
          * @return an @c Expression representing the target.
          */
-        const Expression* GetTarget() const { return m_target; }
+        Expression* GetTarget() const { return m_target; }
 
         /**
          * @brief Check the expression is negative form.
@@ -291,7 +292,7 @@ namespace BuildScript {
          * @brief Get the value of the test.
          * @return an @c Expression representing the value.
          */
-        const Expression* GetValue() const { return m_value; }
+        Expression* GetValue() const { return m_value; }
 
         /**
          * @brief Check the expression is negative form.
@@ -316,7 +317,7 @@ namespace BuildScript {
          * @brief Get the target of the test.
          * @return an @c Expression representing the target.
          */
-        const Expression* GetTarget() const { return m_target; }
+        Expression* GetTarget() const { return m_target; }
 
         static ContainmentTestExpression* Create(Context& context, Expression* value, std::array<SourcePosition, 2> pos,
                                                  bool negative, Expression* target);
@@ -364,7 +365,7 @@ namespace BuildScript {
          * @brief
          * @return
          */
-        const Expression* GetExpression() const { return m_expr; }
+        Expression* GetExpression() const { return m_expr; }
 
         static UnaryExpression* Create(Context& context, UnaryOp op, SourcePosition pos, Expression* expr);
     }; // end class UnaryExpression
@@ -415,7 +416,7 @@ namespace BuildScript {
          * @brief
          * @return
          */
-        const Expression* GetTarget() const { return m_target; }
+        Expression* GetTarget() const { return m_target; }
 
         static DefinedExpression*
         Create(Context& context, SourcePosition defined, Identifier id, SourcePosition in, Expression* target);
@@ -446,7 +447,7 @@ namespace BuildScript {
          * @brief
          * @return
          */
-        const Expression* GetTarget() const { return m_target; }
+        Expression* GetTarget() const { return m_target; }
 
         static RaiseExpression* Create(Context& context, SourcePosition raise, Expression* expr);
     }; // end class RaiseExpression
@@ -471,7 +472,7 @@ namespace BuildScript {
          * @brief
          * @return
          */
-        const Expression* GetTarget() const { return m_target; }
+        Expression* GetTarget() const { return m_target; }
 
         /**
          * @brief Get a position of '.'.
@@ -808,10 +809,10 @@ namespace BuildScript {
     private:
         SourceRange m_range;
         LiteralType m_type;
-        ValueUnion m_value;
+        Value m_value;
         size_t m_count;
 
-        LiteralExpression(SourceRange range, LiteralType type, ValueUnion value, size_t count = 0)
+        LiteralExpression(SourceRange range, LiteralType type, Value value, size_t count = 0)
             : Expression(Kind), m_range(range), m_type(type), m_value(std::move(value)), m_count(count) {}
 
         size_t GetTrailCount(OverloadToken<Expression*>) const { return m_count; } // TrailObjects support.
@@ -890,7 +891,7 @@ namespace BuildScript {
          * @return
          * @warning Value may empty
          */
-        ValueUnion GetRawValue() const { return m_value; }
+        Value GetRawValue() const { return m_value; }
 
         static LiteralExpression* CreateVariable(Context& context, const Identifier& id);
 

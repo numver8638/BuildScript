@@ -10,13 +10,15 @@
 #define BUILDSCRIPT_COMPILER_PARSE_PARSER_H
 
 #include <BuildScript/Assert.h>
+#include <BuildScript/Compiler/Context.h>
 #include <BuildScript/Compiler/AST/ASTNode.h>
+#include <BuildScript/Compiler/AST/AccessFlags.h>
 #include <BuildScript/Compiler/Parse/ParserBase.h>
 #include <BuildScript/Utils/Functions.h>
 
 namespace BuildScript {
     class Context; // Defined in <BuildScript/Compiler/Context.h>
-    class Parameters;
+    class Parameters; // Defined in <BuildScript/Compiler/AST/Parameters.h>
 
     /**
      * @brief Syntax analyzer for BuildScript language.
@@ -45,6 +47,8 @@ namespace BuildScript {
         void ParseExpressionList(std::vector<Expression*>&, std::vector<SourcePosition>&);
 
         // Parser.Declaration.cpp
+        template <bool>
+        std::tuple<AccessFlags, SourceRange> ParseModifier();
         Declaration* ParseDeclaration();
         Declaration* ParseImportDeclaration();
         Declaration* ParseExportDeclaration();
@@ -53,7 +57,7 @@ namespace BuildScript {
         Declaration* ParseClassMember();
         Declaration* ParseClassInit();
         Declaration* ParseClassDeinit();
-        Declaration* ParseClassField(SourcePosition, SourcePosition);
+        Declaration* ParseClassField(SourcePosition, AccessFlags);
         Declaration* ParseClassMethod(SourcePosition);
         Declaration* ParseClassProperty();
         Declaration* ParseClassOperator();

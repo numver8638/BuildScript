@@ -77,23 +77,11 @@ TaskDeclaration::Create(Context& context, SourcePosition task, Identifier name, 
 }
 
 VariableDeclaration*
-VariableDeclaration::Create(Context& context, SourcePosition _const, SourcePosition var, Identifier name,
+VariableDeclaration::Create(Context& context, SourcePosition pos, AccessFlags flags, Identifier name,
                             SourcePosition assign, Expression* value) {
-    assert(!(_const && var) && "cannot be both const and var.");
+    assert((flags != AccessFlags::Static) && "cannot be static.");
 
-    SourcePosition pos;
-    SpecifierKind kind;
-
-    if (_const) {
-        pos = _const;
-        kind = SpecifierKind::Const;
-    }
-    else /* (var) */ {
-        pos = var;
-        kind = SpecifierKind::Var;
-    }
-
-    return new (context.GetAllocator()) VariableDeclaration(pos, kind, std::move(name), assign, value);
+    return new (context.GetAllocator()) VariableDeclaration(pos, flags, std::move(name), assign, value);
 }
 
 TaskInputsDeclaration*
@@ -128,23 +116,11 @@ ClassDeinitDeclaration* ClassDeinitDeclaration::Create(Context& context, SourceP
 }
 
 ClassFieldDeclaration*
-ClassFieldDeclaration::Create(Context& context, SourcePosition _const, SourcePosition _static, Identifier name,
+ClassFieldDeclaration::Create(Context& context, SourcePosition pos, AccessFlags flags, Identifier name,
                               SourcePosition assign, Expression* value) {
-    assert(!(_const && _static) && "cannot be both const and static.");
+    assert(!(flags != AccessFlags::ReadWrite) && "cannot be var.");
 
-    SourcePosition pos;
-    SpecifierKind kind;
-
-    if (_const) {
-        pos = _const;
-        kind = SpecifierKind::Const;
-    }
-    else /* (_static) */ {
-        pos = _static;
-        kind = SpecifierKind::Static;
-    }
-
-    return new (context.GetAllocator()) ClassFieldDeclaration(pos, kind, std::move(name), assign, value);
+    return new (context.GetAllocator()) ClassFieldDeclaration(pos, flags, std::move(name), assign, value);
 }
 
 ClassMethodDeclaration*

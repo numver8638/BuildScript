@@ -10,12 +10,14 @@
 #define BUILDSCRIPT_COMPILER_AST_DECLARATIONS_H
 
 #include <array>
+#include <cassert>
 #include <string>
 #include <string_view>
 #include <vector>
 
 #include <BuildScript/Compiler/AST/ASTNode.h>
 #include <BuildScript/Compiler/AST/OperatorKind.h>
+#include <BuildScript/Compiler/AST/AccessFlags.h>
 #include <BuildScript/Compiler/Identifier.h>
 #include <BuildScript/Utils/TrailObjects.h>
 
@@ -132,7 +134,7 @@ namespace BuildScript {
          * @brief Get an expression represents the path of imported script.
          * @return an @c Expression of imported script path.
          */
-        const Expression* GetPath() const { return m_path; }
+        Expression* GetPath() const { return m_path; }
 
         static ImportDeclaration* Create(Context& context, SourcePosition _import, Expression* path);
     }; // end class ImportDeclaration
@@ -185,7 +187,7 @@ namespace BuildScript {
          * @return an @c Expression representing initial value of exported variable.
          * @note Maybe null if there's no assigned value.
          */
-        const Expression* GetValue() const { return m_value; }
+        Expression* GetValue() const { return m_value; }
 
         static ExportDeclaration*
         Create(Context& context, SourcePosition _export, Identifier name, SourcePosition assign, Expression* value);
@@ -224,13 +226,13 @@ namespace BuildScript {
          * @brief Get parameters of the function.
          * @return @c Parameters representing parameters of the function.
          */
-        const Parameters* GetParameters() const { return m_params; }
+        Parameters* GetParameters() const { return m_params; }
 
         /**
          * @brief Get body of the function.
          * @return a @c Statement representing body of the function.
          */
-        const Statement* GetBody() const { return m_body; }
+        Statement* GetBody() const { return m_body; }
 
         static FunctionDeclaration*
         Create(Context& context, SourcePosition def, Identifier name, Parameters* param, Statement* body);
@@ -428,15 +430,6 @@ namespace BuildScript {
     }; // end class TaskDeclaration
 
     /**
-     * @brief
-     */
-    enum class SpecifierKind {
-        Var,        //!< Variable is writable.
-        Const,      //!< Variable or field is readonly.
-        Static      //!< Field is static.
-    }; // SpecifierKind
-
-    /**
      * @brief Represents variable declaration.
      */
     class VariableDeclaration final : public Declaration {
@@ -445,16 +438,16 @@ namespace BuildScript {
 
     private:
         SourcePosition m_keyword;
-        SpecifierKind m_kind;
+        AccessFlags m_flags;
         Identifier m_name;
         SourcePosition m_assign;
         Expression* m_value;
 
-        VariableDeclaration(SourcePosition key, SpecifierKind kind, Identifier name, SourcePosition assign,
+        VariableDeclaration(SourcePosition key, AccessFlags flags, Identifier name, SourcePosition assign,
                             Expression* value)
-            : Declaration(Kind), m_keyword(key), m_kind(kind), m_name(std::move(name)), m_assign(assign),
+            : Declaration(Kind), m_keyword(key), m_flags(flags), m_name(std::move(name)), m_assign(assign),
               m_value(value) {
-            assert((m_kind !=  SpecifierKind::Static) && "kind of variable cannot be 'static'");
+            assert((m_flags != AccessFlags::Static) && "kind of variable cannot be 'static'");
         }
 
     public:
@@ -464,7 +457,7 @@ namespace BuildScript {
          * @note Maybe empty if variable is const.
          */
         SourcePosition GetVarPosition() const {
-            return (m_kind == SpecifierKind::Var) ? m_keyword : SourcePosition::Empty();
+            return (m_flags == AccessFlags::ReadWrite) ? m_keyword : SourcePosition::Empty();
         }
 
         /**
@@ -473,14 +466,20 @@ namespace BuildScript {
          * @note Maybe empty if variable is not const.
          */
         SourcePosition GetConstPosition() const {
-            return (m_kind == SpecifierKind::Const) ? m_keyword : SourcePosition::Empty();
+            return (m_flags == AccessFlags::Const) ? m_keyword : SourcePosition::Empty();
         }
 
         /**
          * @brief
          * @return
          */
-        bool IsConst() const { return (m_kind == SpecifierKind::Const); }
+        bool IsConst() const { return (m_flags == AccessFlags::Const); }
+
+        /**
+         * @brief
+         * @return
+         */
+        AccessFlags GetSpecifier() const { return m_flags; }
 
         /**
          * @brief Get name of the variable.
@@ -498,10 +497,10 @@ namespace BuildScript {
          * @brief Get an expression represents initial value of the declaration.
          * @return an @c Expression representing initial value.
          */
-        const Expression* GetValue() const { return m_value; }
+        Expression* GetValue() const { return m_value; }
 
         static VariableDeclaration*
-        Create(Context& context, SourcePosition _const, SourcePosition var, Identifier name, SourcePosition assign,
+        Create(Context& context, SourcePosition pos, AccessFlags flags, Identifier name, SourcePosition assign,
                Expression* value);
     }; // end class VariableDeclaration
 
@@ -537,7 +536,7 @@ namespace BuildScript {
          * @brief
          * @return
          */
-        const Expression* GetInputsValue() const { return m_inputsValue; }
+        Expression* GetInputsValue() const { return m_inputsValue; }
 
         /**
          * @brief
@@ -555,7 +554,7 @@ namespace BuildScript {
          * @brief
          * @return
          */
-        const Expression* GetWithValue() const { return m_withValue; }
+        Expression* GetWithValue() const { return m_withValue; }
 
         static TaskInputsDeclaration*
         Create(Context& context, SourcePosition inputs, Expression* inputsValue, SourcePosition with,
@@ -591,7 +590,7 @@ namespace BuildScript {
          * @brief
          * @return
          */
-        const Expression* GetOutputsValue() const { return m_outputsValue; }
+        Expression* GetOutputsValue() const { return m_outputsValue; }
 
         /**
          * @brief
@@ -609,7 +608,7 @@ namespace BuildScript {
          * @brief
          * @return
          */
-        const Expression* GetFromValue() const { return m_fromValue; }
+        Expression* GetFromValue() const { return m_fromValue; }
 
         static TaskOutputsDeclaration*
         Create(Context& context, SourcePosition outputs, Expression* outputsValue, SourcePosition from,
@@ -654,7 +653,7 @@ namespace BuildScript {
          * @brief Get body of the action.
          * @return a @c Statement representing body of the action.
          */
-        const Statement* GetBody() const { return m_body; }
+        Statement* GetBody() const { return m_body; }
 
         static TaskActionDeclaration* Create(Context& context, ActionKind kind, SourcePosition pos, Statement* body);
     }; // end class TaskActionDeclaration
@@ -691,7 +690,7 @@ namespace BuildScript {
          * @brief Get an expression represents initial value of the property.
          * @return an @c Expression representing initial value.
          */
-        const Expression* GetValue() const { return m_value; }
+        Expression* GetValue() const { return m_value; }
 
         static TaskPropertyDeclaration*
         Create(Context& context, Identifier name, SourcePosition assign, Expression* value);
@@ -726,13 +725,13 @@ namespace BuildScript {
          * @brief Get parameters of the initializer.
          * @return @c Parameters representing parameters of the initializer.
          */
-        const Parameters* GetParameters() const { return m_params; }
+        Parameters* GetParameters() const { return m_params; }
 
         /**
          * @brief Get body of the initializer.
          * @return a @c Statement representing body of the initializer.
          */
-        const Statement* GetBody() const { return m_body; }
+        Statement* GetBody() const { return m_body; }
 
         static ClassInitDeclaration* Create(Context& context, SourcePosition init, Parameters* params, Statement* body);
     }; // end class ClassInitDeclaration
@@ -762,7 +761,7 @@ namespace BuildScript {
          * @brief Get body of the deinitializer.
          * @return a @c Statement representing body of the deinitializer.
          */
-        const Statement* GetBody() const { return m_body; }
+        Statement* GetBody() const { return m_body; }
 
         static ClassDeinitDeclaration* Create(Context& context, SourcePosition deinit, Statement* body);
     }; // end class ClassDeinitDeclaration
@@ -776,16 +775,16 @@ namespace BuildScript {
 
     private:
         SourcePosition m_keyword;
-        SpecifierKind m_kind;
+        AccessFlags m_flags;
         Identifier m_name;
         SourcePosition m_assign;
         Expression* m_value;
 
-        ClassFieldDeclaration(SourcePosition keyword, SpecifierKind kind, Identifier name,
+        ClassFieldDeclaration(SourcePosition keyword, AccessFlags flags, Identifier name,
                               SourcePosition assign, Expression* value)
-            : Declaration(Kind), m_keyword(keyword), m_kind(kind), m_name(std::move(name)), m_assign(assign),
+            : Declaration(Kind), m_keyword(keyword), m_flags(flags), m_name(std::move(name)), m_assign(assign),
               m_value(value) {
-            assert((m_kind != SpecifierKind::Var) && "kind of field cannot be 'var'.");
+            assert((m_flags != AccessFlags::ReadWrite) && "kind of field cannot be 'var'.");
         }
 
     public:
@@ -793,13 +792,19 @@ namespace BuildScript {
          * @brief
          * @return
          */
-        bool IsConst() const { return (m_kind == SpecifierKind::Const); }
+        bool IsConst() const { return (m_flags == AccessFlags::Const); }
 
         /**
          * @brief
          * @return
          */
-        bool IsStatic() const { return (m_kind == SpecifierKind::Static); }
+        bool IsStatic() const { return (m_flags == AccessFlags::Static); }
+
+        /**
+         * @brief
+         * @return
+         */
+        AccessFlags GetSpecifier() const { return m_flags; }
 
         /**
          * @brief Get a position of 'static' keyword.
@@ -831,10 +836,10 @@ namespace BuildScript {
          * @brief Get an expression represents initial value of the declaration.
          * @return an @c Expression representing initial value.
          */
-        const Expression* GetValue() const { return m_value; }
+        Expression* GetValue() const { return m_value; }
 
         static ClassFieldDeclaration*
-        Create(Context& context, SourcePosition _const, SourcePosition _static, Identifier name, SourcePosition assign,
+        Create(Context& context, SourcePosition pos, AccessFlags flags, Identifier name, SourcePosition assign,
                Expression* value);
     }; // end class ClassFieldDeclaration
 
@@ -887,13 +892,13 @@ namespace BuildScript {
          * @brief Get parameters of the method.
          * @return @c Parameters representing parameters of the method.
          */
-        const Parameters* GetParameters() const { return m_params; }
+        Parameters* GetParameters() const { return m_params; }
 
         /**
          * @brief Get body of the method.
          * @return a @c Statement representing body of the method.
          */
-        const Statement* GetBody() const { return m_body; }
+        Statement* GetBody() const { return m_body; }
 
         static ClassMethodDeclaration*
         Create(Context& context, SourcePosition _static, SourcePosition def, Identifier name, Parameters* params,
@@ -954,7 +959,7 @@ namespace BuildScript {
          * @brief Get body of the property.
          * @return a @c Statement representing body of the property.
          */
-        const Statement* GetBody() const { return m_body; }
+        Statement* GetBody() const { return m_body; }
 
         static ClassPropertyDeclaration*
         Create(Context& context, SourcePosition get, SourcePosition set, Identifier name, Statement* body);
@@ -1008,13 +1013,13 @@ namespace BuildScript {
          * @brief Get parameters of the operator.
          * @return @c Parameters representing parameters of the operator.
          */
-        const Parameters* GetParameters() const { return m_params; }
+        Parameters* GetParameters() const { return m_params; }
 
         /**
          * @brief Get body of the operator.
          * @return a @c Statement representing body of the operator.
          */
-        const Statement* GetBody() const { return m_body; }
+        Statement* GetBody() const { return m_body; }
 
         static ClassOperatorDeclaration*
         Create(Context& context, SourcePosition _operator, OperatorKind kind, std::array<SourcePosition, 2> pos,

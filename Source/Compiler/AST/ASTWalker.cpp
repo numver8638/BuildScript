@@ -16,7 +16,7 @@
 
 using namespace BuildScript;
 
-void ASTWalker::Walk(const ASTNode* root) {
+void ASTWalker::Walk(ASTNode* root) {
     if (auto* decl = root->AsDeclaration()) {
         Walk(decl);
     }
@@ -37,7 +37,7 @@ void ASTWalker::Walk(const ASTNode* root) {
     }
 }
 
-void ASTWalker::Walk(const Declaration* node) {
+void ASTWalker::Walk(Declaration* node) {
     switch (node->GetKind()) {
     #define V(name, kind) \
         case DeclarationKind::kind: return Walk(node->As<name>());
@@ -49,7 +49,7 @@ void ASTWalker::Walk(const Declaration* node) {
     }
 }
 
-void ASTWalker::Walk(const Statement* node) {
+void ASTWalker::Walk(Statement* node) {
     switch (node->GetKind()) {
     #define V(name, kind) \
         case StatementKind::kind: return Walk(node->As<name>());
@@ -61,7 +61,7 @@ void ASTWalker::Walk(const Statement* node) {
     }
 }
 
-void ASTWalker::Walk(const Expression* node) {
+void ASTWalker::Walk(Expression* node) {
     switch (node->GetKind()) {
     #define V(name, kind) \
         case ExpressionKind::kind: return Walk(node->As<name>());
@@ -73,281 +73,276 @@ void ASTWalker::Walk(const Expression* node) {
     }
 }
 
-void ASTWalker::Walk(const Parameters* node) {
+void ASTWalker::Walk(Parameters* node) {
     // do nothing
 }
 
-void ASTWalker::Walk(const Label* node) {
+void ASTWalker::Walk(Label* node) {
     if (!node->IsDefault()) { Walk(node->GetCaseValue()); }
 }
 
-void ASTWalker::Walk(const InvalidDeclaration* node) {
+void ASTWalker::Walk(InvalidDeclaration* node) {
     // do nothing
 }
 
-void ASTWalker::Walk(const ScriptDeclaration* node) {
-    for (const auto* e : node->GetNodes()) {
+void ASTWalker::Walk(ScriptDeclaration* node) {
+    for (auto* e : node->GetNodes()) {
         Walk(e);
     }
 }
 
-void ASTWalker::Walk(const ImportDeclaration* node) {
+void ASTWalker::Walk(ImportDeclaration* node) {
     Walk(node->GetPath());
 }
 
-void ASTWalker::Walk(const ExportDeclaration* node) {
+void ASTWalker::Walk(ExportDeclaration* node) {
     if (node->HasValue()) { Walk(node->GetValue()); }
 }
 
-void ASTWalker::Walk(const FunctionDeclaration* node) {
+void ASTWalker::Walk(FunctionDeclaration* node) {
     Walk(node->GetParameters());
     Walk(node->GetBody());
 }
 
-void ASTWalker::Walk(const ClassDeclaration* node) {
-    for (const auto* decl : node->GetMembers()) {
+void ASTWalker::Walk(ClassDeclaration* node) {
+    for (auto* decl : node->GetMembers()) {
         Walk(decl);
     }
 }
 
-void ASTWalker::Walk(const TaskDeclaration* node) {
-    for (const auto* decl : node->GetMembers()) {
+void ASTWalker::Walk(TaskDeclaration* node) {
+    for (auto* decl : node->GetMembers()) {
         Walk(decl);
     }
 }
 
-void ASTWalker::Walk(const VariableDeclaration* node) {
+void ASTWalker::Walk(VariableDeclaration* node) {
     Walk(node->GetValue());
 }
 
-void ASTWalker::Walk(const TaskInputsDeclaration* node) {
+void ASTWalker::Walk(TaskInputsDeclaration* node) {
     Walk(node->GetInputsValue());
     if (node->HasWith()) { Walk(node->GetWithValue()); }
 }
 
-void ASTWalker::Walk(const TaskOutputsDeclaration* node) {
+void ASTWalker::Walk(TaskOutputsDeclaration* node) {
     Walk(node->GetOutputsValue());
     if (node->HasFrom()) { Walk(node->GetFromValue()); }
 }
 
-void ASTWalker::Walk(const TaskActionDeclaration* node) {
+void ASTWalker::Walk(TaskActionDeclaration* node) {
     Walk(node->GetBody());
 }
 
-void ASTWalker::Walk(const TaskPropertyDeclaration* node) {
+void ASTWalker::Walk(TaskPropertyDeclaration* node) {
     Walk(node->GetValue());
 }
 
-void ASTWalker::Walk(const ClassInitDeclaration* node) {
+void ASTWalker::Walk(ClassInitDeclaration* node) {
     Walk(node->GetParameters());
     Walk(node->GetBody());
 }
 
-void ASTWalker::Walk(const ClassDeinitDeclaration* node) {
+void ASTWalker::Walk(ClassDeinitDeclaration* node) {
     Walk(node->GetBody());
 }
 
-void ASTWalker::Walk(const ClassFieldDeclaration* node) {
+void ASTWalker::Walk(ClassFieldDeclaration* node) {
     Walk(node->GetValue());
 }
 
-void ASTWalker::Walk(const ClassMethodDeclaration* node) {
+void ASTWalker::Walk(ClassMethodDeclaration* node) {
     Walk(node->GetParameters());
     Walk(node->GetBody());
 }
 
-void ASTWalker::Walk(const ClassPropertyDeclaration* node) {
+void ASTWalker::Walk(ClassPropertyDeclaration* node) {
     Walk(node->GetBody());
 }
 
-void ASTWalker::Walk(const ClassOperatorDeclaration* node) {
+void ASTWalker::Walk(ClassOperatorDeclaration* node) {
     Walk(node->GetParameters());
     Walk(node->GetBody());
 }
 
-void ASTWalker::Walk(const InvalidStatement* node) {
+void ASTWalker::Walk(InvalidStatement* node) {
     // do nothing
 }
 
-void ASTWalker::Walk(const BlockStatement* node) {
-    for (const auto* e : node->GetNodes()) {
+void ASTWalker::Walk(BlockStatement* node) {
+    for (auto* e : node->GetNodes()) {
         Walk(e);
     }
 }
 
-void ASTWalker::Walk(const ArrowStatement* node) {
+void ASTWalker::Walk(ArrowStatement* node) {
     Walk(node->GetExpression());
 }
 
-void ASTWalker::Walk(const IfStatement* node) {
+void ASTWalker::Walk(IfStatement* node) {
     Walk(node->GetCondition());
     Walk(node->GetIfBody());
     if (node->HasElse()) { Walk(node->GetElseBody()); }
 }
 
-void ASTWalker::Walk(const MatchStatement* node) {
+void ASTWalker::Walk(MatchStatement* node) {
     Walk(node->GetCondition());
-    for (const auto* stmt : node->GetStatements()) {
+    for (auto* stmt : node->GetStatements()) {
         // Shortcut: Statements in MatchStatement always LabeledStatement.
-        const auto* labeled = stmt->As<LabeledStatement>();
+        auto* labeled = stmt->As<LabeledStatement>();
         NEVER_BE_NULL(labeled);
 
         Walk(labeled);
     }
 }
 
-void ASTWalker::Walk(const LabeledStatement* node) {
-    for (const auto* label : node->GetLabels()) {
+void ASTWalker::Walk(LabeledStatement* node) {
+    for (auto* label : node->GetLabels()) {
         Walk(label);
     }
 
-    for (const auto* e : node->GetNodes()) {
+    for (auto* e : node->GetNodes()) {
         Walk(e);
     }
 }
 
-void ASTWalker::Walk(const ForStatement* node) {
+void ASTWalker::Walk(ForStatement* node) {
     Walk(node->GetExpression());
     Walk(node->GetBody());
 }
 
-void ASTWalker::Walk(const WhileStatement* node) {
+void ASTWalker::Walk(WhileStatement* node) {
     Walk(node->GetCondition());
     Walk(node->GetBody());
 }
 
-void ASTWalker::Walk(const WithStatement* node) {
+void ASTWalker::Walk(WithStatement* node) {
     Walk(node->GetExpression());
     Walk(node->GetBody());
 }
 
-void ASTWalker::Walk(const TryStatement* node) {
+void ASTWalker::Walk(TryStatement* node) {
     Walk(node->GetBody());
-    for (const auto* handler : node->GetHandlers()) {
+    for (auto* handler : node->GetHandlers()) {
         Walk(handler);
     }
 }
 
-void ASTWalker::Walk(const ExceptStatement* node) {
+void ASTWalker::Walk(ExceptStatement* node) {
     Walk(node->GetBody());
 }
 
-void ASTWalker::Walk(const FinallyStatement* node) {
+void ASTWalker::Walk(FinallyStatement* node) {
     Walk(node->GetBody());
 }
 
-void ASTWalker::Walk(const BreakStatement* node) {
+void ASTWalker::Walk(BreakStatement* node) {
     if (node->IsConditional()) { Walk(node->GetCondition()); }
 }
 
-void ASTWalker::Walk(const ContinueStatement* node) {
+void ASTWalker::Walk(ContinueStatement* node) {
     if (node->IsConditional()) { Walk(node->GetCondition()); }
 }
 
-void ASTWalker::Walk(const ReturnStatement* node) {
+void ASTWalker::Walk(ReturnStatement* node) {
     if (node->HasReturnValue()) { Walk(node->GetReturnValue()); }
 }
 
-void ASTWalker::Walk(const AssertStatement* node) {
+void ASTWalker::Walk(AssertStatement* node) {
     Walk(node->GetCondition());
     if (node->HasMessage()) { Walk(node->GetMessage()); }
 }
 
-void ASTWalker::Walk(const PassStatement* node) {
+void ASTWalker::Walk(PassStatement* node) {
     // do nothing
 }
 
-void ASTWalker::Walk(const AssignStatement* node) {
+void ASTWalker::Walk(AssignStatement* node) {
     Walk(node->GetTarget());
     Walk(node->GetValue());
 }
 
-void ASTWalker::Walk(const InvalidExpression* node) {
+void ASTWalker::Walk(InvalidExpression* node) {
     // do nothing
 }
 
-void ASTWalker::Walk(const PassExpression* node) {
+void ASTWalker::Walk(PassExpression* node) {
     // do nothing
 }
 
-void ASTWalker::Walk(const KeyValuePair* node) {
-    Walk(node->GetKey());
-    Walk(node->GetValue());
-}
-
-void ASTWalker::Walk(const TernaryExpression* node) {
+void ASTWalker::Walk(TernaryExpression* node) {
     Walk(node->GetValueOnTrue());
     Walk(node->GetCondition());
     Walk(node->GetValueOnFalse());
 }
 
-void ASTWalker::Walk(const BinaryExpression* node) {
+void ASTWalker::Walk(BinaryExpression* node) {
     Walk(node->GetLeft());
     Walk(node->GetRight());
 }
 
-void ASTWalker::Walk(const TypeTestExpression* node) {
+void ASTWalker::Walk(TypeTestExpression* node) {
     Walk(node->GetTarget());
 }
 
-void ASTWalker::Walk(const ContainmentTestExpression* node) {
+void ASTWalker::Walk(ContainmentTestExpression* node) {
     Walk(node->GetValue());
     Walk(node->GetTarget());
 }
 
-void ASTWalker::Walk(const UnaryExpression* node) {
+void ASTWalker::Walk(UnaryExpression* node) {
     Walk(node->GetExpression());
 }
 
-void ASTWalker::Walk(const DefinedExpression* node) {
+void ASTWalker::Walk(DefinedExpression* node) {
     if (node->HasTarget()) { Walk(node->GetTarget()); }
 }
 
-void ASTWalker::Walk(const RaiseExpression* node) {
+void ASTWalker::Walk(RaiseExpression* node) {
     Walk(node->GetTarget());
 }
 
-void ASTWalker::Walk(const MemberAccessExpression* node) {
+void ASTWalker::Walk(MemberAccessExpression* node) {
     Walk(node->GetTarget());
 }
 
-void ASTWalker::Walk(const InvocationExpression* node) {
+void ASTWalker::Walk(InvocationExpression* node) {
     Walk(node->GetTarget());
-    for (const auto* arg : node->GetArguments()) {
+    for (auto* arg : node->GetArguments()) {
         Walk(arg);
     }
 }
 
-void ASTWalker::Walk(const SubscriptExpression* node) {
+void ASTWalker::Walk(SubscriptExpression* node) {
     Walk(node->GetTarget());
     Walk(node->GetIndex());
 }
 
-void ASTWalker::Walk(const ParenthesizedExpression* node) {
+void ASTWalker::Walk(ParenthesizedExpression* node) {
     Walk(node->GetInnerExpression());
 }
 
-void ASTWalker::Walk(const ListExpression* node) {
-    for (const auto* item : node->GetItems()) {
+void ASTWalker::Walk(ListExpression* node) {
+    for (auto* item : node->GetItems()) {
         Walk(item);
     }
 }
 
-void ASTWalker::Walk(const MapExpression* node) {
+void ASTWalker::Walk(MapExpression* node) {
     for (auto& [key, _, value] : node->GetItems()) {
         Walk(key);
         Walk(value);
     }
 }
 
-void ASTWalker::Walk(const ClosureExpression* node) {
+void ASTWalker::Walk(ClosureExpression* node) {
     Walk(node->GetParameters());
     Walk(node->GetBody());
 }
 
-void ASTWalker::Walk(const LiteralExpression* node) {
+void ASTWalker::Walk(LiteralExpression* node) {
     if (node->GetLiteralType() == LiteralType::String) {
-        for (const auto* expr : node->GetInterpolations()) {
+        for (auto* expr : node->GetInterpolations()) {
             Walk(expr);
         }
     }

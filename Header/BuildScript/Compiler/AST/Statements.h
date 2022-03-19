@@ -12,6 +12,7 @@
 #include <vector>
 
 #include <BuildScript/Compiler/AST/ASTNode.h>
+#include <BuildScript/Compiler/Utils/Value.h>
 #include <BuildScript/Compiler/Identifier.h>
 #include <BuildScript/Utils/TrailObjects.h>
 
@@ -131,7 +132,7 @@ namespace BuildScript {
          * @brief
          * @return
          */
-        const Expression* GetExpression() const { return m_expr; }
+        Expression* GetExpression() const { return m_expr; }
 
         static ArrowStatement* Create(Context& context, SourcePosition arrow, Expression* expr);
     }; // end class ArrowStatement
@@ -166,13 +167,13 @@ namespace BuildScript {
          * @brief
          * @return
          */
-        const Expression* GetCondition() const { return m_condition; }
+        Expression* GetCondition() const { return m_condition; }
 
         /**
          * @brief
          * @return
          */
-        const Statement* GetIfBody() const { return m_ifBody; }
+        Statement* GetIfBody() const { return m_ifBody; }
 
         /**
          * @brief
@@ -191,7 +192,7 @@ namespace BuildScript {
          * @brief
          * @return
          */
-        const Statement* GetElseBody() const { return m_elseBody; }
+        Statement* GetElseBody() const { return m_elseBody; }
 
         static IfStatement*
         Create(Context& context, SourcePosition _if, Expression* condition, Statement* ifBody, SourcePosition _else,
@@ -232,7 +233,7 @@ namespace BuildScript {
          * @brief
          * @return
          */
-        const Expression* GetCondition() const { return m_condition; }
+        Expression* GetCondition() const { return m_condition; }
 
         /**
          * @brief Get a position of '{'.
@@ -267,7 +268,7 @@ namespace BuildScript {
         SourcePosition m_colon;
         bool m_isDefault;
 
-        mutable int m_eval;
+        Value m_eval;
 
         Label(SourcePosition pos, Expression* value, SourcePosition colon, bool isDefault)
             : ASTNode(ASTKind::Label), m_value(value), m_pos(pos), m_colon(colon), m_isDefault(isDefault) {}
@@ -298,19 +299,19 @@ namespace BuildScript {
          * @return
          * @note may be @c nullptr if the label does not represents case label.
          */
-        const Expression* GetCaseValue() const { return m_value; }
+        Expression* GetCaseValue() const { return m_value; }
 
         /**
          * @brief
          * @return
          */
-        int GetEvaluatedCaseValue() const { return m_eval; }
+        Value GetEvaluatedCaseValue() const { return m_eval; }
 
         /**
          * @brief
          * @param value
          */
-        void SetEvaluatedCaseValue(int value) const { m_eval = value; }
+        void SetEvaluatedCaseValue(Value value) { m_eval = std::move(value); }
 
         /**
          * @brief Get a position of ':'.
@@ -407,13 +408,13 @@ namespace BuildScript {
          * @brief
          * @return
          */
-        const Expression* GetExpression() const { return m_expr; }
+        Expression* GetExpression() const { return m_expr; }
 
         /**
          * @brief
          * @return
          */
-        const Statement* GetBody() const { return m_body; }
+        Statement* GetBody() const { return m_body; }
 
         static ForStatement*
         Create(Context& context, SourcePosition _for, Identifier param, SourcePosition _in, Expression* expr,
@@ -446,13 +447,13 @@ namespace BuildScript {
          * @brief
          * @return
          */
-        const Expression* GetCondition() const { return m_condition; }
+        Expression* GetCondition() const { return m_condition; }
 
         /**
          * @brief
          * @return
          */
-        const Statement* GetBody() const { return m_body; }
+        Statement* GetBody() const { return m_body; }
 
         static WhileStatement* Create(Context& context, SourcePosition _while, Expression* condition, Statement* body);
     }; // end class WhileStatement
@@ -486,7 +487,7 @@ namespace BuildScript {
          * @brief
          * @return
          */
-        const Expression* GetExpression() const { return m_expr; }
+        Expression* GetExpression() const { return m_expr; }
 
         /**
          * @brief
@@ -511,7 +512,7 @@ namespace BuildScript {
          * @brief
          * @return
          */
-        const Statement* GetBody() const { return m_body; }
+        Statement* GetBody() const { return m_body; }
 
         static WithStatement* Create(Context& context, SourcePosition with, Expression* expr, SourcePosition as,
                                      Identifier capture, Statement* body);
@@ -546,7 +547,7 @@ namespace BuildScript {
          * @brief
          * @return
          */
-        const Statement* GetBody() const { return At<Statement*>(0); }
+        Statement* GetBody() { return At<Statement*>(0); }
 
         /**
          * @brief
@@ -612,7 +613,7 @@ namespace BuildScript {
          * @brief
          * @return
          */
-        const Statement* GetBody() const { return m_body; }
+        Statement* GetBody() const { return m_body; }
 
         static ExceptStatement*
         Create(Context& context, SourcePosition exceptPos, Identifier _typename, SourcePosition as, Identifier capture,
@@ -644,7 +645,7 @@ namespace BuildScript {
          * @brief
          * @return
          */
-        const Statement* GetBody() const { return m_body; }
+        Statement* GetBody() const { return m_body; }
 
         static FinallyStatement* Create(Context& context, SourcePosition finallyPos, Statement* body);
     }; // end class FinallyStatement
@@ -688,7 +689,7 @@ namespace BuildScript {
          * @brief
          * @return
          */
-        const Expression* GetCondition() const { return m_condition; }
+        Expression* GetCondition() const { return m_condition; }
 
         static BreakStatement*
         Create(Context& context, SourcePosition _break, SourcePosition _if, Expression* condition);
@@ -733,7 +734,7 @@ namespace BuildScript {
          * @brief
          * @return
          */
-        const Expression* GetCondition() const { return m_condition; }
+        Expression* GetCondition() const { return m_condition; }
 
         static ContinueStatement*
         Create(Context& context, SourcePosition _continue, SourcePosition _if, Expression* condition);
@@ -770,7 +771,7 @@ namespace BuildScript {
          * @brief
          * @return
          */
-        const Expression* GetReturnValue() const { return m_retval; }
+        Expression* GetReturnValue() const { return m_retval; }
 
         static ReturnStatement* Create(Context& context, SourcePosition _return, Expression* returnValue);
     }; // end class ReturnStatement
@@ -803,7 +804,7 @@ namespace BuildScript {
          * @brief
          * @return
          */
-        const Expression* GetCondition() const { return m_condition; }
+        Expression* GetCondition() const { return m_condition; }
 
         /**
          * @brief Get a position of ':'.
@@ -821,7 +822,7 @@ namespace BuildScript {
          * @brief
          * @return
          */
-        const Expression* GetMessage() const { return m_message; }
+        Expression* GetMessage() const { return m_message; }
 
         static AssertStatement*
         Create(Context& context, SourcePosition _assert, Expression* condition, SourcePosition colon,

@@ -13,33 +13,29 @@
 #include <BuildScript/Compiler/AST/Nodes.def>
 
 namespace BuildScript {
-#define V(name, kind) \
+#define DECLARE_CLASS(name, kind) \
     class name;
 
-    DECL_LIST(V)
-    STMT_LIST(V)
-    EXPR_LIST(V)
-#undef V
+    NODE_LIST(DECLARE_CLASS)
+#undef DECLARE_CLASS
 
     /**
      * @brief Iterate nodes in AST.
      */
     class ASTWalker {
     protected:
-        virtual void Walk(const Parameters* node);
-        virtual void Walk(const Label* node);
+        virtual void Walk(Parameters* node);
+        virtual void Walk(Label* node);
 
-        virtual void Walk(const Declaration* node);
-        virtual void Walk(const Statement* node);
-        virtual void Walk(const Expression* node);
+        virtual void Walk(Declaration* node);
+        virtual void Walk(Statement* node);
+        virtual void Walk(Expression* node);
 
-    #define V(name, kind) \
-        virtual void Walk(const name* node);
-        DECL_LIST(V)
-        STMT_LIST(V)
-        EXPR_LIST(V)
+#define DECLARE_WALK(name, _) \
+        virtual void Walk(name*);
 
-    #undef V
+    NODE_LIST(DECLARE_WALK)
+#undef DECLARE_WALK
 
     public:
         virtual ~ASTWalker() = default;
@@ -48,8 +44,11 @@ namespace BuildScript {
          * @brief Iterate with given node.
          * @param node an @c ASTNode to walk.
          */
-        void Walk(const ASTNode* node);
+        void Walk(ASTNode* node);
     }; // end class ASTWalker
+
+#define DEFINE_WALK(name, _) \
+    void Walk(name*) override;
 } // end namespace BuildScript
 
 #endif // BUILDSCRIPT_COMPILER_AST_ASTWALKER_H

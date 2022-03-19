@@ -16,6 +16,55 @@
 
 using namespace BuildScript;
 
+template <bool InClass>
+std::tuple<AccessFlags, SourceRange> Parser::ParseModifier() {
+    AccessFlags flags = AccessFlags::Invalid;
+    SourceRange range;
+
+    while (OneOf<TokenType::Const, TokenType::Static, TokenType::Var>()) {
+        switch (m_token.Type) {
+            case TokenType::Const:
+                flags = AccessFlags::Const;
+                break;
+
+            case TokenType::Static:
+                if constexpr (!InClass) {
+                    m_reporter.Report(m_token.GetPosition(), ReportID::ParseModifierNotAllowed, "variable", "static")
+                              .Remove(m_token.Range);
+                }
+                else {
+                    flags = AccessFlags::Static;
+                }
+                break;
+
+            case TokenType::Var:
+                if constexpr (InClass) {
+                    m_reporter.Report(m_token.GetPosition(), ReportID::ParseModifierNotAllowed, "class", "var")
+                              .Remove(m_token.Range);
+                }
+                else {
+                    flags = AccessFlags::ReadWrite;
+                }
+                break;
+
+            default:
+                NOT_REACHABLE;
+        }
+
+        if (range) {
+            m_reporter.Report(m_token.GetPosition(), ReportID::ParseRedundantKeyword)
+                      .Remove(m_token.Range);
+        }
+        else {
+            range = m_token.Range;
+        }
+
+        ConsumeToken();
+    }
+
+    return { flags, range };
+}
+
 static inline OperatorKind ToOperatorKind(const Token& token) {
     if ((TokenType::Add <= token.Type) && (token.Type <= TokenType::InplaceBitXor)) {
         static const OperatorKind table[] = {
@@ -194,33 +243,15 @@ Declaration* Parser::ParseClassDeclaration() {
 }
 
 Declaration* Parser::ParseClassMember() {
-    SourceRange _const, _static;
+    AccessFlags flags;
+    SourceRange range;
 
-    while (OneOf<TokenType::Const, TokenType::Static, TokenType::Var>()) {
-        // Handle common typo: use 'var' in class field declaration. Fields declared in class are static.
-        if (m_token == TokenType::Var) {
-            m_reporter.Report(m_token.GetPosition(), ReportID::ParseVarIsNotAllowedInClass)
-                      .Remove(m_token.Range);
-        }
-        else if (_const || _static) {
-            m_reporter.Report(m_token.GetPosition(),ReportID::ParseRedundantKeyword, m_token.TypeToString())
-                      .Remove(m_token.Range);
-        }
-        else {
-            m_token == TokenType::Const ? (_const = m_token.Range) : (_static = m_token.Range);
-        }
-
-        ConsumeToken();
-    }
-
-    const auto CheckSpecifier = [&](const char* name) {
-        if (_const) {
-            m_reporter.Report(_const.Begin, ReportID::ParseSpecifierNotAllowed, name, "const")
-                      .Remove(_const);
-        }
-        else if (_static) {
-            m_reporter.Report(_static.Begin, ReportID::ParseSpecifierNotAllowed, name, "static")
-                      .Remove(_static);
+    // do not use structural binding due to lambda expression below.
+    std::tie(flags, range) = ParseModifier</*InClass=*/true>();
+    const auto CheckModifier = [&](const char* name) {
+        if (range) {
+            m_reporter.Report(range.Begin, ReportID::ParseModifierNotAllowed, name, AccessFlagsToKeyword(flags))
+                      .Remove(range);
         }
     };
     const auto SkipFilter = [](TokenType type) {
@@ -244,30 +275,30 @@ Declaration* Parser::ParseClassMember() {
 
     switch (m_token.Type) {
         case TokenType::Init:
-            CheckSpecifier("initializer"); // Any specifiers are invalid.
+            CheckModifier("initializer"); // Any modifiers are invalid.
             return ParseClassInit();
 
         case TokenType::Deinit:
-            CheckSpecifier("deinitializer"); // Any specifiers are invalid.
+            CheckModifier("deinitializer"); // Any modifiers are invalid.
             return ParseClassDeinit();
 
         case TokenType::Get:
         case TokenType::Set:
-            CheckSpecifier("property"); // Any specifiers are invalid.
+            CheckModifier("property"); // Any modifiers are invalid.
             return ParseClassProperty();
 
         case TokenType::Def:
-            if (_const) {
-                m_reporter.Report(_const.Begin, ReportID::ParseSpecifierNotAllowed, "method", "const")
-                          .Remove(_const);
+            if (range && flags != AccessFlags::Const) {
+                m_reporter.Report(range.Begin, ReportID::ParseModifierNotAllowed, "method", "const")
+                          .Remove(range);
             }
-            return ParseClassMethod(_static.Begin);
+            return ParseClassMethod(range.Begin);
 
         case TokenType::Identifier:
-            return ParseClassField(_const.Begin, _static.Begin);
+            return ParseClassField(range.Begin, flags);
 
         case TokenType::Operator:
-            CheckSpecifier("operator"); // Any specifiers are invalid.
+            CheckModifier("operator"); // Any modifiers are invalid.
             return ParseClassOperator();
 
         default:
@@ -315,11 +346,11 @@ Declaration* Parser::ParseClassDeinit() {
  *  | 'static'
  *  ;
  */
-Declaration* Parser::ParseClassField(SourcePosition _const, SourcePosition _static) {
+Declaration* Parser::ParseClassField(SourcePosition pos, AccessFlags spec) {
     assert(m_token == TokenType::Identifier);
 
-    if (!(_const || _static)) {
-        m_reporter.Report(m_token.GetPosition(), ReportID::ParseExpectSpecifier)
+    if (!pos) {
+        m_reporter.Report(m_token.GetPosition(), ReportID::ParseExpectModifier)
                   .Insert(m_token.GetPosition(), "const / static");
     }
 
@@ -329,7 +360,7 @@ Declaration* Parser::ParseClassField(SourcePosition _const, SourcePosition _stat
 
     RequireEOL();
 
-    return ClassFieldDeclaration::Create(m_context, _const, _static, std::move(name), assign, value);
+    return ClassFieldDeclaration::Create(m_context, pos, spec, std::move(name), assign, value);
 }
 
 /*
@@ -619,24 +650,9 @@ Declaration* Parser::ParseTaskDeclaration() {
  *  ;
  */
 Declaration* Parser::ParseVariableDeclaration() {
-    SourcePosition _const, var;
+    assert((OneOf<TokenType::Const, TokenType::Static, TokenType::Var>()));
 
-    while (OneOf<TokenType::Const, TokenType::Static, TokenType::Var>()) {
-        // Handle common typo: use 'static' in variable declaration.
-        if (m_token == TokenType::Static) {
-            m_reporter.Report(m_token.GetPosition(), ReportID::ParseVariableCannotBeStatic)
-                      .Remove(m_token.Range);
-        }
-        else if (_const || var) {
-            m_reporter.Report(m_token.GetPosition(),ReportID::ParseRedundantKeyword, m_token.TypeToString())
-                      .Remove(m_token.Range);
-        }
-        else {
-            (m_token == TokenType::Const) ? (_const = m_token.GetPosition()) : (var = m_token.GetPosition());
-        }
-
-        ConsumeToken();
-    }
+    auto [specifier, range] = ParseModifier</*InClass=*/false>();
 
     auto name = RequireIdentifier();
     auto assign = RequireToken(TokenType::Assign);
@@ -644,5 +660,5 @@ Declaration* Parser::ParseVariableDeclaration() {
 
     RequireEOL();
 
-    return VariableDeclaration::Create(m_context, _const, var, std::move(name), assign, value);
+    return VariableDeclaration::Create(m_context, range.Begin, specifier, std::move(name), assign, value);
 }

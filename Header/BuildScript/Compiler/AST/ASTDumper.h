@@ -29,16 +29,10 @@ namespace BuildScript {
 
         ASTWriter& writer() { return *m_writer; }
 
-        void Walk(const Parameters*) override;
-        void Walk(const Label*) override;
+        void Walk(Parameters*) override;
+        void Walk(Label*) override;
 
-    #define V(name, _) \
-        void Walk(const name*) override;
-
-        DECL_LIST(V)
-        STMT_LIST(V)
-        EXPR_LIST(V)
-    #undef V
+        NODE_LIST(DEFINE_WALK)
 
     public:
         explicit ASTDumper(SourceText& source)
@@ -48,7 +42,7 @@ namespace BuildScript {
          * @brief Dump AST.
          * @param root root node of AST.
          */
-        void Dump(const ASTNode* root);
+        void Dump(ASTNode* root);
     }; // end class ASTDumper
 } // end namespace BuildScript
 
