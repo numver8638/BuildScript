@@ -74,4 +74,9 @@
     V(LiteralExpression, Literal)
 #endif // EXPR_LIST
 
+#define NODE_LIST(V) \
+    DECL_LIST(V) \
+    STMT_LIST(V) \
+    EXPR_LIST(V)
+
 #endif // BUILDSCRIPT_COMPILER_AST_NODES_DEF

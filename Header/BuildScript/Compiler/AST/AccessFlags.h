@@ -9,6 +9,8 @@
 #ifndef BUILDSCRIPT_COMPILER_AST_ACCESSFLAGS_H
 #define BUILDSCRIPT_COMPILER_AST_ACCESSFLAGS_H
 
+#include <string_view>
+
 namespace BuildScript {
     /**
      * @brief Represents accessibility of variables or fields.
