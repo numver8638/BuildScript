@@ -65,7 +65,6 @@ namespace BuildScript {
         Match,                  // match
         None,                   // none
         Not,                    // not
-        Operator,               // operator
         Or,                     // or
         Outputs,                // outputs
         Pass,                   // pass
@@ -74,6 +73,7 @@ namespace BuildScript {
         Self,                   // self
         Set,                    // set
         Static,                 // static
+        Subscript,              // subscript
         Super,                  // super
         Task,                   // task
         True,                   // true

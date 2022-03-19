@@ -395,6 +395,7 @@ Expression* Parser::ParsePrimaryExpression() {
         case TokenType::DoFirst:
         case TokenType::DoLast:
         case TokenType::DependsOn:
+        case TokenType::Subscript:
         case TokenType::Identifier: {
             auto name = RequireIdentifier();
             return LiteralExpression::CreateVariable(m_context, name);

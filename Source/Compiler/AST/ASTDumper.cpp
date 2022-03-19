@@ -447,7 +447,13 @@ void ASTDumper::Walk(ClassMethodDeclaration* node) {
         if (node->IsStatic()) {
             writer() << "- StaticKeywordPosition: " << node->GetStaticPosition() << EOL;
         }
-        writer() << "- Name: " << node->GetName() << EOL;
+        if (node->IsOperator()) {
+            writer() << "- Operator: " << node->GetOperator() << EOL;
+            writer() << "- OperatorPosition: " << node->GetOperatorPosition() << EOL;
+        }
+        else {
+            writer() << "- Name: " << node->GetName() << EOL;
+        }
         writer() << "- Parameters:" << EOL << Indent;
         {
             super::Walk(node->GetParameters());
@@ -471,33 +477,12 @@ void ASTDumper::Walk(ClassPropertyDeclaration* node) {
         else {
             writer() << "- SetKeywordPosition: " << node->GetSetPosition() << EOL;
         }
-        writer() << "- Name: " << node->GetName() << EOL;
-        writer() << "- Body:" << EOL << Indent;
-        {
-            super::Walk(node->GetBody());
-        }
-        writer() << Dedent;
-    }
-    writer() << Dedent;
-}
-
-void ASTDumper::Walk(ClassOperatorDeclaration* node) {
-    writer() << "<< ClassOperatorDeclaration >>" << EOL << Indent;
-    {
-        writer() << "- OperatorKeywordPosition: " << node->GetOperatorPosition() << EOL;
-        writer() << "- OperatorKind: " << node->GetOperatorKind() << EOL;
-        if (node->GetOperatorKind() == OperatorKind::Index) {
-            writer() << "- OperatorPosition: " << node->GetFirstOperatorPosition() << ", "
-                << node->GetSecondOperatorPosition() << EOL;
+        if (node->IsSubscript()) {
+            writer() << "- SubscriptKeywordPosition: " << node->GetSubscriptPosition() << EOL;
         }
         else {
-            writer() << "- OperatorPosition: " << node->GetFirstOperatorPosition() << EOL;
+            writer() << "- Name: " << node->GetName() << EOL;
         }
-        writer() << "- Parameters:" << EOL << Indent;
-        {
-            super::Walk(node->GetParameters());
-        }
-        writer() << Dedent;
         writer() << "- Body:" << EOL << Indent;
         {
             super::Walk(node->GetBody());

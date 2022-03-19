@@ -59,7 +59,6 @@ const char* Token::TypeToString(TokenType type) {
         "match",
         "none",
         "not",
-        "operator",
         "or",
         "outputs",
         "pass",
@@ -68,6 +67,7 @@ const char* Token::TypeToString(TokenType type) {
         "self",
         "set",
         "static",
+        "subscript",
         "super",
         "task",
         "true",
@@ -87,6 +87,6 @@ const char* Token::TypeToString(TokenType type) {
         "{", "}",
         "[", "]",
     };
-    
+
     return table[static_cast<size_t>(type)];
 }

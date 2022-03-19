@@ -854,18 +854,20 @@ namespace BuildScript {
         SourcePosition m_static;
         SourcePosition m_def;
         Identifier m_name;
+        OperatorKind m_op;
+        SourcePosition m_pos;
         Parameters* m_params;
         Statement* m_body;
 
-        ClassMethodDeclaration(SourcePosition _static, SourcePosition def, Identifier name,
-                               Parameters* params, Statement* body)
-            : Declaration(Kind), m_static(_static), m_def(def), m_name(std::move(name)), m_params(params),
-              m_body(body) {}
+        ClassMethodDeclaration(SourcePosition _static, SourcePosition def, Identifier name, OperatorKind op,
+                               SourcePosition pos, Parameters* params, Statement* body)
+            : Declaration(Kind), m_static(_static), m_def(def), m_name(std::move(name)), m_op(op), m_pos(pos),
+              m_params(params), m_body(body) {}
 
     public:
         /**
-         * @brief
-         * @return
+         * @brief Check the method is static method.
+         * @return @c true if the method is static method otherwise @c false.
          */
         bool IsStatic() const { return (bool)m_static; }
 
@@ -881,6 +883,26 @@ namespace BuildScript {
          * @return a @c SourcePosition representing where 'def' keyword positioned.
          */
         SourcePosition GetDefPosition() const { return m_def; }
+
+        /**
+         * @brief Check the method overloads operator.
+         * @return @c true if the method overloads operator otherwise @c false.
+         */
+        bool IsOperator() const { return m_op != OperatorKind::Invalid; }
+
+        /**
+         * @brief Get an @c OperatorKind that the method overloads.
+         * @return an @c OperatorKind that the method overloads.
+         * @note May return @c OperatorKind::Invalid if the method does not overload operator.
+         */
+        OperatorKind GetOperator() const { return m_op; }
+
+        /**
+         * @brief Get a position of the operator.
+         * @return a @c SourcePosition representing where operator positioned.
+         * @note Return value may be empty if the method does not overload operator.
+         */
+        SourcePosition GetOperatorPosition() const { return m_pos; }
 
         /**
          * @brief Get name of the method.
@@ -901,8 +923,12 @@ namespace BuildScript {
         Statement* GetBody() const { return m_body; }
 
         static ClassMethodDeclaration*
-        Create(Context& context, SourcePosition _static, SourcePosition def, Identifier name, Parameters* params,
-               Statement* body);
+        CreateMethod(Context& context, SourcePosition _static, SourcePosition def, Identifier name, Parameters* params,
+                     Statement* body);
+
+        static ClassMethodDeclaration*
+        CreateOperator(Context& context, SourcePosition def, OperatorKind op, SourcePosition pos, Parameters* params,
+                       Statement* body);
     }; // end class ClassMethodDeclaration
 
     /**
@@ -915,25 +941,33 @@ namespace BuildScript {
     private:
         SourcePosition m_keyword;
         Identifier m_name;
+        SourcePosition m_subscript;
         bool m_isGetter;
         Statement* m_body;
 
-        ClassPropertyDeclaration(SourcePosition keyword, Identifier name, bool isGetter, Statement* body)
-            : Declaration(Kind), m_keyword(keyword), m_name(std::move(name)), m_isGetter(isGetter),
-              m_body(body) {}
+        ClassPropertyDeclaration(SourcePosition keyword, Identifier name, SourcePosition subscript, bool isGetter,
+                                 Statement* body)
+            : Declaration(Kind), m_keyword(keyword), m_name(std::move(name)), m_subscript(subscript),
+              m_isGetter(isGetter), m_body(body) {}
 
     public:
         /**
-         * @brief
-         * @return
+         * @brief Check that the property is getter.
+         * @return @c true if the property is getter otherwise @c false.
          */
         bool IsGetter() const { return m_isGetter; }
 
         /**
-         * @brief
-         * @return
+         * @brief Check that the property is setter.
+         * @return @c true if the property is setter otherwise @c false.
          */
         bool IsSetter() const { return !m_isGetter; }
+
+        /**
+         * @brief Check that the property is subscript overloading.
+         * @return @c true if the property is subscript overloading otherwise @c false.
+         */
+        bool IsSubscript() const { return (bool)m_subscript; }
 
         /**
          * @brief Get a position of 'get' keyword.
@@ -950,6 +984,13 @@ namespace BuildScript {
         SourcePosition GetSetPosition() const { return m_isGetter ? SourcePosition::Empty() : m_keyword; }
 
         /**
+         * @brief Get a position of 'subscript' keyword.
+         * @return a @c SourcePosition representing where 'subscript' keyword positioned.
+         * @note Return value may be empty if property is not subscript.
+         */
+        SourcePosition GetSubscriptPosition() const { return m_subscript; }
+
+        /**
          * @brief Get name of the property.
          * @return an @c Identifier representing name of the property.
          */
@@ -963,68 +1004,11 @@ namespace BuildScript {
 
         static ClassPropertyDeclaration*
         Create(Context& context, SourcePosition get, SourcePosition set, Identifier name, Statement* body);
+
+        static ClassPropertyDeclaration*
+        CreateSubscript(Context& context, SourcePosition get, SourcePosition set, SourcePosition subscript,
+                        Statement* body);
     }; // end class ClassPropertyDeclaration
-
-    /**
-     * @brief Represents operator overload in class declaration.
-     */
-    class ClassOperatorDeclaration final : public Declaration {
-    public:
-        static constexpr auto Kind = DeclarationKind::ClassOperator;
-
-    private:
-        SourcePosition m_operator;
-        OperatorKind m_kind;
-        std::array<SourcePosition, 2> m_pos;
-        Parameters* m_params;
-        Statement* m_body;
-
-        ClassOperatorDeclaration(SourcePosition _operator, OperatorKind kind, std::array<SourcePosition, 2> pos,
-                                 Parameters* params, Statement* body)
-            : Declaration(Kind), m_operator(_operator), m_kind(kind), m_pos(pos), m_params(params),
-              m_body(body) {}
-
-    public:
-        /**
-         * @brief Get a position of 'operator' keyword.
-         * @return a @c SourcePosition representing where 'operator' keyword positioned.
-         */
-        SourcePosition GetOperatorPosition() const { return m_operator; }
-
-        /**
-         * @brief
-         * @return
-         */
-        OperatorKind GetOperatorKind() const { return m_kind; }
-
-        /**
-         * @brief Get a position of first operator.
-         * @return a @c SourcePosition representing where first operator positioned.
-         */
-        SourcePosition GetFirstOperatorPosition() const { return m_pos[0]; }
-
-        /**
-         * @brief Get a position of second operator.
-         * @return a @c SourcePosition representing where second operator positioned.
-         */
-        SourcePosition GetSecondOperatorPosition() const { return m_pos[1]; }
-
-        /**
-         * @brief Get parameters of the operator.
-         * @return @c Parameters representing parameters of the operator.
-         */
-        Parameters* GetParameters() const { return m_params; }
-
-        /**
-         * @brief Get body of the operator.
-         * @return a @c Statement representing body of the operator.
-         */
-        Statement* GetBody() const { return m_body; }
-
-        static ClassOperatorDeclaration*
-        Create(Context& context, SourcePosition _operator, OperatorKind kind, std::array<SourcePosition, 2> pos,
-               Parameters* param, Statement* body);
-    }; // end class ClassOperatorDeclaration
 } // end namespace BuildScript
 
 #endif // BUILDSCRIPT_COMPILER_AST_DECLARATIONS_H

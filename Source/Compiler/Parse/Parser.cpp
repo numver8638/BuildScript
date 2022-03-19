@@ -161,7 +161,6 @@ SourceRange Parser::SkipTokenExpr() {
         case TokenType::Deinit:
         case TokenType::Get:
         case TokenType::Init:
-        case TokenType::Operator:
         case TokenType::Set:
         case TokenType::Task:
             return SkipBraces(StopAfterBrace);

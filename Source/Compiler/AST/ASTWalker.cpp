@@ -160,11 +160,6 @@ void ASTWalker::Walk(ClassPropertyDeclaration* node) {
     Walk(node->GetBody());
 }
 
-void ASTWalker::Walk(ClassOperatorDeclaration* node) {
-    Walk(node->GetParameters());
-    Walk(node->GetBody());
-}
-
 void ASTWalker::Walk(InvalidStatement* node) {
     // do nothing
 }

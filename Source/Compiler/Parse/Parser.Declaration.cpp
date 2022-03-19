@@ -100,9 +100,6 @@ static inline OperatorKind ToOperatorKind(const Token& token) {
 
         return table[static_cast<size_t>(token.Type) - static_cast<size_t>(TokenType::Add)];
     }
-    else if (token == TokenType::LeftSquare) {
-        return OperatorKind::Index;
-    }
     else {
         return OperatorKind::Invalid;
     }
@@ -210,7 +207,6 @@ Declaration* Parser::ParseFunctionDeclaration() {
  *  | class_field
  *  | class_method
  *  | class_property
- *  | class_operator
  *  ;
  */
 Declaration* Parser::ParseClassDeclaration() {
@@ -250,7 +246,7 @@ Declaration* Parser::ParseClassMember() {
     std::tie(flags, range) = ParseModifier</*InClass=*/true>();
     const auto CheckModifier = [&](const char* name) {
         if (range) {
-            m_reporter.Report(range.Begin, ReportID::ParseModifierNotAllowed, name, AccessFlagsToKeyword(flags))
+            m_reporter.Report(range.Begin, ReportID::ParseModifierNotAllowed, AccessFlagsToKeyword(flags), name)
                       .Remove(range);
         }
     };
@@ -263,7 +259,6 @@ Declaration* Parser::ParseClassMember() {
             case TokenType::Def:
             case TokenType::Get:
             case TokenType::Set:
-            case TokenType::Operator:
             case TokenType::Const:
             case TokenType::Static:
                 return true;
@@ -288,18 +283,14 @@ Declaration* Parser::ParseClassMember() {
             return ParseClassProperty();
 
         case TokenType::Def:
-            if (range && flags != AccessFlags::Const) {
-                m_reporter.Report(range.Begin, ReportID::ParseModifierNotAllowed, "method", "const")
+            if (range && flags != AccessFlags::Static) {
+                m_reporter.Report(range.Begin, ReportID::ParseModifierNotAllowed, "static", "method")
                           .Remove(range);
             }
             return ParseClassMethod(range.Begin);
 
         case TokenType::Identifier:
             return ParseClassField(range.Begin, flags);
-
-        case TokenType::Operator:
-            CheckModifier("operator"); // Any modifiers are invalid.
-            return ParseClassOperator();
 
         default:
             m_reporter.Report(m_token.GetPosition(), ReportID::ParseExpectClassMember);
@@ -366,6 +357,16 @@ Declaration* Parser::ParseClassField(SourcePosition pos, AccessFlags spec) {
 /*
  * class_method
  *  : ('static')? 'def' identifier parameters block
+ *  | 'def' operator parameters block
+ *  ;
+ *
+ * operator
+ *  : '+' | '-' | '*' | '/' | '%'
+ *  | '&' | '|' | '^' | '~' |
+ *  | '<<' | '>>'
+ *  | '+=' | '-=' | '*=' | '/=' | '%='
+ *  | '&=' | '|=' | '^='
+ *  | '<<=' | '>>='
  *  ;
  */
 Declaration* Parser::ParseClassMethod(SourcePosition _static) {
@@ -378,17 +379,53 @@ Declaration* Parser::ParseClassMethod(SourcePosition _static) {
         m_reporter.Report(_static, ReportID::ParseReversedStaticKeyword);
     }
 
-    auto name = RequireIdentifier();
-    auto* params = ParseParameters();
-    auto* body = ParseBody();
+    if (m_token == TokenType::Identifier) {
+        auto name = RequireIdentifier();
+        auto* params = ParseParameters();
+        auto* body = ParseBody();
 
-    return ClassMethodDeclaration::Create(m_context, _static, def, name, params, body);
+        return ClassMethodDeclaration::CreateMethod(m_context, _static, def, name, params, body);
+    }
+    else {
+        if (_static) {
+            m_reporter.Report(_static, ReportID::ParseModifierNotAllowed, "static", "operator");
+        }
+
+        auto op = ToOperatorKind(m_token);
+        SourcePosition pos;
+
+        if (op == OperatorKind::Invalid) {
+            auto type = m_token.Type;
+            auto invalid = m_token.GetPosition();
+
+            m_reporter.Report(m_token.GetPosition(), ReportID::ParseNotAOperator);
+
+            if ((TokenType::Less <= type) && (type <= TokenType::GraterOrEqual)) {
+                ConsumeToken();
+                m_reporter.Report(invalid, ReportID::ParseOverrideCompare, Token::TypeToString(type));
+            }
+            else if (type == TokenType::Equal || type == TokenType::NotEqual) {
+                ConsumeToken();
+                m_reporter.Report(invalid, ReportID::ParseOverrideEquals, Token::TypeToString(type));
+            }
+        }
+        else {
+            pos = ConsumeToken();
+        }
+
+        auto* params = ParseParameters();
+        auto* body = ParseBody();
+
+        return ClassMethodDeclaration::CreateOperator(m_context, def, op, pos, params, body);
+    }
 }
 
 /*
  * class_property
  *  : 'get' identifier block
+ *  | 'get' 'subscript' block
  *  | 'set' identifier block
+ *  | 'set' 'subscript' block
  *  ;
  */
 Declaration* Parser::ParseClassProperty() {
@@ -396,62 +433,19 @@ Declaration* Parser::ParseClassProperty() {
 
     SourcePosition get, set;
     (m_token == TokenType::Get) ? (get = ConsumeToken()) : (set = ConsumeToken());
-    auto name = RequireIdentifier();
-    auto* body = ParseBody();
 
-    return ClassPropertyDeclaration::Create(m_context, get, set, std::move(name), body);
-}
+    if (m_token == TokenType::Subscript) {
+        auto subscript = ConsumeToken();
+        auto* body = ParseBody();
 
-/*
- * class_operator
- *  : 'operator' operator parameters block
- *  ;
- *
- * operator
- *  : '+' | '-' | '*' | '/' | '%'
- *  | '&' | '|' | '^' | '~' |
- *  | '<<' | '>>'
- *  | '+=' | '-=' | '*=' | '/=' | '%='
- *  | '&=' | '|=' | '^='
- *  | '<<=' | '>>='
- *  | '[' ']'
- *  ;
- */
-Declaration* Parser::ParseClassOperator() {
-    assert(m_token == TokenType::Operator);
-
-    auto _operator = ConsumeToken();
-    auto kind = ToOperatorKind(m_token);
-    std::array<SourcePosition, 2> pos;
-
-    if (kind == OperatorKind::Invalid) {
-        // Report error
-        auto invalid = m_token.GetPosition();
-        auto type = m_token.Type;
-
-        m_reporter.Report(invalid, ReportID::ParseNotAOperator, Token::TypeToString(type));
-
-        if ((TokenType::Less <= type) && (type <= TokenType::GraterOrEqual)) {
-            ConsumeToken();
-            m_reporter.Report(invalid, ReportID::ParseOverrideCompare, Token::TypeToString(type));
-        }
-        else if (type == TokenType::Equal || type == TokenType::NotEqual) {
-            ConsumeToken();
-            m_reporter.Report(invalid, ReportID::ParseOverrideEquals, Token::TypeToString(type));
-        }
+        return ClassPropertyDeclaration::CreateSubscript(m_context, get, set, subscript, body);
     }
     else {
-        pos[0] = ConsumeToken();
+        auto name = RequireIdentifier();
+        auto* body = ParseBody();
 
-        if (kind == OperatorKind::Index) {
-            pos[1] = RequireToken(TokenType::RightSquare);
-        }
+        return ClassPropertyDeclaration::Create(m_context, get, set, std::move(name), body);
     }
-
-    auto* params = ParseParameters();
-    auto* body = ParseBody();
-
-    return ClassOperatorDeclaration::Create(m_context, _operator, kind, pos, params, body);
 }
 
 /*

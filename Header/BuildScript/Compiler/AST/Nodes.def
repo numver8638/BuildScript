@@ -27,8 +27,7 @@
     V(ClassDeinitDeclaration, ClassDeinit) \
     V(ClassFieldDeclaration, ClassField) \
     V(ClassMethodDeclaration, ClassMethod) \
-    V(ClassPropertyDeclaration, ClassProperty) \
-    V(ClassOperatorDeclaration, ClassOperator)
+    V(ClassPropertyDeclaration, ClassProperty)
 #endif // DECL_LIST
 
 #ifndef STMT_LIST

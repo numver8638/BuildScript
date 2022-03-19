@@ -108,6 +108,7 @@ inline bool IsContextualKeyword(TokenType type) {
         case TokenType::DoFirst:
         case TokenType::DoLast:
         case TokenType::DependsOn:
+        case TokenType::Subscript:
             return true;
     }
 }

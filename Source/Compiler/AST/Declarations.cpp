@@ -10,6 +10,8 @@
 
 #include <cassert>
 
+#include <fmt/format.h>
+
 #include <BuildScript/Compiler/AST/Parameters.h>
 #include <BuildScript/Compiler/Context.h>
 
@@ -124,9 +126,18 @@ ClassFieldDeclaration::Create(Context& context, SourcePosition pos, AccessFlags 
 }
 
 ClassMethodDeclaration*
-ClassMethodDeclaration::Create(Context& context, SourcePosition _static, SourcePosition def, Identifier name,
+ClassMethodDeclaration::CreateMethod(Context& context, SourcePosition _static, SourcePosition def, Identifier name,
                                Parameters* params, Statement* body) {
-    return new (context.GetAllocator()) ClassMethodDeclaration(_static, def, std::move(name), params, body);
+    return new (context.GetAllocator()) ClassMethodDeclaration(_static, def, std::move(name), OperatorKind::Invalid,
+                                                               SourcePosition::Empty(), params, body);
+}
+
+ClassMethodDeclaration*
+ClassMethodDeclaration::CreateOperator(Context& context, SourcePosition def, OperatorKind op, SourcePosition pos,
+                                       Parameters* params, Statement* body) {
+    auto name = Identifier{ SourceRange(), fmt::format("<operator>{0}", OperatorKindToString(op)) };
+    return new (context.GetAllocator()) ClassMethodDeclaration(SourcePosition::Empty(), def, std::move(name),
+                                                               op, pos, params, body);
 }
 
 ClassPropertyDeclaration*
@@ -136,11 +147,15 @@ ClassPropertyDeclaration::Create(Context& context, SourcePosition get, SourcePos
 
     auto isGetter = (bool) get;
     auto pos = isGetter ? get : set;
-    return new (context.GetAllocator()) ClassPropertyDeclaration(pos, std::move(name), isGetter, body);
+    return new (context.GetAllocator()) ClassPropertyDeclaration(pos, std::move(name), SourcePosition::Empty(),
+                                                                 isGetter, body);
 }
 
-ClassOperatorDeclaration*
-ClassOperatorDeclaration::Create(Context& context, SourcePosition _operator, OperatorKind kind,
-                                 std::array<SourcePosition, 2> pos, Parameters* params, Statement* body) {
-    return new (context.GetAllocator()) ClassOperatorDeclaration(_operator, kind, pos, params, body);
+ClassPropertyDeclaration*
+ClassPropertyDeclaration::CreateSubscript(Context& context, SourcePosition get, SourcePosition set,
+                                          SourcePosition subscript, Statement* body) {
+    static const auto SUBSCRIPT_NAME = Identifier{ SourceRange(), "subscript" };
+    auto isGetter = (bool) get;
+    auto pos = isGetter ? get : set;
+    return new (context.GetAllocator()) ClassPropertyDeclaration(pos, SUBSCRIPT_NAME, subscript, isGetter, body);
 }

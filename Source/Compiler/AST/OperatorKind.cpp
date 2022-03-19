@@ -35,7 +35,6 @@ namespace BuildScript {
             "&=",
             "|=",
             "^=",
-            "[]"
         };
 
         return table[static_cast<size_t>(kind) - static_cast<size_t>(OperatorKind::Invalid)];
