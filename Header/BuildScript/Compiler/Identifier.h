@@ -44,7 +44,11 @@ namespace BuildScript {
 
         bool operator ==(std::string_view right) const { return Equals(right); }
 
+        bool operator ==(const Identifier& right) const { return Equals(right.GetString()); }
+
         bool operator !=(std::string_view right) const { return !Equals(right); }
+
+        bool operator !=(const Identifier& right) const { return !Equals(right.GetString()); }
 
         /**
          * @copybrief IsValid()
