@@ -51,6 +51,7 @@ namespace BuildScript {
             using value_type = TrailIterator::value_type;
             using pointer = TrailIterator::pointer;
             using reference = TrailIterator::reference;
+            using iterator_category = std::random_access_iterator_tag;
 
             explicit Cursor(pointer pointer) : m_ptr(pointer) {}
 
@@ -132,6 +133,7 @@ namespace BuildScript {
         using value_type = T;
         using pointer = T*;
         using reference = T&;
+        using iterator_category = std::random_access_iterator_tag;
 
     private:
         pointer m_base;
