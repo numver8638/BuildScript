@@ -168,6 +168,10 @@ target_sources(BuildScript PRIVATE
                Source/Compiler/Parse/ParserBase.cpp
                Source/Compiler/Parse/Token.cpp
 
+               ## Symbol
+               Source/Compiler/Symbol/Symbol.cpp
+               Source/Compiler/Symbol/SymbolTable.cpp
+
                Source/Compiler/ErrorReporter.cpp
                Source/Compiler/ManagedObject.cpp
                Source/Compiler/SourceText.cpp
