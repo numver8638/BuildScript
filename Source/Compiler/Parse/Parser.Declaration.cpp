@@ -52,7 +52,7 @@ std::tuple<AccessFlags, SourceRange> Parser::ParseModifier() {
         }
 
         if (range) {
-            m_reporter.Report(m_token.GetPosition(), ReportID::ParseRedundantKeyword)
+            m_reporter.Report(m_token.GetPosition(), ReportID::ParseRedundantKeyword, m_token.TypeToString())
                       .Remove(m_token.Range);
         }
         else {
@@ -190,7 +190,7 @@ Declaration* Parser::ParseFunctionDeclaration() {
 
     auto def = ConsumeToken();
     auto name = RequireIdentifier();
-    auto* params = ParseParameters();
+    auto* params = ParseParameterList();
     auto* body = ParseBody();
 
     return FunctionDeclaration::Create(m_context, def, std::move(name), params, body);
@@ -307,7 +307,7 @@ Declaration* Parser::ParseClassInit() {
     assert(m_token == TokenType::Init);
 
     auto init = ConsumeToken();
-    auto* params = ParseParameters();
+    auto* params = ParseParameterList();
     auto* body = ParseBody();
 
     return ClassInitDeclaration::Create(m_context, init, params, body);
@@ -381,7 +381,7 @@ Declaration* Parser::ParseClassMethod(SourcePosition _static) {
 
     if (m_token == TokenType::Identifier) {
         auto name = RequireIdentifier();
-        auto* params = ParseParameters();
+        auto* params = ParseParameterList();
         auto* body = ParseBody();
 
         return ClassMethodDeclaration::CreateMethod(m_context, _static, def, name, params, body);
@@ -413,7 +413,7 @@ Declaration* Parser::ParseClassMethod(SourcePosition _static) {
             pos = ConsumeToken();
         }
 
-        auto* params = ParseParameters();
+        auto* params = ParseParameterList();
         auto* body = ParseBody();
 
         return ClassMethodDeclaration::CreateOperator(m_context, def, op, pos, params, body);
@@ -433,6 +433,8 @@ Declaration* Parser::ParseClassProperty() {
 
     SourcePosition get, set;
     (m_token == TokenType::Get) ? (get = ConsumeToken()) : (set = ConsumeToken());
+
+    // TODO: Allow custom property parameter name. e.g) set SomeValue(val) { self.val = val }
 
     if (m_token == TokenType::Subscript) {
         auto subscript = ConsumeToken();

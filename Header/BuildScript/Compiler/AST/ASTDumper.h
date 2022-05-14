@@ -29,7 +29,7 @@ namespace BuildScript {
 
         ASTWriter& writer() { return *m_writer; }
 
-        void Walk(Parameters*) override;
+        void Walk(ParameterList*) override;
         void Walk(Label*) override;
 
         NODE_LIST(DEFINE_WALK)

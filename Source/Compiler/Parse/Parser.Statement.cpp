@@ -280,12 +280,12 @@ Statement* Parser::ParseForStatement() {
     assert(m_token == TokenType::For);
 
     auto _for = ConsumeToken();
-    auto param = RequireIdentifier();
+    auto param = ParseParameter();
     auto in = RequireToken(TokenType::In);
     auto* expr = ParseExpression();
     auto* body = ParseBody();
 
-    return ForStatement::Create(m_context, _for, std::move(param), in, expr, body);
+    return ForStatement::Create(m_context, _for, param, in, expr, body);
 }
 
 /*
@@ -314,16 +314,16 @@ Statement* Parser::ParseWithStatement() {
     auto with = ConsumeToken();
     auto* expr = ParseExpression();
     SourcePosition as;
-    Identifier capture;
+    Parameter* capture = nullptr;
     Statement* body;
 
     if (ConsumeIf(TokenType::As, as)) {
-        capture = RequireIdentifier();
+        capture = ParseParameter();
     }
 
     body = ParseBody();
 
-    return WithStatement::Create(m_context, with, expr, as, std::move(capture), body);
+    return WithStatement::Create(m_context, with, expr, as, capture, body);
 }
 
 /*
@@ -353,16 +353,16 @@ Statement* Parser::ParseTryStatement() {
         if (ConsumeIf(TokenType::Except, except)) {
             auto _typename = RequireIdentifier();
             SourcePosition as;
-            Identifier capture;
+            Parameter* capture = nullptr;
             Statement* body;
 
             if (ConsumeIf(TokenType::As, as)) {
-                capture = RequireIdentifier();
+                capture = ParseParameter();
             }
 
             body = ParseBody();
 
-            return ExceptStatement::Create(m_context, except, std::move(_typename), as, std::move(capture), body);
+            return ExceptStatement::Create(m_context, except, std::move(_typename), as, capture, body);
         }
         else {
             return nullptr;

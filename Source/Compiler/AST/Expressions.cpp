@@ -8,7 +8,6 @@
  */
 #include <BuildScript/Compiler/AST/Expressions.h>
 
-#include <BuildScript/Compiler/AST/Parameters.h>
 #include <BuildScript/Compiler/Context.h>
 
 using namespace BuildScript;
@@ -121,7 +120,7 @@ MapExpression::Create(Context& context, SourcePosition open, const std::vector<K
 }
 
 ClosureExpression*
-ClosureExpression::Create(Context& context, Parameters* params, SourcePosition arrow, ASTNode* body) {
+ClosureExpression::Create(Context& context, ParameterList* params, SourcePosition arrow, Statement* body) {
     return new (context.GetAllocator()) ClosureExpression(arrow, params, body);
 }
 
@@ -154,13 +153,13 @@ LiteralExpression::CreateString(Context& context, SourceRange range, std::string
 }
 
 LiteralExpression* LiteralExpression::CreateNone(Context& context, SourceRange range) {
-    return new (context.GetAllocator()) LiteralExpression(range, LiteralType::None, {});
+    return new (context.GetAllocator()) LiteralExpression(range, LiteralType::None, { None });
 }
 
 LiteralExpression* LiteralExpression::CreateSelf(Context& context, SourceRange range) {
-    return new (context.GetAllocator()) LiteralExpression(range, LiteralType::Self, {});
+    return new (context.GetAllocator()) LiteralExpression(range, LiteralType::Self, std::nullopt);
 }
 
 LiteralExpression* LiteralExpression::CreateSuper(Context& context, SourceRange range) {
-    return new (context.GetAllocator()) LiteralExpression(range, LiteralType::Super, {});
+    return new (context.GetAllocator()) LiteralExpression(range, LiteralType::Super, std::nullopt);
 }

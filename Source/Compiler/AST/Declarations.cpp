@@ -12,13 +12,16 @@
 
 #include <fmt/format.h>
 
-#include <BuildScript/Compiler/AST/Parameters.h>
 #include <BuildScript/Compiler/Context.h>
 
 using namespace BuildScript;
 
 InvalidDeclaration* InvalidDeclaration::Create(Context& context, SourceRange range) {
     return new (context.GetAllocator()) InvalidDeclaration(range);
+}
+
+Parameter* Parameter::Create(Context& context, Identifier name) {
+    return new (context.GetAllocator()) Parameter(std::move(name));
 }
 
 ScriptDeclaration* ScriptDeclaration::Create(Context& context, std::string name, const std::vector<ASTNode*>& nodes) {
@@ -41,7 +44,7 @@ ExportDeclaration::Create(Context& context, SourcePosition _export, Identifier n
 }
 
 FunctionDeclaration*
-FunctionDeclaration::Create(Context& context, SourcePosition def, Identifier name, Parameters* param, Statement* body) {
+FunctionDeclaration::Create(Context& context, SourcePosition def, Identifier name, ParameterList* param, Statement* body) {
     return new (context.GetAllocator()) FunctionDeclaration(def, std::move(name), param, body);
 }
 
@@ -109,7 +112,7 @@ TaskPropertyDeclaration::Create(Context& context, Identifier name, SourcePositio
 }
 
 ClassInitDeclaration*
-ClassInitDeclaration::Create(Context& context, SourcePosition init, Parameters* params, Statement* body) {
+ClassInitDeclaration::Create(Context& context, SourcePosition init, ParameterList* params, Statement* body) {
     return new (context.GetAllocator()) ClassInitDeclaration(init, params, body);
 }
 
@@ -120,21 +123,21 @@ ClassDeinitDeclaration* ClassDeinitDeclaration::Create(Context& context, SourceP
 ClassFieldDeclaration*
 ClassFieldDeclaration::Create(Context& context, SourcePosition pos, AccessFlags flags, Identifier name,
                               SourcePosition assign, Expression* value) {
-    assert(!(flags != AccessFlags::ReadWrite) && "cannot be var.");
+    assert((flags != AccessFlags::ReadWrite) && "cannot be var.");
 
     return new (context.GetAllocator()) ClassFieldDeclaration(pos, flags, std::move(name), assign, value);
 }
 
 ClassMethodDeclaration*
 ClassMethodDeclaration::CreateMethod(Context& context, SourcePosition _static, SourcePosition def, Identifier name,
-                               Parameters* params, Statement* body) {
+                               ParameterList* params, Statement* body) {
     return new (context.GetAllocator()) ClassMethodDeclaration(_static, def, std::move(name), OperatorKind::Invalid,
                                                                SourcePosition::Empty(), params, body);
 }
 
 ClassMethodDeclaration*
 ClassMethodDeclaration::CreateOperator(Context& context, SourcePosition def, OperatorKind op, SourcePosition pos,
-                                       Parameters* params, Statement* body) {
+                                       ParameterList* params, Statement* body) {
     auto name = Identifier{ SourceRange(), fmt::format("<operator>{0}", OperatorKindToString(op)) };
     return new (context.GetAllocator()) ClassMethodDeclaration(SourcePosition::Empty(), def, std::move(name),
                                                                op, pos, params, body);

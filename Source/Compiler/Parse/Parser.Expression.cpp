@@ -557,7 +557,7 @@ Expression* Parser::ParseMap() {
 Expression* Parser::ParseClosure() {
     assert(m_token == TokenType::LeftParen);
 
-    auto* params = ParseParameters();
+    auto* params = ParseParameterList();
     auto arrow = RequireToken(TokenType::Arrow);
     Statement* node;
 
@@ -570,8 +570,6 @@ Expression* Parser::ParseClosure() {
         else {
             body = ParseExpression();
         }
-
-        RequireEOL();
 
         node = ArrowStatement::Create(m_context, arrow, body);
     }

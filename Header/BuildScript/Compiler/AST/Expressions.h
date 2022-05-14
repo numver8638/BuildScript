@@ -12,9 +12,9 @@
 #include <array>
 #include <string>
 #include <string_view>
-#include <variant>
 #include <vector>
 
+#include <BuildScript/Assert.h>
 #include <BuildScript/Compiler/AST/ASTNode.h>
 #include <BuildScript/Compiler/Utils/Value.h>
 #include <BuildScript/Compiler/Identifier.h>
@@ -22,6 +22,7 @@
 
 namespace BuildScript {
     class Context; // Defined in <BuildScript/Compiler/Context.h>
+    class Symbol; // Defined in <BuildScript/Compiler/Analysis/Symbol.h>
 
     enum class ExpressionKind {
         Invalid,
@@ -230,6 +231,7 @@ namespace BuildScript {
         std::array<SourcePosition, 2> m_pos;
         bool m_negative;
         Identifier m_type;
+        Symbol* m_symbol = nullptr;
 
         TypeTestExpression(Expression* target, std::array<SourcePosition, 2> pos, bool negative, Identifier type)
             : Expression(Kind), m_target(target), m_pos(pos), m_negative(negative), m_type(std::move(type)) {}
@@ -265,6 +267,24 @@ namespace BuildScript {
          * @return an @c Identifier representing the typename.
          */
         const Identifier& GetTypename() const { return m_type; }
+
+        /**
+         * @brief
+         * @return
+         */
+        Symbol* GetTypeSymbol() const {
+            NEVER_BE_NULL(m_symbol);
+            return m_symbol;
+        }
+
+        /**
+         * @brief
+         * @param symbol
+         */
+        void SetTypeSymbol(Symbol* symbol) {
+            MUST_BE_NULL(m_symbol);
+            m_symbol = symbol;
+        }
 
         static TypeTestExpression*
         Create(Context& context, Expression* left, std::array<SourcePosition, 2> pos, bool negative, Identifier type);
@@ -753,10 +773,11 @@ namespace BuildScript {
 
     private:
         SourcePosition m_arrow;
-        Parameters* m_params;
-        ASTNode* m_body;
+        ParameterList* m_params;
+        Statement* m_body;
+        Symbol* m_symbol = nullptr;
 
-        ClosureExpression(SourcePosition arrow, Parameters* params, ASTNode* body)
+        ClosureExpression(SourcePosition arrow, ParameterList* params, Statement* body)
             : Expression(Kind), m_arrow(arrow), m_params(params), m_body(body) {}
 
     public:
@@ -770,15 +791,33 @@ namespace BuildScript {
          * @brief Get parameters of the closure.
          * @return @c Parameters representing parameters of the closure.
          */
-        Parameters* GetParameters() const { return m_params; }
+        ParameterList* GetParameterList() const { return m_params; }
 
         /**
          * @brief Get body of the closure
          * @return a @c Statement representing body of the closure.
          */
-        ASTNode* GetBody() const { return m_body; }
+        Statement* GetBody() const { return m_body; }
 
-        static ClosureExpression* Create(Context& context, Parameters* params, SourcePosition arrow, ASTNode* body);
+        /**
+         * @brief Get a @c Symbol that represents the closure.
+         * @return a @c Symbol that represents the closure.
+         */
+        Symbol* GetSymbol() const {
+            NEVER_BE_NULL(m_symbol);
+            return m_symbol;
+        }
+
+        /**
+         * @brief
+         * @param symbol
+         */
+        void SetSymbol(Symbol* symbol) {
+            MUST_BE_NULL(m_symbol);
+            m_symbol = symbol;
+        }
+
+        static ClosureExpression* Create(Context& context, ParameterList* params, SourcePosition arrow, Statement* body);
     }; // end class ClosureExpression
 
     /**
@@ -804,13 +843,12 @@ namespace BuildScript {
     public:
         static constexpr auto Kind = ExpressionKind::Literal;
 
-        using ValueUnion = std::variant<int64_t, double, bool, std::string>;
-
     private:
         SourceRange m_range;
         LiteralType m_type;
         Value m_value;
         size_t m_count;
+        Symbol* m_symbol = nullptr;
 
         LiteralExpression(SourceRange range, LiteralType type, Value value, size_t count = 0)
             : Expression(Kind), m_range(range), m_type(type), m_value(std::move(value)), m_count(count) {}
@@ -841,27 +879,27 @@ namespace BuildScript {
          * @return an integer value.
          * @warning This member function may throw if the literal is not an integer.
          */
-        int64_t AsInteger() const { return std::get<int64_t>(m_value); }
+        int64_t AsInteger() const { return std::get<int64_t>(*m_value); }
 
         /**
          * @brief Get value of the literal as float.
          * @return a float value.
          * @warning This member function may throw if the literal is not a float.
          */
-        double AsFloat() const { return std::get<double>(m_value); }
+        double AsFloat() const { return std::get<double>(*m_value); }
 
         /**
          * @brief Get value of the literal as boolean.
          * @return a boolean value.
          * @warning This member function may throw if the literal is not a boolean.
          */
-        bool AsBoolean() const { return std::get<bool>(m_value); }
+        bool AsBoolean() const { return std::get<bool>(*m_value); }
 
         /**
          * @brief
          * @return
          */
-        std::string_view AsString() const { return std::get<std::string>(m_value); }
+        std::string_view AsString() const { return std::get<std::string>(*m_value); }
 
         /**
          * @brief
@@ -884,14 +922,32 @@ namespace BuildScript {
          */
         TrailIterator<Expression*> GetInterpolations() const { return GetTrailObjects<Expression*>(); }
 
-        // GetRawString() const;
-
         /**
          * @brief
          * @return
          * @warning Value may empty
          */
         Value GetRawValue() const { return m_value; }
+
+        /**
+         * @brief
+         * @return
+         */
+        Symbol* GetSymbol() const {
+            assert((m_type == LiteralType::Variable) && "only variable can hold symbol.");
+            NEVER_BE_NULL(m_symbol);
+            return m_symbol;
+        }
+
+        /**
+         * @brief
+         * @param symbol
+         */
+        void SetSymbol(Symbol* symbol) {
+            assert((m_type == LiteralType::Variable) && "only variable can hold symbol.");
+            MUST_BE_NULL(m_symbol);
+            m_symbol = symbol;
+        }
 
         static LiteralExpression* CreateVariable(Context& context, const Identifier& id);
 

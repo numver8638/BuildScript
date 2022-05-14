@@ -16,10 +16,10 @@ namespace BuildScript {
      * @brief Represents accessibility of variables or fields.
      */
     enum class AccessFlags {
-        Invalid,    ///!< Invalid modifier or modifier do not exists.
-        ReadWrite,  ///!< Represents `var` - can be read and written.
-        Static,     ///!< Represents `static` - field has static storage.
-        Const       ///!< Represents 'const' - only can be read.
+        Invalid,    //!< Invalid modifier or modifier do not exists.
+        ReadWrite,  //!< Represents `var` - can be read and written.
+        Static,     //!< Represents `static` - field has static storage.
+        Const       //!< Represents 'const' - only can be read.
     }; // end enum AccessFlags
 
     /**

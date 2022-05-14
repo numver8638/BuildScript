@@ -1,28 +1,28 @@
 /*
- * Parameters.h
+ * ParameterList.h
  * - Represents parameter list in every callables.
  *
  * Copyright (c) 2019~2021 numver8638(신진환, Jinhwan Shin)
  * Released under the MIT License.
  * See the LICENSE file in the project root to get more information.
  */
-#ifndef BUILDSCRIPT_COMPILER_AST_PARAMETERS_H
-#define BUILDSCRIPT_COMPILER_AST_PARAMETERS_H
+#ifndef BUILDSCRIPT_COMPILER_AST_PARAMETERLIST_H
+#define BUILDSCRIPT_COMPILER_AST_PARAMETERLIST_H
 
 #include <vector>
 
 #include <BuildScript/Compiler/AST/ASTNode.h>
-#include <BuildScript/Compiler/Identifier.h>
 #include <BuildScript/Compiler/SourcePosition.h>
 #include <BuildScript/Utils/TrailObjects.h>
 
 namespace BuildScript {
     class Context; // Defined in <BuildScript/Compiler/Context.h>
+    class Parameter; // Defined in <BuildScript/Compiler/AST/Declarations.h>
 
     /**
      * @brief Represents parameter list in every callables.
      */
-    class Parameters final : public ASTNode, TrailObjects<Parameters, Identifier, SourcePosition> {
+    class ParameterList final : public ASTNode, TrailObjects<ParameterList, Parameter*, SourcePosition> {
         friend TrailObjects;
 
     private:
@@ -31,11 +31,11 @@ namespace BuildScript {
         SourcePosition m_close;
         size_t m_count;
 
-        Parameters(SourcePosition open, SourcePosition ellipsis, SourcePosition close, size_t count)
+        ParameterList(SourcePosition open, SourcePosition ellipsis, SourcePosition close, size_t count)
             : ASTNode(ASTKind::Parameters), m_open(open), m_ellipsis(ellipsis), m_close(close), m_count(count) {}
 
         // TrailObjects support.
-        size_t GetTrailCount(OverloadToken<Identifier>) const { return m_count; }
+        size_t GetTrailCount(OverloadToken<Parameter*>) const { return m_count; }
         size_t GetTrailCount(OverloadToken<SourcePosition>) const { return (m_count == 0) ? 0 : (m_count - 1); }
 
     public:
@@ -52,10 +52,10 @@ namespace BuildScript {
         SourcePosition GetCloseParenPosition() const { return m_close; }
 
         /**
-         * @brief
-         * @return
+         * @brief Get parameters of the parameter list.
+         * @return a @c TrailIterator that iterates @c Parameter.
          */
-        TrailIterator<Identifier> GetParameterNames() const { return GetTrailObjects<Identifier>(); }
+        TrailIterator<Parameter*> GetParameters() const { return GetTrailObjects<Parameter*>(); }
 
         /**
          * @brief Get a count of parameters.
@@ -75,18 +75,18 @@ namespace BuildScript {
          */
         SourcePosition GetEllipsisPosition() const { return m_ellipsis; }
 
-        static Parameters*
-        Create(Context& context, SourcePosition open, const std::vector<Identifier>& params,
+        static ParameterList*
+        Create(Context& context, SourcePosition open, const std::vector<Parameter*>& params,
                const std::vector<SourcePosition>& commas, SourcePosition ellipsis, SourcePosition close);
-    }; // end class Parameters
+    }; // end class ParameterList
 
-    inline Parameters* ASTNode::AsParameters() {
-        return IsParameters() ? static_cast<Parameters*>(this) : nullptr; // NOLINT
+    inline ParameterList* ASTNode::AsParameterList() {
+        return IsParameters() ? static_cast<ParameterList*>(this) : nullptr; // NOLINT
     }
 
-    inline const Parameters* ASTNode::AsParameters() const {
-        return IsParameters() ? static_cast<const Parameters*>(this) : nullptr; // NOLINT
+    inline const ParameterList* ASTNode::AsParameterList() const {
+        return IsParameters() ? static_cast<const ParameterList*>(this) : nullptr; // NOLINT
     }
 } // end namespace BuildScript
 
-#endif // BUILDSCRIPT_COMPILER_AST_PARAMETERS_H
+#endif // BUILDSCRIPT_COMPILER_AST_PARAMETERLIST_H

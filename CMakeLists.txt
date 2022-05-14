@@ -153,7 +153,7 @@ target_sources(BuildScript PRIVATE
                Source/Compiler/AST/Declarations.cpp
                Source/Compiler/AST/Expressions.cpp
                Source/Compiler/AST/OperatorKind.cpp
-               Source/Compiler/AST/Parameters.cpp
+               Source/Compiler/AST/ParameterList.cpp
                Source/Compiler/AST/Statements.cpp
 
                ## Parser

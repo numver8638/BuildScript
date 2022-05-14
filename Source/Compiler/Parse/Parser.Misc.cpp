@@ -9,28 +9,55 @@
  */
 #include <BuildScript/Compiler/Parse/Parser.h>
 
-#include <BuildScript/Compiler/AST/Parameters.h>
+#include <BuildScript/Compiler/AST/ParameterList.h>
+#include <BuildScript/Compiler/AST/Declarations.h>
 #include <BuildScript/Compiler/ErrorReporter.h>
 #include <BuildScript/Compiler/ErrorReporter.ReportID.h>
 
 using namespace BuildScript;
 
-Parameters* Parser::ParseParameters() {
+Parameter* Parser::ParseParameter() {
+    auto name = RequireIdentifier();
+    return Parameter::Create(m_context, std::move(name));
+}
+
+ParameterList* Parser::ParseParameterList() {
     auto open = RequireToken(TokenType::LeftParen);
-    std::vector<Identifier> names;
+    std::vector<Parameter*> names;
     std::vector<SourcePosition> commas;
 
     SourcePosition ellipsis;
 
     if (m_token != TokenType::RightParen) {
-        ParseNameList(names, commas);
+        bool hasComma;
+
+        do {
+            auto name = RequireIdentifier();
+            SourcePosition comma;
+
+            hasComma = ConsumeIf(TokenType::Comma, comma);
+
+            if (!hasComma && m_token == TokenType::Identifier) {
+                // Common typo: omitted comma.
+                m_reporter.Report(m_token.GetPosition(), ReportID::ParseOmittedComma)
+                          .Insert(m_token.GetPosition(), Token::TypeToString(TokenType::Comma));
+
+                // Continue parsing as if there's a comma.
+                hasComma = true;
+            }
+
+            names.push_back(Parameter::Create(m_context, std::move(name)));
+            if (hasComma) {
+                commas.push_back(comma);
+            }
+        } while (hasComma);
     }
 
     ConsumeIf(TokenType::Ellipsis, ellipsis);
 
     auto close = RequireToken(TokenType::RightParen);
 
-    return Parameters::Create(m_context, open, names, commas, ellipsis, close);
+    return ParameterList::Create(m_context, open, names, commas, ellipsis, close);
 }
 
 void Parser::ParseNameList(std::vector<Identifier>& names, std::vector<SourcePosition>& commas) {

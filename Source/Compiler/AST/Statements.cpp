@@ -70,9 +70,9 @@ LabeledStatement::Create(Context& context, const std::vector<Label*>& labels, co
 }
 
 ForStatement*
-ForStatement::Create(Context& context, SourcePosition _for, Identifier param, SourcePosition _in, Expression* expr,
+ForStatement::Create(Context& context, SourcePosition _for, Parameter* param, SourcePosition _in, Expression* expr,
                      Statement* body) {
-    auto* node = new (context.GetAllocator()) ForStatement(_for, std::move(param), _in, expr, body);
+    auto* node = new (context.GetAllocator()) ForStatement(_for, param, _in, expr, body);
 
     return node;
 }
@@ -83,9 +83,9 @@ WhileStatement::Create(Context& context, SourcePosition _while, Expression* cond
 }
 
 WithStatement*
-WithStatement::Create(Context& context, SourcePosition with, Expression* expr, SourcePosition as, Identifier capture,
+WithStatement::Create(Context& context, SourcePosition with, Expression* expr, SourcePosition as, Parameter* capture,
                       Statement* body) {
-    return new (context.GetAllocator()) WithStatement(with, expr, as, std::move(capture), body);
+    return new (context.GetAllocator()) WithStatement(with, expr, as, capture, body);
 }
 
 TryStatement* TryStatement::Create(Context& context, SourcePosition tryPos, const std::vector<Statement*>& handlers) {
@@ -100,8 +100,8 @@ TryStatement* TryStatement::Create(Context& context, SourcePosition tryPos, cons
 
 ExceptStatement*
 ExceptStatement::Create(Context& context, SourcePosition exceptPos, Identifier _typename, SourcePosition as,
-                        Identifier capture, Statement* body) {
-    return new (context.GetAllocator()) ExceptStatement(exceptPos, std::move(_typename), as, std::move(capture), body);
+                        Parameter* capture, Statement* body) {
+    return new (context.GetAllocator()) ExceptStatement(exceptPos, std::move(_typename), as, capture, body);
 }
 
 FinallyStatement* FinallyStatement::Create(Context& context, SourcePosition finallyPos, Statement* body) {

@@ -12,8 +12,9 @@
 
 #include <BuildScript/Compiler/AST/Declarations.h>
 #include <BuildScript/Compiler/AST/Expressions.h>
-#include <BuildScript/Compiler/AST/Parameters.h>
+#include <BuildScript/Compiler/AST/ParameterList.h>
 #include <BuildScript/Compiler/AST/Statements.h>
+#include <BuildScript/Compiler/Symbol/Symbol.h>
 #include <BuildScript/Compiler/SourceText.h>
 
 using namespace BuildScript;
@@ -120,10 +121,6 @@ public:
             "LessOrEqual",
             "Grater",
             "GraterOrEqual",
-            "Is",
-            "IsNot",
-            "In",
-            "NotIn",
             "Equal",
             "NotEqual",
             "LogicalAnd",
@@ -190,6 +187,94 @@ public:
         return *this;
     }
 
+    ASTWriter& operator <<(SymbolType type) {
+        static const char* table[] = {
+            "UndeclaredSymbol",
+            "VariableSymbol",
+            "TypeSymbol",
+            "FunctionSymbol",
+            "ClassSymbol",
+            "TaskSymbol",
+            "FieldSymbol",
+            "MethodSymbol",
+            "PropertySymbol",
+            "ClosureSymbol"
+        };
+
+        *this << table[static_cast<size_t>(type)];
+
+        return *this;
+    }
+
+    ASTWriter& operator <<(const Symbol* symbol) {
+        if (symbol == nullptr) {
+            *this << "<< Null Symbol >>";
+            return *this;
+        }
+
+        *this << "<< " << symbol->GetType() << " ";
+
+        if (auto* var = symbol->As<VariableSymbol>()) {
+            static const char* table[] = {
+                "Global",
+                "Local",
+                "Exported",
+                "Parameter",
+                "Except",
+                "Implicit"
+            };
+            *this << "(" << table[static_cast<size_t>(var->GetVariableType())] << ", ";
+
+            switch (var->IsWritable()) {
+                case Trilean::True:
+                    *this << "ReadWrite";
+                    break;
+
+                case Trilean::False:
+                    *this << "ReadOnly";
+                    break;
+
+                case Trilean::Unknown:
+                    *this << "Unknown";
+                    break;
+            }
+
+            *this << ") ";
+        }
+        else if (auto* method = symbol->As<MethodSymbol>()) {
+            *this << (method->IsStatic() ? "(Static) " : "(Instance) ");
+        }
+        else if (auto* field = symbol->As<FieldSymbol>()) {
+            switch (field->IsWritable()) {
+                case Trilean::True:
+                    *this << "(ReadWrite) ";
+                    break;
+
+                case Trilean::False:
+                    *this << "(ReadOnly) ";
+                    break;
+
+                case Trilean::Unknown:
+                    *this << "(Unknown) ";
+                    break;
+            }
+        }
+        else if (auto* property = symbol->As<PropertySymbol>()) {
+            auto readwrite = property->HasGetter() && property->HasSetter();
+
+            if (readwrite) {
+                *this << "(ReadWrite) ";
+            }
+            else {
+                *this << (property->HasGetter() ? "(ReadOnly) " : "(WriteOnly) ");
+            }
+        }
+
+        *this << symbol->GetMangledName() << " >>";
+
+        return *this;
+    }
+
     ASTWriter& operator <<(const decltype(Indent)&) {
         m_level++;
         return *this;
@@ -219,8 +304,8 @@ void ASTDumper::Dump(ASTNode* root) {
     std::cout << std::endl;
 }
 
-void ASTDumper::Walk(Parameters* node) {
-    writer() << "<< Parameters >>" << EOL;
+void ASTDumper::Walk(ParameterList* node) {
+    writer() << "<< ParameterList >>" << EOL;
 
     writer() << Indent;
     {
@@ -230,10 +315,11 @@ void ASTDumper::Walk(Parameters* node) {
         writer() << "- Parameters:" << EOL << Indent;
 
         auto index = 0;
-        for (auto& name : node->GetParameterNames()) {
+        for (auto* param : node->GetParameters()) {
             writer() << "<< Parameter #" << index++ << " >>" << EOL << Indent;
             {
-                writer() << "- Name: " << name << EOL;
+                writer() << "- Name: " << param->GetName() << EOL;
+                writer() << "- Symbol: " << param->GetSymbol() << EOL;
             }
             writer() << Dedent;
         }
@@ -251,7 +337,7 @@ void ASTDumper::Walk(InvalidDeclaration* node) {
 }
 
 void ASTDumper::Walk(ScriptDeclaration* node) {
-    writer() << "<< ScriptNode >>" << EOL << Indent;
+    writer() << "<< ScriptDeclaration >>" << EOL << Indent;
     {
         writer() << "- Name: " << node->GetName() << EOL;
         writer() << "- Nodes:" << EOL << Indent;
@@ -261,6 +347,10 @@ void ASTDumper::Walk(ScriptDeclaration* node) {
         writer() << Dedent;
     }
     writer() << Dedent;
+}
+
+void ASTDumper::Walk(Parameter* node) {
+    // do nothing.
 }
 
 void ASTDumper::Walk(TaskInputsDeclaration* node) {
@@ -309,6 +399,7 @@ void ASTDumper::Walk(TaskActionDeclaration* node) {
     writer() << "<< TaskActionDeclaration >>" << EOL << Indent;
     {
         writer() << "- KeywordPosition: " << node->GetKeywordPosition() << EOL;
+        writer() << "- Symbol: " << node->GetSymbol() << EOL;
         writer() << "- Body:" << EOL << Indent;
         {
             super::Walk(node->GetBody());
@@ -323,6 +414,7 @@ void ASTDumper::Walk(TaskPropertyDeclaration* node) {
     {
         writer() << "- Name: " << node->GetName() << EOL;
         writer() << "- AssignPosition: " << node->GetAssignPosition() << EOL;
+        writer() << "- Symbol: " << node->GetSymbol() << EOL;
         writer() << "- Value:" << EOL << Indent;
         {
             super::Walk(node->GetValue());
@@ -356,6 +448,7 @@ void ASTDumper::Walk(TaskDeclaration* node) {
             writer() << Dedent;
         }
 
+        writer() << "- Symbol: " << node->GetSymbol() << EOL;
         writer() << "- OpenBracePosition: " << node->GetOpenBracePosition() << EOL;
         writer() << "- CloseBracePosition: " << node->GetCloseBracePosition() << EOL;
         writer() << "- Members:" << EOL << Indent;
@@ -378,6 +471,7 @@ void ASTDumper::Walk(ClassDeclaration* node) {
             writer() << "- ExtendsName: " << node->GetExtendName() << EOL;
         }
 
+        writer() << "- Symbol: " << node->GetSymbol() << EOL;
         writer() << "- OpenBracePosition: " << node->GetOpenBracePosition() << EOL;
         writer() << "- CloseBracePosition: " << node->GetCloseBracePosition() << EOL;
         writer() << "- Members:" << EOL << Indent;
@@ -395,9 +489,10 @@ void ASTDumper::Walk(ClassInitDeclaration* node) {
         writer() << "- InitKeywordPosition: " << node->GetInitPosition() << EOL;
         writer() << "- Parameters:" << EOL << Indent;
         {
-            super::Walk(node->GetParameters());
+            super::Walk(node->GetParameterList());
         }
         writer() << Dedent;
+        writer() << "- Symbol: " << node->GetSymbol() << EOL;
         writer() << "- Body:" << EOL << Indent;
         {
             super::Walk(node->GetBody());
@@ -411,6 +506,7 @@ void ASTDumper::Walk(ClassDeinitDeclaration* node) {
     writer() << "<< ClassDeinitDeclaration >>" << EOL << Indent;
     {
         writer() << "- DeinitKeywordPosition: " << node->GetDeinitPosition() << EOL;
+        writer() << "- Symbol: " << node->GetSymbol() << EOL;
         writer() << "- Body:" << EOL << Indent;
         {
             super::Walk(node->GetBody());
@@ -431,6 +527,7 @@ void ASTDumper::Walk(ClassFieldDeclaration* node) {
         }
         writer() << "- Name: " << node->GetName() << EOL;
         writer() << "- AssignPosition: " << node->GetAssignPosition() << EOL;
+        writer() << "- Symbol: " << node->GetSymbol() << EOL;
         writer() << "- Value:" << EOL << Indent;
         {
             super::Walk(node->GetValue());
@@ -456,9 +553,10 @@ void ASTDumper::Walk(ClassMethodDeclaration* node) {
         }
         writer() << "- Parameters:" << EOL << Indent;
         {
-            super::Walk(node->GetParameters());
+            super::Walk(node->GetParameterList());
         }
         writer() << Dedent;
+        writer() << "- Symbol: " << node->GetSymbol() << EOL;
         writer() << "- Body:" << EOL << Indent;
         {
             super::Walk(node->GetBody());
@@ -483,6 +581,8 @@ void ASTDumper::Walk(ClassPropertyDeclaration* node) {
         else {
             writer() << "- Name: " << node->GetName() << EOL;
         }
+        writer() << "- Symbol: " << node->GetSymbol() << EOL;
+        writer() << "- MethodSymbol: " << node->GetMethodSymbol() << EOL;
         writer() << "- Body:" << EOL << Indent;
         {
             super::Walk(node->GetBody());
@@ -499,9 +599,10 @@ void ASTDumper::Walk(FunctionDeclaration* node) {
         writer() << "- Name: " << node->GetName() << EOL;
         writer() << "- Parameters:" << EOL << Indent;
         {
-            super::Walk(node->GetParameters());
+            super::Walk(node->GetParameterList());
         }
         writer() << Dedent;
+        writer() << "- Symbol: " << node->GetSymbol() << EOL;
         writer() << "- Body:" << EOL << Indent;
         {
             super::Walk(node->GetBody());
@@ -529,6 +630,7 @@ void ASTDumper::Walk(ExportDeclaration* node) {
     {
         writer() << "- ExportKeywordPosition: " << node->GetExportPosition() << EOL;
         writer() << "- Name: " << node->GetName() << EOL;
+        writer() << "- Symbol: " << node->GetSymbol() << EOL;
         if (node->HasValue()) {
             writer() << "- AssignPosition: " << node->GetAssignPosition() << EOL;
             writer() << "- Value:" << EOL << Indent;
@@ -554,6 +656,7 @@ void ASTDumper::Walk(VariableDeclaration* node) {
         writer() << "- Const: " << node->IsConst() << EOL;
         writer() << "- Name: " << node->GetName() << EOL;
         writer() << "- AssignPosition: " << node->GetAssignPosition() << EOL;
+        writer() << "- Symbol: " << node->GetSymbol() << EOL;
         writer() << "- Value:" << EOL << Indent;
         {
             super::Walk(node->GetValue());
@@ -690,7 +793,7 @@ void ASTDumper::Walk(ForStatement* node) {
     writer() << "<< ForStatement >>" << EOL << Indent;
     {
         writer() << "- ForKeywordPosition: " << node->GetForPosition() << EOL;
-        writer() << "- Parameter:" << node->GetParameterName() << EOL;
+        writer() << "- Parameter:" << node->GetParameter() << EOL;
         writer() << "- InKeywordPosition: " << node->GetInPosition() << EOL;
         writer() << "- Expression:" << EOL << Indent;
         {
@@ -730,7 +833,11 @@ void ASTDumper::Walk(WithStatement* node) {
         writer() << "- WithKeywordPosition: " << node->GetWithPosition() << EOL;
         if (node->HasCapture()) {
             writer() << "- AsKeywordPosition: " << node->GetAsPosition() << EOL;
-            writer() << "- CaptureName: " << node->GetCaptureName() << EOL;
+            writer() << "- CaptureName:" << EOL << Indent;
+            {
+                super::Walk(node->GetCapture());
+            }
+            writer() << Dedent;
         }
         writer() << "- Expression:" << EOL << Indent;
         {
@@ -751,10 +858,15 @@ void ASTDumper::Walk(ExceptStatement* node) {
     {
         writer() << "- ExceptKeywordPosition: " << node->GetExceptPosition() << EOL;
         writer() << "- Typename: " << node->GetTypename() << EOL;
+        writer() << "- TypeSymbol: " << node->GetTypeSymbol() << EOL;
 
         if (node->HasCapture()) {
             writer() << "- AsKeywordPosition: " << node->GetAsPosition() << EOL;
-            writer() << "- CaptureName: " << node->GetCaptureName() << EOL;
+            writer() << "- CaptureName:" << EOL << Indent;
+            {
+                super::Walk(node->GetCapture());
+            }
+            writer() << Dedent;
         }
 
         writer() << "- Body:" << EOL << Indent;
@@ -966,6 +1078,7 @@ void ASTDumper::Walk(TypeTestExpression* node) {
             writer() << "- NotPosition: " << node->GetNotPosition() << EOL;
         }
         writer() << "- Typename: " << node->GetTypename() << EOL;
+        writer() << "- TypeSymbol: " << node->GetTypeSymbol() << EOL;
         writer() << "- Target:" << EOL << Indent;
         {
             super::Walk(node->GetTarget());
@@ -1133,6 +1246,10 @@ void ASTDumper::Walk(LiteralExpression* node) {
                 }
             }
         }
+
+        if (node->GetLiteralType() == LiteralType::Variable) {
+            writer() << "- Symbol: " << node->GetSymbol() << EOL;
+        }
     }
     writer() << Dedent;
 }
@@ -1146,13 +1263,14 @@ void ASTDumper::Walk(ListExpression* node) {
         {
             auto index = 0;
             for (auto* expr: node->GetItems()) {
-                writer() << "- Item #" << index << ":" << EOL << Indent;
+                writer() << "- Item #" << index++ << ":" << EOL << Indent;
                 {
                     super::Walk(expr);
                 }
                 writer() << Dedent;
             }
         }
+        writer() << Dedent;
     }
     writer() << Dedent;
 }
@@ -1166,7 +1284,7 @@ void ASTDumper::Walk(MapExpression* node) {
         {
             auto index = 0;
             for (auto& [key, colon, value] : node->GetItems()) {
-                writer() << "- Item #" << index << ":" << EOL << Indent;
+                writer() << "- Item #" << index++ << ":" << EOL << Indent;
                 {
                     writer() << "- ColonPosition: " << colon << EOL;
                     writer() << "- Key:" << EOL << Indent;
@@ -1193,9 +1311,10 @@ void ASTDumper::Walk(ClosureExpression* node) {
         writer() << "- ArrowPosition: " << node->GetArrowPosition() << EOL;
         writer() << "- Parameters:" << EOL << Indent;
         {
-            super::Walk(node->GetParameters());
+            super::Walk(node->GetParameterList());
         }
         writer() << Dedent;
+        writer() << "- Symbol: " << node->GetSymbol() << EOL;
         writer() << "- Body:" << EOL << Indent;
         {
             super::Walk(node->GetBody());

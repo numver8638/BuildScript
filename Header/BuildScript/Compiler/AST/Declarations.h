@@ -9,12 +9,11 @@
 #ifndef BUILDSCRIPT_COMPILER_AST_DECLARATIONS_H
 #define BUILDSCRIPT_COMPILER_AST_DECLARATIONS_H
 
-#include <array>
-#include <cassert>
 #include <string>
 #include <string_view>
 #include <vector>
 
+#include <BuildScript/Assert.h>
 #include <BuildScript/Compiler/AST/ASTNode.h>
 #include <BuildScript/Compiler/AST/OperatorKind.h>
 #include <BuildScript/Compiler/AST/AccessFlags.h>
@@ -23,10 +22,13 @@
 
 namespace BuildScript {
     class Context;
-    class Parameters; // Defined in <BuildScript/Compiler/AST/Parameters.h>
+    class ParameterList; // Defined in <BuildScript/Compiler/AST/ParameterList.h>
+    class Symbol; // Defined in <BuildScript/Compiler/Analysis/Symbol.h>
 
     enum class DeclarationKind {
         Invalid,
+
+        Parameter,
 
         Script,
 
@@ -74,6 +76,61 @@ namespace BuildScript {
 
         static InvalidDeclaration* Create(Context& context, SourceRange range);
     }; // end class InvalidDeclaration
+
+    /**
+     * @brief Represents declaration that has name.
+     */
+    class NamedDeclaration : public Declaration {
+    private:
+        Identifier m_name;
+        Symbol* m_symbol = nullptr;
+
+    protected:
+        NamedDeclaration(DeclarationKind kind, Identifier name)
+            : Declaration(kind), m_name(std::move(name)) {}
+
+    public:
+        /**
+         * @brief Get a name of the declaration.
+         * @return an @c Identifier that represents the name of the declaration.
+         */
+        const Identifier& GetName() const { return m_name; }
+
+        /**
+         * @brief Get a symbol that represents the declaration.
+         * @return a @c Symbol that represents the declaration.
+         * @note This method must be called after call @c SetSymbol.
+         */
+        Symbol* GetSymbol() const {
+            NEVER_BE_NULL(m_symbol);
+            return m_symbol;
+        }
+
+        /**
+         * @brief Set a symbol that represents the declaration.
+         * @param symbol a @c Symbol that represents the declaration.
+         * @warning This method must be called only once. Calling this more than one causes undefined behavior.
+         */
+        void SetSymbol(Symbol* symbol) {
+            MUST_BE_NULL(m_symbol);
+            m_symbol = symbol;
+        }
+    }; // end class NamedDeclaration
+
+    /**
+     * @brief
+     */
+    class Parameter final : public NamedDeclaration {
+    public:
+        static constexpr auto Kind = DeclarationKind::Parameter;
+
+    private:
+        explicit Parameter(Identifier name)
+            : NamedDeclaration(Kind, std::move(name)) {}
+
+    public:
+        static Parameter* Create(Context& context, Identifier name);
+    }; // end class Parameter
 
     /**
      * @brief Represents one script file. Root of AST is always this class.
@@ -142,19 +199,18 @@ namespace BuildScript {
     /**
      * @brief Represents export declaration.
      */
-    class ExportDeclaration final : public Declaration {
+    class ExportDeclaration final : public NamedDeclaration {
     public:
         static constexpr auto Kind = DeclarationKind::Export;
 
     private:
         SourcePosition m_export;
-        Identifier m_name;
         SourcePosition m_assign;
         Expression* m_value;
 
         ExportDeclaration(SourcePosition _export, Identifier name, SourcePosition assign,
                           Expression* value)
-            : Declaration(Kind), m_export(_export), m_name(std::move(name)), m_assign(assign), m_value(value) {}
+            : NamedDeclaration(Kind, std::move(name)), m_export(_export), m_assign(assign), m_value(value) {}
 
     public:
         /**
@@ -162,12 +218,6 @@ namespace BuildScript {
          * @return a @c SourcePosition representing where 'export' keyword positioned.
          */
         SourcePosition GetExportPosition() const { return m_export; }
-
-        /**
-         * @brief Get name of exported variable.
-         * @return an @c Identifier representing name of exported variable.
-         */
-        const Identifier& GetName() const { return m_name; }
 
         /**
          * @brief Check the declaration has assigned value.
@@ -196,18 +246,17 @@ namespace BuildScript {
     /**
      * @brief Represents function declaration.
      */
-    class FunctionDeclaration final : public Declaration {
+    class FunctionDeclaration final : public NamedDeclaration {
     public:
         static constexpr auto Kind = DeclarationKind::Function;
 
     private:
         SourcePosition m_def;
-        Identifier m_name;
-        Parameters* m_params;
+        ParameterList* m_params;
         Statement* m_body;
 
-        FunctionDeclaration(SourcePosition def, Identifier name, Parameters* param, Statement* body)
-            : Declaration(Kind), m_def(def), m_name(std::move(name)), m_params(param), m_body(body) {}
+        FunctionDeclaration(SourcePosition def, Identifier name, ParameterList* param, Statement* body)
+            : NamedDeclaration(Kind, std::move(name)), m_def(def), m_params(param), m_body(body) {}
 
     public:
         /**
@@ -217,16 +266,10 @@ namespace BuildScript {
         SourcePosition GetDefPosition() const { return m_def; }
 
         /**
-         * @brief Get name of the function.
-         * @return an @c Identifier representing name of the function.
+         * @brief Get a parameter list of the function.
+         * @return @c ParameterList representing parameter list of the function.
          */
-        const Identifier& GetName() const { return m_name; }
-
-        /**
-         * @brief Get parameters of the function.
-         * @return @c Parameters representing parameters of the function.
-         */
-        Parameters* GetParameters() const { return m_params; }
+        ParameterList* GetParameterList() const { return m_params; }
 
         /**
          * @brief Get body of the function.
@@ -235,13 +278,13 @@ namespace BuildScript {
         Statement* GetBody() const { return m_body; }
 
         static FunctionDeclaration*
-        Create(Context& context, SourcePosition def, Identifier name, Parameters* param, Statement* body);
+        Create(Context& context, SourcePosition def, Identifier name, ParameterList* param, Statement* body);
     }; // end class FunctionDeclaration
 
     /**
      * @brief Represents class declaration.
      */
-    class ClassDeclaration final : public Declaration, TrailObjects<ClassDeclaration, Declaration*> {
+    class ClassDeclaration final : public NamedDeclaration, TrailObjects<ClassDeclaration, Declaration*> {
         friend TrailObjects;
 
     public:
@@ -249,7 +292,6 @@ namespace BuildScript {
 
     private:
         SourcePosition m_class;
-        Identifier m_name;
         SourcePosition m_extends;
         Identifier m_extendName;
         SourcePosition m_open;
@@ -258,7 +300,7 @@ namespace BuildScript {
 
         ClassDeclaration(SourcePosition _class, Identifier name, SourcePosition extends,
                          Identifier extendName, SourcePosition open, SourcePosition close, size_t count)
-            : Declaration(Kind), m_class(_class), m_name(std::move(name)), m_extends(extends),
+            : NamedDeclaration(Kind, std::move(name)), m_class(_class), m_extends(extends),
               m_extendName(std::move(extendName)), m_open(open), m_close(close), m_count(count) {}
 
         size_t GetTrailCount(OverloadToken<Declaration*>) const { return m_count; } // TrailObjects support.
@@ -269,12 +311,6 @@ namespace BuildScript {
          * @return a @c SourcePosition representing where 'class' keyword positioned.
          */
         SourcePosition GetClassPosition() const { return m_class; }
-
-        /**
-         * @brief Get name of the class.
-         * @return an @c Identifier representing name of the class.
-         */
-        const Identifier& GetName() const { return m_name; }
 
         /**
          * @brief Check the declaration inherits other class.
@@ -320,7 +356,7 @@ namespace BuildScript {
     /**
      * @brief Represents task declaration.
      */
-    class TaskDeclaration final : public Declaration,
+    class TaskDeclaration final : public NamedDeclaration,
                                   TrailObjects<TaskDeclaration, Declaration*, Identifier, SourcePosition> {
         friend TrailObjects;
 
@@ -329,7 +365,6 @@ namespace BuildScript {
 
     private:
         SourcePosition m_task;
-        Identifier m_name;
         SourcePosition m_extends;
         Identifier m_extendName;
         SourcePosition m_dependsOn;
@@ -341,9 +376,9 @@ namespace BuildScript {
         TaskDeclaration(SourcePosition task, Identifier name, SourcePosition extends,
                         Identifier extendName, SourcePosition dependsOn, SourcePosition open, SourcePosition close,
                         size_t count, size_t depsCount)
-            : Declaration(Kind), m_task(task), m_name(std::move(name)), m_extends(extends),
-              m_extendName(std::move(extendName)), m_dependsOn(dependsOn), m_open(open), m_close(close), m_count(count),
-              m_depsCount(depsCount) {}
+            : NamedDeclaration(Kind, std::move(name)), m_task(task), m_extends(extends),
+              m_extendName(std::move(extendName)), m_dependsOn(dependsOn), m_open(open), m_close(close),
+              m_count(count), m_depsCount(depsCount) {}
 
         size_t GetTrailCount(OverloadToken<Declaration*>) const { return m_count; } // TrailObjects support.
         size_t GetTrailCount(OverloadToken<Identifier>) const { return m_depsCount; }
@@ -355,12 +390,6 @@ namespace BuildScript {
          * @return a @c SourcePosition representing where 'task' keyword positioned.
          */
         SourcePosition GetTaskPosition() const { return m_task; }
-
-        /**
-         * @brief Get name of the task.
-         * @return an @c Identifier representing name of the task.
-         */
-        const Identifier& GetName() const { return m_name; }
 
         /**
          * @brief Check the declaration extends other task.
@@ -393,14 +422,14 @@ namespace BuildScript {
         SourcePosition GetDependsOnPosition() const { return m_dependsOn; }
 
         /**
-         * @brief
-         * @return
+         * @brief Get dependencies.
+         * @return a @c TrailIterator that iterates @c Identifier representing dependency.
          */
         TrailIterator<Identifier> GetDependencyNames() const { return GetTrailObjects<Identifier>(); }
 
         /**
-         * @brief
-         * @return
+         * @brief Get positions of commas.
+         * @return a @c TrailIterator that iterates @c SourcePosition representing where comma positioned.
          */
         TrailIterator<SourcePosition> GetCommaPositions() const { return GetTrailObjects<SourcePosition>(); }
 
@@ -432,20 +461,19 @@ namespace BuildScript {
     /**
      * @brief Represents variable declaration.
      */
-    class VariableDeclaration final : public Declaration {
+    class VariableDeclaration final : public NamedDeclaration {
     public:
         static constexpr auto Kind = DeclarationKind::Variable;
 
     private:
         SourcePosition m_keyword;
         AccessFlags m_flags;
-        Identifier m_name;
         SourcePosition m_assign;
         Expression* m_value;
 
         VariableDeclaration(SourcePosition key, AccessFlags flags, Identifier name, SourcePosition assign,
                             Expression* value)
-            : Declaration(Kind), m_keyword(key), m_flags(flags), m_name(std::move(name)), m_assign(assign),
+            : NamedDeclaration(Kind, std::move(name)), m_keyword(key), m_flags(flags), m_assign(assign),
               m_value(value) {
             assert((m_flags != AccessFlags::Static) && "kind of variable cannot be 'static'");
         }
@@ -470,22 +498,17 @@ namespace BuildScript {
         }
 
         /**
-         * @brief
-         * @return
+         * @brief Check that the declaration is readonly.
+         * @return @c true if the declaration is readonly otherwise @c false.
          */
         bool IsConst() const { return (m_flags == AccessFlags::Const); }
 
         /**
-         * @brief
+         * @brief Get an @c AccessFlags that represents
          * @return
+         * @see BuildScript::AccessFlags
          */
-        AccessFlags GetSpecifier() const { return m_flags; }
-
-        /**
-         * @brief Get name of the variable.
-         * @return an @c Identifier representing name of the variable.
-         */
-        const Identifier& GetName() const { return m_name; }
+        AccessFlags GetAccessFlag() const { return m_flags; }
 
         /**
          * @brief Get a position of '='.
@@ -632,6 +655,7 @@ namespace BuildScript {
         ActionKind m_kind;
         SourcePosition m_pos;
         Statement* m_body;
+        Symbol* m_symbol = nullptr;
 
         TaskActionDeclaration(ActionKind kind, SourcePosition pos, Statement* body)
             : Declaration(Kind), m_kind(kind), m_pos(pos), m_body(body) {}
@@ -655,31 +679,42 @@ namespace BuildScript {
          */
         Statement* GetBody() const { return m_body; }
 
+        /**
+         * @brief
+         * @return
+         */
+        Symbol* GetSymbol() const {
+            NEVER_BE_NULL(m_symbol);
+            return m_symbol;
+        }
+
+        /**
+         * @brief
+         * @param symbol
+         */
+        void SetSymbol(Symbol* symbol) {
+            MUST_BE_NULL(m_symbol);
+            m_symbol = symbol;
+        }
+
         static TaskActionDeclaration* Create(Context& context, ActionKind kind, SourcePosition pos, Statement* body);
     }; // end class TaskActionDeclaration
 
     /**
      * @brief Represents property in task declaration.
      */
-    class TaskPropertyDeclaration final : public Declaration {
+    class TaskPropertyDeclaration final : public NamedDeclaration {
     public:
         static constexpr auto Kind = DeclarationKind::TaskProperty;
 
     private:
-        Identifier m_name;
         SourcePosition m_assign;
         Expression* m_value;
 
         TaskPropertyDeclaration(Identifier name, SourcePosition assign, Expression* value)
-            : Declaration(Kind), m_name(std::move(name)), m_assign(assign), m_value(value) {}
+            : NamedDeclaration(Kind, std::move(name)), m_assign(assign), m_value(value) {}
 
     public:
-        /**
-         * @brief Get name of the property.
-         * @return an @c Identifier representing name of the property.
-         */
-        const Identifier& GetName() const { return m_name; }
-
         /**
          * @brief Get a position of '='.
          * @return a @c SourcePosition representing where '=' positioned.
@@ -702,17 +737,19 @@ namespace BuildScript {
     /**
      * @brief Represents initializer in class declaration.
      */
-    class ClassInitDeclaration final : public Declaration {
+    class ClassInitDeclaration final : public NamedDeclaration {
     public:
         static constexpr auto Kind = DeclarationKind::ClassInit;
 
     private:
         SourcePosition m_init;
-        Parameters* m_params;
+        ParameterList* m_params;
         Statement* m_body;
+        bool m_initCall = false;
 
-        ClassInitDeclaration(SourcePosition init, Parameters* params, Statement* body)
-            : Declaration(Kind), m_init(init), m_params(params), m_body(body) {}
+        ClassInitDeclaration(SourcePosition init, ParameterList* params, Statement* body)
+            : NamedDeclaration(Kind, Identifier{ SourceRange{ init }, "<init>" }),
+              m_init(init), m_params(params), m_body(body) {}
 
     public:
         /**
@@ -723,9 +760,9 @@ namespace BuildScript {
 
         /**
          * @brief Get parameters of the initializer.
-         * @return @c Parameters representing parameters of the initializer.
+         * @return @c ParameterList representing parameters of the initializer.
          */
-        Parameters* GetParameters() const { return m_params; }
+        ParameterList* GetParameterList() const { return m_params; }
 
         /**
          * @brief Get body of the initializer.
@@ -733,13 +770,18 @@ namespace BuildScript {
          */
         Statement* GetBody() const { return m_body; }
 
-        static ClassInitDeclaration* Create(Context& context, SourcePosition init, Parameters* params, Statement* body);
+        bool HasInitializerCall() const { return m_initCall; }
+
+        void SetInitializerCall() { m_initCall = true; }
+
+        static ClassInitDeclaration*
+        Create(Context& context, SourcePosition init, ParameterList* params, Statement* body);
     }; // end class ClassInitDeclaration
 
     /**
      * @brief Represent deinitializer in class declaration.
      */
-    class ClassDeinitDeclaration final : public Declaration  {
+    class ClassDeinitDeclaration final : public NamedDeclaration  {
     public:
         static constexpr auto Kind = DeclarationKind::ClassDeinit;
 
@@ -748,7 +790,7 @@ namespace BuildScript {
         Statement* m_body;
 
         ClassDeinitDeclaration(SourcePosition deinit, Statement* body)
-            : Declaration(Kind), m_deinit(deinit), m_body(body) {}
+            : NamedDeclaration(Kind, Identifier{ SourceRange{ deinit }, "<deinit>" }), m_deinit(deinit), m_body(body) {}
 
     public:
         /**
@@ -769,20 +811,19 @@ namespace BuildScript {
     /**
      * @brief Represents field in class declaration.
      */
-    class ClassFieldDeclaration final : public Declaration {
+    class ClassFieldDeclaration final : public NamedDeclaration {
     public:
         static constexpr auto Kind = DeclarationKind::ClassField;
 
     private:
         SourcePosition m_keyword;
         AccessFlags m_flags;
-        Identifier m_name;
         SourcePosition m_assign;
         Expression* m_value;
 
         ClassFieldDeclaration(SourcePosition keyword, AccessFlags flags, Identifier name,
                               SourcePosition assign, Expression* value)
-            : Declaration(Kind), m_keyword(keyword), m_flags(flags), m_name(std::move(name)), m_assign(assign),
+            : NamedDeclaration(Kind, std::move(name)), m_keyword(keyword), m_flags(flags), m_assign(assign),
               m_value(value) {
             assert((m_flags != AccessFlags::ReadWrite) && "kind of field cannot be 'var'.");
         }
@@ -804,7 +845,7 @@ namespace BuildScript {
          * @brief
          * @return
          */
-        AccessFlags GetSpecifier() const { return m_flags; }
+        AccessFlags GetAccessFlag() const { return m_flags; }
 
         /**
          * @brief Get a position of 'static' keyword.
@@ -819,12 +860,6 @@ namespace BuildScript {
          * @note Return value may be empty if field is not const.
          */
         SourcePosition GetConstPosition() const { return IsConst() ? m_keyword : SourcePosition::Empty(); }
-
-        /**
-         * @brief Get name of the field.
-         * @return an @c Identifier representing name of the field.
-         */
-        const Identifier& GetName() const { return m_name; }
 
         /**
          * @brief Get a position of '='.
@@ -846,22 +881,21 @@ namespace BuildScript {
     /**
      * @brief Represents method in class declaration.
      */
-    class ClassMethodDeclaration final : public Declaration {
+    class ClassMethodDeclaration final : public NamedDeclaration {
     public:
         static constexpr auto Kind = DeclarationKind::ClassMethod;
 
     private:
         SourcePosition m_static;
         SourcePosition m_def;
-        Identifier m_name;
         OperatorKind m_op;
         SourcePosition m_pos;
-        Parameters* m_params;
+        ParameterList* m_params;
         Statement* m_body;
 
         ClassMethodDeclaration(SourcePosition _static, SourcePosition def, Identifier name, OperatorKind op,
-                               SourcePosition pos, Parameters* params, Statement* body)
-            : Declaration(Kind), m_static(_static), m_def(def), m_name(std::move(name)), m_op(op), m_pos(pos),
+                               SourcePosition pos, ParameterList* params, Statement* body)
+            : NamedDeclaration(Kind, std::move(name)), m_static(_static), m_def(def), m_op(op), m_pos(pos),
               m_params(params), m_body(body) {}
 
     public:
@@ -905,16 +939,10 @@ namespace BuildScript {
         SourcePosition GetOperatorPosition() const { return m_pos; }
 
         /**
-         * @brief Get name of the method.
-         * @return an @c Identifier representing name of the method.
-         */
-        const Identifier& GetName() const { return m_name; }
-
-        /**
          * @brief Get parameters of the method.
-         * @return @c Parameters representing parameters of the method.
+         * @return @c ParameterList representing parameters of the method.
          */
-        Parameters* GetParameters() const { return m_params; }
+        ParameterList* GetParameterList() const { return m_params; }
 
         /**
          * @brief Get body of the method.
@@ -923,31 +951,31 @@ namespace BuildScript {
         Statement* GetBody() const { return m_body; }
 
         static ClassMethodDeclaration*
-        CreateMethod(Context& context, SourcePosition _static, SourcePosition def, Identifier name, Parameters* params,
+        CreateMethod(Context& context, SourcePosition _static, SourcePosition def, Identifier name, ParameterList* params,
                      Statement* body);
 
         static ClassMethodDeclaration*
-        CreateOperator(Context& context, SourcePosition def, OperatorKind op, SourcePosition pos, Parameters* params,
+        CreateOperator(Context& context, SourcePosition def, OperatorKind op, SourcePosition pos, ParameterList* params,
                        Statement* body);
     }; // end class ClassMethodDeclaration
 
     /**
      * @brief Represents property(getter or setter) in class declaration.
      */
-    class ClassPropertyDeclaration final : public Declaration {
+    class ClassPropertyDeclaration final : public NamedDeclaration {
     public:
         static constexpr auto Kind = DeclarationKind::ClassProperty;
 
     private:
         SourcePosition m_keyword;
-        Identifier m_name;
         SourcePosition m_subscript;
         bool m_isGetter;
         Statement* m_body;
+        Symbol* m_method = nullptr;
 
         ClassPropertyDeclaration(SourcePosition keyword, Identifier name, SourcePosition subscript, bool isGetter,
                                  Statement* body)
-            : Declaration(Kind), m_keyword(keyword), m_name(std::move(name)), m_subscript(subscript),
+            : NamedDeclaration(Kind, std::move(name)), m_keyword(keyword), m_subscript(subscript),
               m_isGetter(isGetter), m_body(body) {}
 
     public:
@@ -991,16 +1019,28 @@ namespace BuildScript {
         SourcePosition GetSubscriptPosition() const { return m_subscript; }
 
         /**
-         * @brief Get name of the property.
-         * @return an @c Identifier representing name of the property.
-         */
-        const Identifier& GetName() const { return m_name; }
-
-        /**
          * @brief Get body of the property.
          * @return a @c Statement representing body of the property.
          */
         Statement* GetBody() const { return m_body; }
+
+        /**
+         * @brief
+         * @return
+         */
+        Symbol* GetMethodSymbol() const {
+            NEVER_BE_NULL(m_method);
+            return m_method;
+        }
+
+        /**
+         * @brief
+         * @param symbol
+         */
+        void SetMethodSymbol(Symbol* symbol) {
+            MUST_BE_NULL(m_method);
+            m_method = symbol;
+        }
 
         static ClassPropertyDeclaration*
         Create(Context& context, SourcePosition get, SourcePosition set, Identifier name, Statement* body);

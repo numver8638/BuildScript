@@ -11,7 +11,7 @@
 #include <BuildScript/Assert.h>
 #include <BuildScript/Compiler/AST/Declarations.h>
 #include <BuildScript/Compiler/AST/Expressions.h>
-#include <BuildScript/Compiler/AST/Parameters.h>
+#include <BuildScript/Compiler/AST/ParameterList.h>
 #include <BuildScript/Compiler/AST/Statements.h>
 
 using namespace BuildScript;
@@ -26,7 +26,7 @@ void ASTWalker::Walk(ASTNode* root) {
     else if (auto* expr = root->AsExpression()) {
         Walk(expr);
     }
-    else if (auto* params = root->AsParameters()) {
+    else if (auto* params = root->AsParameterList()) {
         Walk(params);
     }
     else if (auto* label = root->AsLabel()) {
@@ -73,7 +73,7 @@ void ASTWalker::Walk(Expression* node) {
     }
 }
 
-void ASTWalker::Walk(Parameters* node) {
+void ASTWalker::Walk(ParameterList* node) {
     // do nothing
 }
 
@@ -91,6 +91,10 @@ void ASTWalker::Walk(ScriptDeclaration* node) {
     }
 }
 
+void ASTWalker::Walk(Parameter* node) {
+    // do nothing
+}
+
 void ASTWalker::Walk(ImportDeclaration* node) {
     Walk(node->GetPath());
 }
@@ -100,7 +104,7 @@ void ASTWalker::Walk(ExportDeclaration* node) {
 }
 
 void ASTWalker::Walk(FunctionDeclaration* node) {
-    Walk(node->GetParameters());
+    Walk(node->GetParameterList());
     Walk(node->GetBody());
 }
 
@@ -139,7 +143,7 @@ void ASTWalker::Walk(TaskPropertyDeclaration* node) {
 }
 
 void ASTWalker::Walk(ClassInitDeclaration* node) {
-    Walk(node->GetParameters());
+    Walk(node->GetParameterList());
     Walk(node->GetBody());
 }
 
@@ -152,7 +156,7 @@ void ASTWalker::Walk(ClassFieldDeclaration* node) {
 }
 
 void ASTWalker::Walk(ClassMethodDeclaration* node) {
-    Walk(node->GetParameters());
+    Walk(node->GetParameterList());
     Walk(node->GetBody());
 }
 
@@ -331,7 +335,7 @@ void ASTWalker::Walk(MapExpression* node) {
 }
 
 void ASTWalker::Walk(ClosureExpression* node) {
-    Walk(node->GetParameters());
+    Walk(node->GetParameterList());
     Walk(node->GetBody());
 }
 

@@ -1,6 +1,6 @@
 /*
  * OperatorKind.h
- * - .
+ * - Represents kind of the operator.
  *
  * Copyright (c) 2019~2021 numver8638(신진환, Jinhwan Shin)
  * Released under the MIT License.
@@ -11,7 +11,7 @@
 
 namespace BuildScript {
     /**
-     * @brief .
+     * @brief Represents kind of the operator.
      */
     enum class OperatorKind {
         Invalid,
@@ -36,7 +36,6 @@ namespace BuildScript {
         InplaceBitAnd,
         InplaceBitOr,
         InplaceBitXor,
-        Index
     }; // end class OperatorKind
 
     const char* OperatorKindToString(OperatorKind kind);

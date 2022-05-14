@@ -24,7 +24,7 @@ namespace BuildScript {
      */
     class ASTWalker {
     protected:
-        virtual void Walk(Parameters* node);
+        virtual void Walk(ParameterList* node);
         virtual void Walk(Label* node);
 
         virtual void Walk(Declaration* node);

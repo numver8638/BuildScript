@@ -11,6 +11,7 @@
 
 #include <vector>
 
+#include <BuildScript/Assert.h>
 #include <BuildScript/Compiler/AST/ASTNode.h>
 #include <BuildScript/Compiler/Utils/Value.h>
 #include <BuildScript/Compiler/Identifier.h>
@@ -18,6 +19,8 @@
 
 namespace BuildScript {
     class Context; // Defined in <BuildScript/Compiler/Context.h>
+    class Symbol; // Defined in <BuildScript/Compiler/Symbol/Symbol.h>
+    class Parameter; // Defined in <BuildScript/Compiler/AST/Declarations.h>
 
     enum class StatementKind {
         Invalid,
@@ -376,14 +379,14 @@ namespace BuildScript {
 
     private:
         SourcePosition m_for;
-        Identifier m_param;
+        Parameter* m_param;
         SourcePosition m_in;
         Expression* m_expr;
         Statement* m_body;
 
-        ForStatement(SourcePosition _for, Identifier param, SourcePosition _in, Expression* expr,
+        ForStatement(SourcePosition _for, Parameter* param, SourcePosition _in, Expression* expr,
                      Statement* body)
-            : Statement(Kind), m_for(_for), m_param(std::move(param)), m_in(_in), m_expr(expr), m_body(body) {}
+            : Statement(Kind), m_for(_for), m_param(param), m_in(_in), m_expr(expr), m_body(body) {}
 
     public:
         /**
@@ -396,7 +399,7 @@ namespace BuildScript {
          * @brief
          * @return
          */
-        const Identifier& GetParameterName() const { return m_param; }
+        Parameter* GetParameter() const { return m_param; }
 
         /**
          * @brief Get a position of 'in' keyword.
@@ -417,7 +420,7 @@ namespace BuildScript {
         Statement* GetBody() const { return m_body; }
 
         static ForStatement*
-        Create(Context& context, SourcePosition _for, Identifier param, SourcePosition _in, Expression* expr,
+        Create(Context& context, SourcePosition _for, Parameter* param, SourcePosition _in, Expression* expr,
                Statement* body);
     }; // end class ForStatement
 
@@ -469,12 +472,12 @@ namespace BuildScript {
         SourcePosition m_with;
         Expression* m_expr;
         SourcePosition m_as;
-        Identifier m_capture;
+        Parameter* m_capture;
         Statement* m_body;
 
-        WithStatement(SourcePosition with, Expression* expr, SourcePosition as, Identifier capture,
+        WithStatement(SourcePosition with, Expression* expr, SourcePosition as, Parameter* capture,
                       Statement* body)
-            : Statement(Kind), m_with(with), m_expr(expr), m_as(as), m_capture(std::move(capture)), m_body(body) {}
+            : Statement(Kind), m_with(with), m_expr(expr), m_as(as), m_capture(capture), m_body(body) {}
 
     public:
         /**
@@ -506,7 +509,7 @@ namespace BuildScript {
          * @brief
          * @return
          */
-        const Identifier& GetCaptureName() const { return m_capture; }
+        Parameter* GetCapture() const { return m_capture; }
 
         /**
          * @brief
@@ -515,7 +518,7 @@ namespace BuildScript {
         Statement* GetBody() const { return m_body; }
 
         static WithStatement* Create(Context& context, SourcePosition with, Expression* expr, SourcePosition as,
-                                     Identifier capture, Statement* body);
+                                     Parameter* capture, Statement* body);
     }; // end class WithStatement
 
     /**
@@ -569,13 +572,14 @@ namespace BuildScript {
         SourcePosition m_except;
         Identifier m_typename;
         SourcePosition m_as;
-        Identifier m_capture;
+        Parameter* m_capture;
         Statement* m_body;
+        Symbol* m_symbol = nullptr;
 
         ExceptStatement(SourcePosition exceptPos, Identifier _typename, SourcePosition as,
-                        Identifier capture, Statement* body)
+                        Parameter* capture, Statement* body)
             : Statement(Kind), m_except(exceptPos), m_typename(std::move(_typename)), m_as(as),
-              m_capture(std::move(capture)), m_body(body) {}
+              m_capture(capture), m_body(body) {}
 
     public:
         /**
@@ -607,7 +611,7 @@ namespace BuildScript {
          * @brief
          * @return
          */
-        const Identifier& GetCaptureName() const { return m_capture; }
+        Parameter* GetCapture() const { return m_capture; }
 
         /**
          * @brief
@@ -615,8 +619,27 @@ namespace BuildScript {
          */
         Statement* GetBody() const { return m_body; }
 
+        /**
+         * @brief
+         * @return
+         */
+        Symbol* GetTypeSymbol() const {
+            NEVER_BE_NULL(m_symbol);
+            return m_symbol;
+        }
+
+        /**
+         * @brief
+         * @param symbol
+         */
+        void SetTypeSymbol(Symbol* symbol) {
+            MUST_BE_NULL(m_symbol);
+            m_symbol = symbol;
+        }
+
+
         static ExceptStatement*
-        Create(Context& context, SourcePosition exceptPos, Identifier _typename, SourcePosition as, Identifier capture,
+        Create(Context& context, SourcePosition exceptPos, Identifier _typename, SourcePosition as, Parameter* capture,
                Statement* body);
     }; // end class ExceptStatement
 

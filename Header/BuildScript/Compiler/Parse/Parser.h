@@ -18,7 +18,8 @@
 
 namespace BuildScript {
     class Context; // Defined in <BuildScript/Compiler/Context.h>
-    class Parameters; // Defined in <BuildScript/Compiler/AST/Parameters.h>
+    class Parameter; // Defined in <BuildScript/Compiler/AST/Declarations.h>
+    class ParameterList; // Defined in <BuildScript/Compiler/AST/ParameterList.h>
 
     /**
      * @brief Syntax analyzer for BuildScript language.
@@ -30,7 +31,7 @@ namespace BuildScript {
         bool CheckForClosure();
 
         /**
-         * @brief .
+         * @brief Represents a flag where to stop skipping tokens.
          */
         enum SkipFlag {
             StopBeforeBrace,
@@ -42,7 +43,8 @@ namespace BuildScript {
         SourceRange SkipTokenExpr();
 
         // Parser.Misc.cpp
-        Parameters* ParseParameters();
+        Parameter* ParseParameter();
+        ParameterList* ParseParameterList();
         void ParseNameList(std::vector<Identifier>&, std::vector<SourcePosition>&);
         void ParseExpressionList(std::vector<Expression*>&, std::vector<SourcePosition>&);
 
@@ -60,7 +62,6 @@ namespace BuildScript {
         Declaration* ParseClassField(SourcePosition, AccessFlags);
         Declaration* ParseClassMethod(SourcePosition);
         Declaration* ParseClassProperty();
-        Declaration* ParseClassOperator();
         Declaration* ParseTaskDeclaration();
         Declaration* ParseTaskMember();
         Declaration* ParseVariableDeclaration();

@@ -30,7 +30,7 @@ namespace BuildScript {
     class Declaration;
     class Statement;
     class Expression;
-    class Parameters; // Defined in <BuildScript/Compiler/AST/Parameters.h>
+    class ParameterList; // Defined in <BuildScript/Compiler/AST/Parameters.h>
     class Label; // Defined in <BuildScript/Compiler/AST/Statements.h>
 
     /**
@@ -110,16 +110,16 @@ namespace BuildScript {
         bool IsParameters() const { return m_kind == ASTKind::Parameters; }
 
         /**
-         * @brief Cast the node to @c Parameters.
-         * @return a node casted to @c Parameters if this is @c Parameters otherwise returns @c nullptr.
+         * @brief Cast the node to @c ParameterList.
+         * @return a node casted to @c ParameterList if this is @c ParameterList otherwise returns @c nullptr.
          */
-        const Parameters* AsParameters() const;
+        const ParameterList* AsParameterList() const;
 
         /**
-         * @brief Cast the node to @c Parameters.
-         * @return a node casted to @c Parameters if this is @c Parameters otherwise returns @c nullptr.
+         * @brief Cast the node to @c ParameterList.
+         * @return a node casted to @c ParameterList if this is @c ParameterList otherwise returns @c nullptr.
          */
-        Parameters* AsParameters();
+        ParameterList* AsParameterList();
 
         /**
          * @brief Check whether this node is @c Label or not.

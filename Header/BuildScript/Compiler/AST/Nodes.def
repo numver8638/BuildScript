@@ -13,6 +13,7 @@
 #define DECL_LIST(V) \
     V(InvalidDeclaration, Invalid) \
     V(ScriptDeclaration, Script) \
+    V(Parameter, Parameter) \
     V(ImportDeclaration, Import) \
     V(ExportDeclaration, Export) \
     V(FunctionDeclaration, Function) \
