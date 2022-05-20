@@ -165,6 +165,14 @@ install(FILES
 # Lists of sources
 target_sources(BuildScript PRIVATE
                # ==== Compiler ====
+               ## Analysis
+               Source/Compiler/Analysis/FlowAnalyzer.cpp
+               Source/Compiler/Analysis/Scope.cpp
+               Source/Compiler/Analysis/SemanticAnalyzer.cpp
+               Source/Compiler/Analysis/SemanticAnalyzer.Declaration.cpp
+               Source/Compiler/Analysis/SemanticAnalyzer.Expression.cpp
+               Source/Compiler/Analysis/SemanticAnalyzer.Statement.cpp
+
                ## AST
                Source/Compiler/AST/ASTDumper.cpp
                Source/Compiler/AST/ASTWalker.cpp
@@ -188,7 +196,6 @@ target_sources(BuildScript PRIVATE
 
                ## Symbol
                Source/Compiler/Symbol/Symbol.cpp
-               Source/Compiler/Symbol/SymbolTable.cpp
 
                Source/Compiler/ErrorReporter.cpp
                Source/Compiler/ManagedObject.cpp

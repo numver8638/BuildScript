@@ -776,6 +776,7 @@ namespace BuildScript {
         ParameterList* m_params;
         Statement* m_body;
         Symbol* m_symbol = nullptr;
+        std::vector<Symbol*> m_boundedLocals;
 
         ClosureExpression(SourcePosition arrow, ParameterList* params, Statement* body)
             : Expression(Kind), m_arrow(arrow), m_params(params), m_body(body) {}
@@ -815,6 +816,12 @@ namespace BuildScript {
         void SetSymbol(Symbol* symbol) {
             MUST_BE_NULL(m_symbol);
             m_symbol = symbol;
+        }
+
+        const std::vector<Symbol*>& GetBoundedLocals() const { return m_boundedLocals; }
+
+        void SetBoundedLocals(std::vector<Symbol*> symbols) {
+            m_boundedLocals = std::move(symbols);
         }
 
         static ClosureExpression* Create(Context& context, ParameterList* params, SourcePosition arrow, Statement* body);

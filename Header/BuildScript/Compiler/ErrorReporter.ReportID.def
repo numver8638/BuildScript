@@ -9,7 +9,7 @@
  */
 #ifndef REPORT_ID
     #error "Cannot include 'ErrorReporter.ReportID.def' directly. Did you intend to include 'ErrorReporter.ReportID.h'?"
-#endif // REPORT_ID
+#else
 
 #define FATAL(id, msg)      REPORT_ID(BuildScript::Severity::Fatal, id, msg)
 #define ERROR(id, msg)      REPORT_ID(BuildScript::Severity::Error, id, msg)
@@ -22,22 +22,53 @@ FATAL(CompilerCannotOpenFile, "cannot open file.")
 FATAL(CompilerSourceIsNull, "invalid source text was given.")
 
 // Semantic analyzer
-ERROR(SemaCannotAssignToConstVariable, "cannot assign to const variable '{0}'.")
-ERROR(SemaCannotAssignToConstField, "cannot assign to const field '{0}'.")
-ERROR(SemaCannotAssignToReadOnlyProperty, "cannot assign to readonly property '{0}'.")
+ERROR(SemaArgumentMismatchInOperator, "required {0} argument(s) for operator '{1}' but applied {2} argument(s).")
+ERROR(SemaCannotAssign, "cannot assign to {0}.")
+ERROR(SemaCannotAssignToBoundedVariable, "cannot assign to bounded local variable '{0}'.")
 ERROR(SemaCannotAssignToValue, "cannot assign to value.")
-ERROR(SemaCannotAssignToFunction, "cannot assign to function.")
-ERROR(SemaCannotAssignToClass, "cannot assign to class.")
-ERROR(SemaCannotAssignToMethod, "cannot assign to method.")
-ERROR(SemaCannotReturn, "cannot return in script scope.")
 ERROR(SemaCannotBreak, "cannot break out of loop.")
+ERROR(SemaCannotBreakInFinally, "cannot break loop from finally statement.")
 ERROR(SemaCannotContinue, "cannot continue out of loop.")
+ERROR(SemaCannotContinueInFinally, "cannot continue loop from finally statement.")
+ERROR(SemaCannotDependOnSelf, "cannot depend on self.")
+ERROR(SemaCannotExport, "cannot export in the declaration.")
+ERROR(SemaCannotExtendsSelf, "cannot extend self.")
+ERROR(SemaCannotImport, "cannot import in the declaration.")
+ERROR(SemaCannotReturn, "cannot return in global scope.")
+ERROR(SemaCannotReturnInFinally, "cannot return in finally statement.")
+ERROR(SemaCannotUseBeforeInit, "cannot use {0} before initialization.")
+ERROR(SemaCannotUseSelfOutOfClass, "cannot use self out of class.")
+ERROR(SemaCannotUseSuperOutOfClass, "cannot use super out of class.")
+ERROR(SemaDuplicatedCase, "duplicated case label.")
+ERROR(SemaDuplicatedDefault, "duplicated default label.")
+ERROR(SemaDuplicatedExcept, "duplicated except statement.")
+ERROR(SemaDuplicatedInitCall, "duplicated initializer call.")
+ERROR(SemaDuplicatedInputs, "duplicated inputs.")
+ERROR(SemaDuplicatedOutputs, "duplicated outputs.")
+ERROR(SemaInitCallBeforeStatement, "initializer call must be first statement.")
+ERROR(SemaInvalidCaseValue, "invalid case value.")
+ERROR(SemaInvalidExportTarget, "cannot export {0}.")
+ERROR(SemaInvalidInitCall, "cannot call initializer out of initializer.")
+ERROR(SemaMisusePass, "invalid usage of pass statement.")
+ERROR(SemaMustReturnValue, "return statement must return value in {0}.")
+ERROR(SemaNeverReturnValue, "return statement never return value in {0}.")
 ERROR(SemaNonConstantInLabel, "not a constant in case label.")
-ERROR(SemaInterpolatedStringInLabel, "interpolated string is not a constant.")
-ERROR(SemaSelfInLabel, "'self' is not a constant.")
-ERROR(SemaSuperInLabel, "'super' is not a constant.")
-ERROR(SemaVariadicArguemntNotAllowedInOperator, "variadic argument is not allowed in operator.")
-ERROR(SemaArgumentMismatchInOperator, "")
+ERROR(SemaNotAType, "{0} is not a type.")
+ERROR(SemaRedeclaration, "{0} is redeclared as {1}.")
+ERROR(SemaRedefinition, "redefinition of {0}.")
+ERROR(SemaReservedIdentifier, "task property '{0}' is reserved for internal usage.")
+ERROR(SemaReservedUnderscore, "'_' is reserved for placeholder.")
+ERROR(SemaVarArgInOperator, "variadic argument is not allowed in operator.")
+NOTE(SemaCannotUsePassInGlobal, "cannot use pass statement in global scope.")
+NOTE(SemaConstantExpressionInLabel, "constant expression is not supported yet;")
+NOTE(SemaInterpolatedStringInLabel, "interpolated string is not a constant.")
+NOTE(SemaPassUsage, "pass statement must be first and only statement in scope.")
+NOTE(SemaReturnNoneIfNeeded, "use `return none` if you intend to return nothing.")
+NOTE(SemaSelfInLabel, "'self' is not a constant.")
+NOTE(SemaSimpilfyCapture, "capture with '_' can be simplified.")
+NOTE(SemaSuperInLabel, "'super' is not a constant.")
+WARNING(SemaNoDefault, "match statement does not have default label.")
+WARNING(SemaUsedBeforeDeclare, "{0} {1} is used before declaration. this may causes unpredictable behavior.")
 
 // Parser
 ERROR(ParseExcessToken, "excess token '{0}'.")
@@ -86,3 +117,5 @@ ERROR(LexIntendedToNotEqual, "unknown token; did you intend to '!='?")
 #undef WARNING
 #undef ERROR
 #undef FATAL
+
+#endif // REPORT_ID

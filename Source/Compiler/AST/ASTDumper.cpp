@@ -350,7 +350,12 @@ void ASTDumper::Walk(ScriptDeclaration* node) {
 }
 
 void ASTDumper::Walk(Parameter* node) {
-    // do nothing.
+    writer() << "<< Parameter >>" << EOL << Indent;
+    {
+        writer() << "- Name: " << node->GetName() << EOL;
+        writer() << "- Symbol: " << node->GetSymbol() << EOL;
+    }
+    writer() << Dedent;
 }
 
 void ASTDumper::Walk(TaskInputsDeclaration* node) {
@@ -489,7 +494,7 @@ void ASTDumper::Walk(ClassInitDeclaration* node) {
         writer() << "- InitKeywordPosition: " << node->GetInitPosition() << EOL;
         writer() << "- Parameters:" << EOL << Indent;
         {
-            super::Walk(node->GetParameterList());
+            Walk(node->GetParameterList());
         }
         writer() << Dedent;
         writer() << "- Symbol: " << node->GetSymbol() << EOL;
@@ -553,7 +558,7 @@ void ASTDumper::Walk(ClassMethodDeclaration* node) {
         }
         writer() << "- Parameters:" << EOL << Indent;
         {
-            super::Walk(node->GetParameterList());
+            Walk(node->GetParameterList());
         }
         writer() << Dedent;
         writer() << "- Symbol: " << node->GetSymbol() << EOL;
@@ -599,7 +604,7 @@ void ASTDumper::Walk(FunctionDeclaration* node) {
         writer() << "- Name: " << node->GetName() << EOL;
         writer() << "- Parameters:" << EOL << Indent;
         {
-            super::Walk(node->GetParameterList());
+            Walk(node->GetParameterList());
         }
         writer() << Dedent;
         writer() << "- Symbol: " << node->GetSymbol() << EOL;
@@ -835,7 +840,7 @@ void ASTDumper::Walk(WithStatement* node) {
             writer() << "- AsKeywordPosition: " << node->GetAsPosition() << EOL;
             writer() << "- CaptureName:" << EOL << Indent;
             {
-                super::Walk(node->GetCapture());
+                Walk(node->GetCapture());
             }
             writer() << Dedent;
         }
@@ -864,7 +869,7 @@ void ASTDumper::Walk(ExceptStatement* node) {
             writer() << "- AsKeywordPosition: " << node->GetAsPosition() << EOL;
             writer() << "- CaptureName:" << EOL << Indent;
             {
-                super::Walk(node->GetCapture());
+                Walk(node->GetCapture());
             }
             writer() << Dedent;
         }
@@ -1311,10 +1316,18 @@ void ASTDumper::Walk(ClosureExpression* node) {
         writer() << "- ArrowPosition: " << node->GetArrowPosition() << EOL;
         writer() << "- Parameters:" << EOL << Indent;
         {
-            super::Walk(node->GetParameterList());
+            Walk(node->GetParameterList());
         }
         writer() << Dedent;
         writer() << "- Symbol: " << node->GetSymbol() << EOL;
+        writer() << "- BoundedLocals:" << EOL << Indent;
+        {
+            auto index = 0;
+            for (auto* symbol : node->GetBoundedLocals()) {
+                writer() << " - Symbol #" << index++ << ": " << symbol << EOL;
+            }
+        }
+        writer() << Dedent;
         writer() << "- Body:" << EOL << Indent;
         {
             super::Walk(node->GetBody());
