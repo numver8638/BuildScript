@@ -26,7 +26,7 @@ namespace BuildScript {
      * @brief Convert integer value to @c OptimizeLevel.
      * @return @c OptimizeLevel corresponds to @c level.
      */
-    OptimizeLevel IntToLevel(int level) {
+    inline OptimizeLevel IntToLevel(int level) {
         if (level < 0) { level = 0; }
 
         if (level > static_cast<int>(OptimizeLevel::Optimize)) {
