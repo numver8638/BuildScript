@@ -3,23 +3,41 @@ cmake_minimum_required(VERSION 3.12)
 # Use local vcpkg instance
 set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake")
 
+# Check Host arch
+cmake_host_system_information(RESULT __ARCH QUERY OS_PLATFORM)
+if (__ARCH MATCHES "^(i[3-6]|x|X)86$")
+    set(__VCPKG_TARGET_ARCH "x86")
+elseif (__ARCH MATCHES "^(amd|AMD|[xX]86[-_])64$")
+    set(__VCPKG_TARGET_ARCH "x64")
+elseif (__ARCH MATCHES "^(arm|ARM|aarch|AARCH)64$")
+    set(__VCPKG_TARGET_ARCH "arm64")
+else ()
+    message(FATAL_ERROR "Unknown/Unsupported host architecture: ${__ARCH}")
+endif ()
+
 # Check Host OS
 if (CMAKE_HOST_SYSTEM_NAME MATCHES "Windows")
-    set(VCPKG_TARGET_TRIPLET x64-windows-static-md)
+    set(__VCPKG_TARGET_OS windows-static-md)
     set(TARGET_OS "Windows")
     set(TARGET_OS_DEFINE "OS_WINDOWS")
 elseif (CMAKE_HOST_SYSTEM_NAME MATCHES "Linux")
-    set(VCPKG_TARGET_TRIPLET x64-linux)
+    set(__VCPKG_TARGET_OS linux)
     set(TARGET_OS "Linux")
     set(TARGET_OS_DEFINE "OS_LINUX")
 elseif (CMAKE_HOST_SYSTEM_NAME MATCHES "Darwin")
-    set(VCPKG_TARGET_TRIPLET x64-osx)
+    set(__VCPKG_TARGET_OS osx)
     set(TARGET_OS "macOS")
     set(TARGET_OS_DEFINE "OS_MACOS")
 else ()
-    message(FATAL_ERROR "Unknown/Unsupported host system.")
+    message(FATAL_ERROR "Unknown/Unsupported host system: ${CMAKE_HOST_SYSTEM_NAME}")
 endif ()
 
+set(VCPKG_TARGET_TRIPLET ${__VCPKG_TARGET_ARCH}-${__VCPKG_TARGET_OS})
+unset(__VCPKG_TARGET_ARCH)
+unset(__VCPKG_TARGET_OS)
+unset(__ARCH)
+
+message(STATUS "VCPKG_TARGET_TRIPLET=${VCPKG_TARGET_TRIPLET}")
 
 # Project
 project(BuildScript VERSION 0.0.1
