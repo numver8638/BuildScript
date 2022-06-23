@@ -27,6 +27,7 @@ namespace BuildScript {
     enum class SymbolType {
         Undeclared,     //!< Used but undeclared symbol.
         Variable,       //!< Declared as variable, parameter or etc.
+        BoundedLocal,   //!< Represents symbol that captured into a closure.
         Type,           //!< Declared as type.
         Function,       //!< Declared as function.
         Class,          //!< Declared as class.
@@ -48,6 +49,7 @@ namespace BuildScript {
         static constexpr std::string_view ClassInitializerName = "<cinit>";
         static constexpr std::string_view InitializerName = "<init>";
         static constexpr std::string_view DeinitializerName = "<deinit>";
+        static constexpr std::string_view SubscriptName = "<subscript>";
         static constexpr std::string_view DoClauseName = "action";
         static constexpr std::string_view DoFirstClauseName = "actionBefore";
         static constexpr std::string_view DoLastClauseName = "actionAfter";
@@ -240,7 +242,60 @@ namespace BuildScript {
 
             m_type = VariableType::Exported;
         }
+
+        /**
+         * @brief Get a `self` symbol.
+         * @return a @c VariableSymbol that represents `self`.
+         */
+        static VariableSymbol* GetSelf();
+
+        /**
+         * @brief Get a `super` symbol.
+         * @return a @c VariableSymbol that represents `super`.
+         */
+        static VariableSymbol* GetSuper();
     }; // end class VariableSymbol
+
+    /**
+     * @brief Represents a symbol that captured into the closure.
+     */
+    class BoundedLocalSymbol final : public Symbol {
+    public:
+        static constexpr auto Type = SymbolType::BoundedLocal;
+
+    private:
+        Symbol* m_orig;
+
+    public:
+        explicit BoundedLocalSymbol(Symbol* origin)
+            : Symbol(Type, origin->GetName(), SourcePosition()), m_orig(origin) {}
+
+        /**
+         * @copydoc BuildScript::Symbol::GetMangledName()
+         */
+        std::string GetMangledName() const override;
+
+        /**
+         * @copydoc BuildScript::Symbol::GetDescriptiveName()
+         */
+        std::string GetDescriptiveName() const override;
+
+        /**
+         * @copydoc BuildScript::Symbol::IsWritable()
+         */
+        Trilean IsWritable() const override { return Trilean::False; }
+
+        /**
+         * @copydoc BuildScript::Symbol::IsInitialized()
+         */
+        Trilean IsInitialized() const override { return Trilean::True; }
+
+        /**
+         * @brief
+         * @return
+         */
+        Symbol* GetOrigin() const { return m_orig; }
+    }; // end class BoundedLocalSymbol
 
     /**
      * @brief Represents a symbol of the function.

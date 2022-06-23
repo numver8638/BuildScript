@@ -39,6 +39,35 @@ std::string VariableSymbol::GetDescriptiveName() const {
     return stream.str();
 }
 
+static auto SelfSymbol = VariableSymbol("<self>", SourcePosition(), VariableType::Implicit, /*readonly=*/false);
+static auto SuperSymbol = VariableSymbol("<super>", SourcePosition(), VariableType::Implicit, /*readonly=*/false);
+
+// static
+VariableSymbol* VariableSymbol::GetSelf() {
+    return &SelfSymbol;
+}
+
+// static
+VariableSymbol* VariableSymbol::GetSuper() {
+    return &SuperSymbol;
+}
+
+std::string BoundedLocalSymbol::GetDescriptiveName() const {
+    std::stringstream stream;
+
+    stream << "bounded local variable '" << GetName() << "'";
+
+    return stream.str();
+}
+
+std::string BoundedLocalSymbol::GetMangledName() const {
+    std::stringstream stream;
+
+    stream << "bounded$" << m_orig->GetMangledName();
+
+    return stream.str();
+}
+
 std::string TypeSymbol::GetDescriptiveName() const {
     std::stringstream stream;
 
