@@ -122,7 +122,7 @@ namespace BuildScript {
          */
         template <TokenType... Types>
         void SkipUntil() {
-            while (OneOf<Types...>()) {
+            while (!OneOf<Types...>()) {
                 Consume();
             }
         }
