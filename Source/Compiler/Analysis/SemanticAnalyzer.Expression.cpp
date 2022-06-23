@@ -88,33 +88,38 @@ void SemanticAnalyzer::Walk(LiteralExpression* node) {
                 return true;
         }
     };
+    auto IsClassMember = [](Symbol* symbol) {
+        if (auto* method = symbol->As<MethodSymbol>()) { return !method->IsStatic(); }
+
+        if (auto* property = symbol->As<PropertySymbol>()) { return true; }
+
+        return false;
+    };
+    Symbol* symbol;
+    int64_t depth;
 
     switch (node->GetLiteralType()) {
         default:
             // do nothing.
-            break;
+            return;
 
         case LiteralType::Variable: {
             if (node->AsString() == "_") {
                 m_reporter.Report(node->GetPosition(), ReportID::SemaReservedUnderscore);
-                break;
+                return;
             }
 
-            auto [result, depth, symbol] = GetCurrentScope().Lookup(node->AsString());
+            auto [R, D, S] = GetCurrentScope().Lookup(node->AsString());
 
-            if (result == LookupResult::NotFound) {
-                symbol = CreateLocalSymbol<UndeclaredSymbol>(node->AsString(), node->GetPosition());
+            if (R == LookupResult::NotFound) {
+                S = CreateGlobalSymbol<UndeclaredSymbol>(node->AsString(), node->GetPosition());
             }
-            else if (symbol->IsInitialized() == Trilean::False) {
-                m_reporter.Report(node->GetPosition(), ReportID::SemaCannotUseBeforeInit, symbol->GetDescriptiveName());
-            }
-
-            auto* scope = GetCurrentScope().GetDeclScope().As<ClosureScope>();
-            if (scope != nullptr && depth < scope->GetRootScope()->GetScopeDepth() && IsLocalSymbol(symbol)) {
-                scope->AddBoundedLocal(symbol);
+            else if (S->IsInitialized() == Trilean::False) {
+                m_reporter.Report(node->GetPosition(), ReportID::SemaCannotUseBeforeInit, S->GetDescriptiveName());
             }
 
-            node->SetSymbol(symbol);
+            symbol = S;
+            depth = D;
             break;
         }
 
@@ -125,6 +130,26 @@ void SemanticAnalyzer::Walk(LiteralExpression* node) {
                                                                         : ReportID::SemaCannotUseSuperOutOfClass;
                 m_reporter.Report(node->GetPosition(), id);
             }
+
+            symbol = (node->GetLiteralType() == LiteralType::Self) ? VariableSymbol::GetSelf()
+                                                                   : VariableSymbol::GetSuper();
+            depth = GetCurrentScope().GetScopeDepth();
             break;
     }
+
+    auto* scope = GetCurrentScope().GetDeclScope().As<ClosureScope>();
+    if (scope != nullptr && depth < scope->GetRootScope()->GetScopeDepth()) {
+        if (IsLocalSymbol(symbol)) {
+            scope->AddBoundedLocal(symbol);
+
+            // translate normal symbol to BoundedLocalSymbol
+            symbol = new (m_context.GetAllocator()) BoundedLocalSymbol(symbol);
+        }
+
+        if (IsClassMember(symbol)) {
+            scope->AddBoundedLocal(VariableSymbol::GetSelf());
+        }
+    }
+
+    node->SetSymbol(symbol);
 }

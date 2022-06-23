@@ -21,10 +21,6 @@
 
 using namespace BuildScript;
 
-inline std::tuple<int, bool> UnpackParamInfo(ParameterList* params) {
-    return { params->GetParameterCount(), params->HasVariadicArgument() };
-}
-
 SemanticAnalyzer::SemanticAnalyzer(Context& context)
     : m_reporter(context.GetReporter()), m_context(context) {}
 
@@ -96,11 +92,10 @@ Symbol* SemanticAnalyzer::BuildClassSymbol(ClassDeclaration* node) {
                 auto [argc, vararg] = UnpackParamInfo(init->GetParameterList());
                 CheckRedefinition(init->GetName(), argc, vararg, "initializer");
 
-                init->SetSymbol(
-                    CreateLocalSymbol<MethodSymbol>(
-                        MethodSymbol::InitializerName, init->GetInitPosition(), argc, vararg, /*isStatic=*/false, owner
-                    )
+                auto* symbol = CreateLocalSymbol<MethodSymbol>(
+                    MethodSymbol::InitializerName, init->GetInitPosition(), argc, vararg, /*isStatic=*/false, owner
                 );
+                init->SetSymbol(symbol);
                 break;
             }
 
@@ -110,11 +105,10 @@ Symbol* SemanticAnalyzer::BuildClassSymbol(ClassDeclaration* node) {
 
                 CheckRedefinition(deinit->GetName(), 0, false, "deinitializer");
 
-                deinit->SetSymbol(
-                    CreateLocalSymbol<MethodSymbol>(
-                        MethodSymbol::DeinitializerName, deinit->GetDeinitPosition(), 0, false, /*isStatic=*/false, owner
-                    )
+                auto* symbol = CreateLocalSymbol<MethodSymbol>(
+                    MethodSymbol::DeinitializerName, deinit->GetDeinitPosition(), 0, false, /*isStatic=*/false, owner
                 );
+                deinit->SetSymbol(symbol);
                 break;
             }
 

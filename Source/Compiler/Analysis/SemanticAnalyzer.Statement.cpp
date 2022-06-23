@@ -131,7 +131,8 @@ void SemanticAnalyzer::Walk(ForStatement* node) {
 
         if (node->GetParameter()->GetName() != "_") {
             auto* var = CreateLocalSymbol<VariableSymbol>(node->GetParameter()->GetName(), VariableType::Local,
-                /*readonly=*/false);
+                                                          /*readonly=*/false);
+            var->SetInitialized();
             node->GetParameter()->SetSymbol(var);
         }
 
@@ -162,9 +163,10 @@ void SemanticAnalyzer::Walk(WithStatement* node) {
                 capture->SetSymbol(UnusedSymbol);
             }
             else {
-                capture->SetSymbol(
-                    CreateLocalSymbol<VariableSymbol>(capture->GetName(), VariableType::Local, /*readonly=*/true)
-                );
+                auto* symbol = CreateLocalSymbol<VariableSymbol>(capture->GetName(), VariableType::Local,
+                                                                 /*readonly=*/true);
+                capture->SetSymbol(symbol);
+                symbol->SetInitialized();
             }
         }
 

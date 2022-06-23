@@ -87,6 +87,10 @@ namespace BuildScript {
     inline const ParameterList* ASTNode::AsParameterList() const {
         return IsParameters() ? static_cast<const ParameterList*>(this) : nullptr; // NOLINT
     }
+
+    inline std::tuple<int, bool> UnpackParamInfo(ParameterList* params) {
+        return { params->GetParameterCount(), params->HasVariadicArgument() };
+    }
 } // end namespace BuildScript
 
 #endif // BUILDSCRIPT_COMPILER_AST_PARAMETERLIST_H

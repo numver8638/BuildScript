@@ -810,8 +810,8 @@ namespace BuildScript {
         }
 
         /**
-         * @brief
-         * @param symbol
+         * @brief Set a @c Symbol that represents the closure.
+         * @param symbol a @c Symbol that represents the closure.
          */
         void SetSymbol(Symbol* symbol) {
             MUST_BE_NULL(m_symbol);
@@ -828,17 +828,17 @@ namespace BuildScript {
     }; // end class ClosureExpression
 
     /**
-     * @brief
+     * @brief Represents type of the literal.
      */
     enum class LiteralType {
-        None,       //!<
-        Variable,   //!<
-        Self,       //!<
-        Super,      //!<
-        Integer,    //!<
-        Float,      //!<
-        Boolean,    //!<
-        String      //!<
+        None,       //!< Represents keyword `none`.
+        Variable,   //!< Represents variable.
+        Self,       //!< Represents keyword `self`.
+        Super,      //!< Represents keyword `super`.
+        Integer,    //!< Represents integer literal.
+        Float,      //!< Represents floating point literal.
+        Boolean,    //!< Represents `true` or `false`.
+        String      //!< Represents string literal.
     }; // end class LiteralType
 
     /**
@@ -862,22 +862,25 @@ namespace BuildScript {
 
         size_t GetTrailCount(OverloadToken<Expression*>) const { return m_count; } // TrailObjects support.
 
+        inline bool CanHaveSymbol() const {
+            return (m_type == LiteralType::Variable) || (m_type == LiteralType::Self) || (m_type == LiteralType::Super);
+        }
     public:
         /**
          * @brief Get a position of the literal.
-         * @return
+         * @return a @c SourcePosition representing where the literal positioned.
          */
         SourcePosition GetPosition() const { return m_range.Begin; }
 
         /**
          * @brief Get a range of the literal.
-         * @return
+         * @return a @c SourceRange representing the range of the literal.
          */
         SourceRange GetRange() const { return m_range; }
 
         /**
          * @brief Get a type of the literal.
-         * @return
+         * @return a @c LiteralType that represents the type of the literal.
          */
         LiteralType GetLiteralType() const { return m_type; }
 
@@ -941,7 +944,7 @@ namespace BuildScript {
          * @return
          */
         Symbol* GetSymbol() const {
-            assert((m_type == LiteralType::Variable) && "only variable can hold symbol.");
+            assert(CanHaveSymbol() && "only self, super and variable can hold symbol.");
             NEVER_BE_NULL(m_symbol);
             return m_symbol;
         }
@@ -951,7 +954,7 @@ namespace BuildScript {
          * @param symbol
          */
         void SetSymbol(Symbol* symbol) {
-            assert((m_type == LiteralType::Variable) && "only variable can hold symbol.");
+            assert(CanHaveSymbol() && "only self, super and variable can hold symbol.");
             MUST_BE_NULL(m_symbol);
             m_symbol = symbol;
         }

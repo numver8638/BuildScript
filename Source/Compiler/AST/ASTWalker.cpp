@@ -74,7 +74,7 @@ void ASTWalker::Walk(Expression* node) {
 }
 
 void ASTWalker::Walk(ParameterList* node) {
-    // do nothing
+    for (auto* param : node->GetParameters()) { Walk(param); }
 }
 
 void ASTWalker::Walk(Label* node) {

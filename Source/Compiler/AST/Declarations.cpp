@@ -13,6 +13,8 @@
 #include <fmt/format.h>
 
 #include <BuildScript/Compiler/Context.h>
+#include <BuildScript/Compiler/AST/ParameterList.h>
+#include <BuildScript/Compiler/Symbol/Symbol.h>
 
 using namespace BuildScript;
 
@@ -103,7 +105,24 @@ TaskOutputsDeclaration::Create(Context& context, SourcePosition outputs, Express
 
 TaskActionDeclaration*
 TaskActionDeclaration::Create(Context& context, ActionKind kind, SourcePosition pos, Statement* body) {
-    return new (context.GetAllocator()) TaskActionDeclaration(kind, pos, body);
+    auto argc = (kind == ActionKind::Do) ? 4 : 2;
+    std::vector<Parameter*> args;
+
+    static const std::string_view symbols[] = {
+        VariableSymbol::Inputs,
+        VariableSymbol::Outputs,
+        VariableSymbol::Input,
+        VariableSymbol::Output,
+    };
+
+    for (auto i = 0; i < argc; i++) {
+        args.push_back(Parameter::Create(context, Identifier(SourceRange(), std::string(symbols[i]))));
+    }
+
+    auto* params = ParameterList::Create(context, SourcePosition(), args, std::vector(argc - 1, SourcePosition()),
+                                         SourcePosition(), SourcePosition());
+
+    return new (context.GetAllocator()) TaskActionDeclaration(kind, pos, body, params);
 }
 
 TaskPropertyDeclaration*
@@ -150,15 +169,29 @@ ClassPropertyDeclaration::Create(Context& context, SourcePosition get, SourcePos
 
     auto isGetter = (bool) get;
     auto pos = isGetter ? get : set;
+
+    std::vector<Parameter*> args;
+    args.push_back(Parameter::Create(context, Identifier(SourceRange(), std::string(VariableSymbol::Value))));
+
+    auto* params = ParameterList::Create(context, SourcePosition(), args, {}, SourcePosition(), SourcePosition());
+
     return new (context.GetAllocator()) ClassPropertyDeclaration(pos, std::move(name), SourcePosition::Empty(),
-                                                                 isGetter, body);
+                                                                 isGetter, body, params);
 }
 
 ClassPropertyDeclaration*
 ClassPropertyDeclaration::CreateSubscript(Context& context, SourcePosition get, SourcePosition set,
                                           SourcePosition subscript, Statement* body) {
-    static const auto SUBSCRIPT_NAME = Identifier{ SourceRange(), "subscript" };
+    static const auto SUBSCRIPT_NAME = Identifier{ SourceRange(), std::string(Symbol::SubscriptName) };
     auto isGetter = (bool) get;
     auto pos = isGetter ? get : set;
-    return new (context.GetAllocator()) ClassPropertyDeclaration(pos, SUBSCRIPT_NAME, subscript, isGetter, body);
+
+    std::vector<Parameter*> args;
+    args.push_back(Parameter::Create(context, Identifier(SourceRange(), std::string(VariableSymbol::Index))));
+    args.push_back(Parameter::Create(context, Identifier(SourceRange(), std::string(VariableSymbol::Value))));
+
+    auto* params = ParameterList::Create(context, SourcePosition(), args, { SourcePosition() }, SourcePosition(),
+                                         SourcePosition());
+
+    return new (context.GetAllocator()) ClassPropertyDeclaration(pos, SUBSCRIPT_NAME, subscript, isGetter, body, params);
 }

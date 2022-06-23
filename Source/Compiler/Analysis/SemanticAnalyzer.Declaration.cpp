@@ -20,22 +20,16 @@
 
 using namespace BuildScript;
 
-inline std::tuple<int, bool> UnpackParamInfo(ParameterList* params) {
-    return { params->GetParameterCount(), params->HasVariadicArgument() };
-}
-
-void SemanticAnalyzer::Walk(ParameterList* node) {
-    for (auto* param : node->GetParameters()) {
-        if (param->GetName() == "_") {
-            param->SetSymbol(UnusedSymbol);
-            return;
-        }
-
-        CheckRedefinition(param->GetName(), "parameter");
-        auto* symbol = CreateLocalSymbol<VariableSymbol>(param->GetName(), VariableType::Parameter, /*readonly=*/false);
-
-        param->SetSymbol(symbol);
+void SemanticAnalyzer::Walk(Parameter* node) {
+    if (node->GetName() == "_") {
+        node->SetSymbol(UnusedSymbol);
+        return;
     }
+
+    CheckRedefinition(node->GetName(), "parameter");
+    auto* symbol = CreateLocalSymbol<VariableSymbol>(node->GetName(), VariableType::Parameter, /*readonly=*/false);
+
+    node->SetSymbol(symbol);
 }
 
 void SemanticAnalyzer::Walk(ScriptDeclaration* node) {
@@ -43,7 +37,8 @@ void SemanticAnalyzer::Walk(ScriptDeclaration* node) {
 
     m_global = scope.Scope.GetRootScope();
 
-    UnusedSymbol = CreateGlobalSymbol<VariableSymbol>("<unused>", SourcePosition(), VariableType::Implicit, /*readonly=*/false);
+    UnusedSymbol = CreateGlobalSymbol<VariableSymbol>("<unused>", SourcePosition(), VariableType::Implicit,
+                                                      /*readonly=*/false);
 
     super::Walk(node);
 }
@@ -221,15 +216,10 @@ void SemanticAnalyzer::Walk(ClassPropertyDeclaration* node) {
     auto kind = node->IsGetter() ? MethodScopeKind::Getter : MethodScopeKind::Setter;
     AutoScope<MethodScope> scope(this, kind);
 
-    // Add implicit parameters
-    if (node->IsSubscript()) {
-        CreateLocalSymbol<VariableSymbol>(VariableSymbol::Index, SourcePosition(), VariableType::Implicit,
-            /*readonly=*/false);
-    }
+    for (auto* param : node->GetParameterList()->GetParameters()) {
+        auto* symbol = CreateLocalSymbol<VariableSymbol>(param->GetName(), VariableType::Implicit, /*readonly=*/false);
 
-    if (node->IsSetter()) {
-        CreateLocalSymbol<VariableSymbol>(VariableSymbol::Value, SourcePosition(), VariableType::Implicit,
-            /*readonly=*/false);
+        param->SetSymbol(symbol);
     }
 
     super::Walk(node);
@@ -281,19 +271,10 @@ void SemanticAnalyzer::Walk(VariableDeclaration* node) {
 void SemanticAnalyzer::Walk(TaskActionDeclaration* node) {
     AutoScope<MethodScope> scope(this, MethodScopeKind::Action);
 
-    // add symbols
-    static const std::string_view symbols[] = {
-        VariableSymbol::Inputs,
-        VariableSymbol::Outputs,
-        VariableSymbol::Input,
-        VariableSymbol::Output,
-    };
+    for (auto* param : node->GetParameterList()->GetParameters()) {
+        auto* symbol = CreateLocalSymbol<VariableSymbol>(param->GetName(), VariableType::Implicit, /*readonly=*/false);
 
-    auto* method = node->GetSymbol()->As<MethodSymbol>();
-    NEVER_BE_NULL(method);
-
-    for (auto i = 0; i < method->GetArgumentCount(); i++) {
-        CreateLocalSymbol<VariableSymbol>(symbols[i], SourcePosition(), VariableType::Implicit, /*readonly=*/false);
+        param->SetSymbol(symbol);
     }
 
     super::Walk(node->GetBody());

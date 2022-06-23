@@ -655,10 +655,11 @@ namespace BuildScript {
         ActionKind m_kind;
         SourcePosition m_pos;
         Statement* m_body;
+        ParameterList* m_params;
         Symbol* m_symbol = nullptr;
 
-        TaskActionDeclaration(ActionKind kind, SourcePosition pos, Statement* body)
-            : Declaration(Kind), m_kind(kind), m_pos(pos), m_body(body) {}
+        TaskActionDeclaration(ActionKind kind, SourcePosition pos, Statement* body, ParameterList* params)
+            : Declaration(Kind), m_kind(kind), m_pos(pos), m_body(body), m_params(params) {}
 
     public:
         /**
@@ -672,6 +673,12 @@ namespace BuildScript {
          * @return a @c SourcePosition representing where the keyword positioned.
          */
         SourcePosition GetKeywordPosition() const { return m_pos; }
+
+        /**
+         * @brief Get implicit parameters of the action.
+         * @return a @c ParameterList representing implicit parameters.
+         */
+        ParameterList* GetParameterList() const { return m_params; }
 
         /**
          * @brief Get body of the action.
@@ -971,12 +978,13 @@ namespace BuildScript {
         SourcePosition m_subscript;
         bool m_isGetter;
         Statement* m_body;
+        ParameterList* m_params;
         Symbol* m_method = nullptr;
 
         ClassPropertyDeclaration(SourcePosition keyword, Identifier name, SourcePosition subscript, bool isGetter,
-                                 Statement* body)
+                                 Statement* body, ParameterList* params)
             : NamedDeclaration(Kind, std::move(name)), m_keyword(keyword), m_subscript(subscript),
-              m_isGetter(isGetter), m_body(body) {}
+              m_isGetter(isGetter), m_body(body), m_params(params) {}
 
     public:
         /**
@@ -1017,6 +1025,12 @@ namespace BuildScript {
          * @note Return value may be empty if property is not subscript.
          */
         SourcePosition GetSubscriptPosition() const { return m_subscript; }
+
+        /**
+         * @brief Get implicit parameters of the property.
+         * @return a @c ParameterList representing implicit parameters.
+         */
+        ParameterList* GetParameterList() const { return m_params; }
 
         /**
          * @brief Get body of the property.

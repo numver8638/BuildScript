@@ -68,7 +68,7 @@ namespace BuildScript {
 
         // Nodes to be checked semantically.
 #define NODES_TO_CHECK(V) \
-        V(ParameterList, _) \
+        V(Parameter, _) \
         V(ScriptDeclaration, _) \
         V(ImportDeclaration, _) \
         V(ExportDeclaration, _) \

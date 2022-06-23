@@ -218,6 +218,7 @@ namespace BuildScript {
         virtual ReturnFlags GetReturnFlag() const { return ReturnFlags::Invalid; }
 
         LocalScope* GetRootScope() { return &m_local; }
+        const LocalScope* GetRootScope() const { return &m_local; }
 
         template <typename ScopeType>
         bool Is() const {
@@ -365,6 +366,8 @@ namespace BuildScript {
     public:
         explicit ClosureScope(LocalScope* parent)
             : DeclScope(Kind, parent) {}
+
+        bool InInstance() const override { return GetRootScope()->GetDeclScope().InInstance(); }
 
         bool CanReturn() const override { return true; }
 
