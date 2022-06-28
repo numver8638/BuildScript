@@ -201,6 +201,14 @@ target_sources(BuildScript PRIVATE
                Source/Compiler/IR/IRValueReplacer.cpp
                Source/Compiler/IR/Statements.cpp
 
+               ## Optimize
+               Source/Compiler/Optimize/Pass/CommonSubexpressionElimination.cpp
+               Source/Compiler/Optimize/Pass/ConstantPropagation.cpp
+               Source/Compiler/Optimize/Pass/LoopInvariantMove.cpp
+               Source/Compiler/Optimize/Pass/RemoveRedundantBranches.cpp
+               Source/Compiler/Optimize/Pass/SimplifyBranches.cpp
+               Source/Compiler/Optimize/Optimizer.cpp
+
                ## Parser
                Source/Compiler/Parse/Lexer.cpp
                Source/Compiler/Parse/Lexer.KeywordTable.cpp
