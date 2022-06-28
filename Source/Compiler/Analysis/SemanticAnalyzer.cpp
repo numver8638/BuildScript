@@ -77,6 +77,9 @@ void SemanticAnalyzer::CheckRedefinition(const Identifier& name, int argc, bool 
 }
 
 Symbol* SemanticAnalyzer::BuildClassSymbol(ClassDeclaration* node) {
+    auto IsInplaceOp = [](OperatorKind op) -> bool {
+        return (OperatorKind::InplaceAdd <= op) && (op <= OperatorKind::InplaceBitXor);
+    };
     auto* owner = new (m_context.GetAllocator()) ClassSymbol(node->GetName());
 
     for (auto* member : node->GetMembers()) {
@@ -90,6 +93,9 @@ Symbol* SemanticAnalyzer::BuildClassSymbol(ClassDeclaration* node) {
                 NEVER_BE_NULL(init);
 
                 auto [argc, vararg] = UnpackParamInfo(init->GetParameterList());
+
+                argc += 1; // add implicit self.
+
                 CheckRedefinition(init->GetName(), argc, vararg, "initializer");
 
                 auto* symbol = CreateLocalSymbol<MethodSymbol>(
@@ -103,10 +109,10 @@ Symbol* SemanticAnalyzer::BuildClassSymbol(ClassDeclaration* node) {
                 auto* deinit = member->As<ClassDeinitDeclaration>();
                 NEVER_BE_NULL(deinit);
 
-                CheckRedefinition(deinit->GetName(), 0, false, "deinitializer");
+                CheckRedefinition(deinit->GetName(), 1, false, "deinitializer");
 
                 auto* symbol = CreateLocalSymbol<MethodSymbol>(
-                    MethodSymbol::DeinitializerName, deinit->GetDeinitPosition(), 0, false, /*isStatic=*/false, owner
+                    MethodSymbol::DeinitializerName, deinit->GetDeinitPosition(), 1, false, /*isStatic=*/false, owner
                 );
                 deinit->SetSymbol(symbol);
                 break;
@@ -126,6 +132,11 @@ Symbol* SemanticAnalyzer::BuildClassSymbol(ClassDeclaration* node) {
                 NEVER_BE_NULL(method);
 
                 auto [argc, vararg] = UnpackParamInfo(method->GetParameterList());
+
+               if (!method->IsStatic() || IsInplaceOp(method->GetOperator())) {
+                   argc += 1; // add implicit self.
+               }
+
                 CheckRedefinition(method->GetName(), argc, vararg, "method");
 
                 method->SetSymbol(
@@ -162,7 +173,7 @@ Symbol* SemanticAnalyzer::BuildClassSymbol(ClassDeclaration* node) {
                     symbol = CreateLocalSymbol<PropertySymbol>(prop->GetName(), owner);
                 }
 
-                auto argc = (prop->IsGetter() ? 0 : 1);
+                auto argc = /*self=*/1 + (prop->IsGetter() ? 0 : 1);
                 argc += (prop->IsSubscript() ? 1 : 0);
 
                 method = new (m_context.GetAllocator()) MethodSymbol(prop->GetName(), argc, false, false, owner);
@@ -190,27 +201,19 @@ Symbol* SemanticAnalyzer::BuildClassSymbol(ClassDeclaration* node) {
     return owner;
 }
 
-inline std::tuple<std::string_view, int> GetActionNameAndArgc(TaskActionDeclaration* action) {
-    std::string_view name;
-    int argc;
+inline std::string_view GetActionName(TaskActionDeclaration* action) {
     switch (action->GetActionKind()) {
         case ActionKind::Do:
-            name = Symbol::DoClauseName;
-            argc = 4;
-            break;
+            return Symbol::DoClauseName;
 
         case ActionKind::DoFirst:
-            name = Symbol::DoFirstClauseName;
-            argc = 2;
-            break;
+            return Symbol::DoFirstClauseName;
 
         case ActionKind::DoLast:
-            name = Symbol::DoLastClauseName;
-            argc = 2;
-            break;
+            return Symbol::DoLastClauseName;
     }
 
-    return { name, argc };
+    NOT_REACHABLE;
 }
 
 Symbol* SemanticAnalyzer::BuildTaskSymbol(TaskDeclaration* node) {
@@ -257,7 +260,9 @@ Symbol* SemanticAnalyzer::BuildTaskSymbol(TaskDeclaration* node) {
                 NEVER_BE_NULL(action);
 
                 // Check action clause already declared.
-                auto [name, argc] = GetActionNameAndArgc(action);
+                auto name = GetActionName(action);
+                auto [argc, vararg] = UnpackParamInfo(action->GetParameterList());
+                argc += 1; // add implicit self
                 auto [result, _, symbol] = GetCurrentScope().LookupLocal(name, argc, /*vararg=*/false);
 
                 if (result == LookupResult::FoundInScope) {
