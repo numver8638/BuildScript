@@ -265,10 +265,11 @@ namespace BuildScript {
 
     private:
         Symbol* m_orig;
+        uint16_t m_index;
 
     public:
-        explicit BoundedLocalSymbol(Symbol* origin)
-            : Symbol(Type, origin->GetName(), SourcePosition()), m_orig(origin) {}
+        BoundedLocalSymbol(Symbol* origin, uint16_t index)
+            : Symbol(Type, origin->GetName(), SourcePosition()), m_orig(origin), m_index(index) {}
 
         /**
          * @copydoc BuildScript::Symbol::GetMangledName()
@@ -295,6 +296,8 @@ namespace BuildScript {
          * @return
          */
         Symbol* GetOrigin() const { return m_orig; }
+
+        uint16_t GetIndex() const { return m_index; }
     }; // end class BoundedLocalSymbol
 
     /**

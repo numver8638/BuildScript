@@ -143,10 +143,10 @@ void SemanticAnalyzer::Walk(LiteralExpression* node) {
             scope->AddBoundedLocal(symbol);
 
             // translate normal symbol to BoundedLocalSymbol
-            symbol = new (m_context.GetAllocator()) BoundedLocalSymbol(symbol);
+            symbol = new (m_context.GetAllocator()) BoundedLocalSymbol(symbol, scope->GetBoundedLocalIndex());
         }
 
-        if (IsClassMember(symbol)) {
+        if (IsClassMember(symbol) && !scope->IsBoundedLocal(VariableSymbol::GetSelf())) {
             scope->AddBoundedLocal(VariableSymbol::GetSelf());
         }
     }

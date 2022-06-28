@@ -361,7 +361,7 @@ namespace BuildScript {
         static constexpr auto Kind = DeclScopeKind::Closure;
 
     private:
-        std::set<Symbol*> m_boundedLocals;
+        std::vector<Symbol*> m_boundedLocals;
 
     public:
         explicit ClosureScope(LocalScope* parent)
@@ -373,11 +373,17 @@ namespace BuildScript {
 
         ReturnFlags GetReturnFlag() const override { return ReturnFlags::Optional; }
 
-        bool IsBoundedLocal(Symbol* symbol) const { return m_boundedLocals.find(symbol) != m_boundedLocals.end(); }
+        bool IsBoundedLocal(Symbol* symbol) const {
+            return std::find(m_boundedLocals.begin(), m_boundedLocals.end(), symbol) != m_boundedLocals.end();
+        }
 
-        void AddBoundedLocal(Symbol* symbol) { m_boundedLocals.insert(symbol); }
+        void AddBoundedLocal(Symbol* symbol) {
+            m_boundedLocals.push_back(symbol);
+        }
 
-        std::vector<Symbol*> GetBoundedLocals() const { return { m_boundedLocals.begin(), m_boundedLocals.end() }; }
+        uint16_t GetBoundedLocalIndex() const { return static_cast<uint16_t>(m_boundedLocals.size()); }
+
+        std::vector<Symbol*> GetBoundedLocals() const { return m_boundedLocals; }
     }; // end class ClosureScope
 
     inline bool LocalScope::CanReturn() const { return GetDeclScope().CanReturn() && !InFinally(); }
