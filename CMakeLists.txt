@@ -82,6 +82,15 @@ set(PUBLIC_HEADERS
     BuildScript/Compiler/SourcePosition.h
     BuildScript/Compiler/SourceText.h
 
+    ## GC
+    BuildScript/GC/Allocator.h
+    BuildScript/GC/Handle.h
+    BuildScript/GC/Heap.h
+    BuildScript/GC/Object.h
+    BuildScript/GC/Options.h
+    BuildScript/GC/Rootable.h
+    BuildScript/GC/Tracker.h
+    BuildScript/GC/Vector.h
     ## Utils
     BuildScript/Utils/AllStatic.h
     BuildScript/Utils/BitCast.h
@@ -166,7 +175,6 @@ install(FILES
 target_sources(BuildScript PRIVATE
                # ==== Compiler ====
                ## Analysis
-               Source/Compiler/Analysis/FlowAnalyzer.cpp
                Source/Compiler/Analysis/Scope.cpp
                Source/Compiler/Analysis/SemanticAnalyzer.cpp
                Source/Compiler/Analysis/SemanticAnalyzer.Declaration.cpp
@@ -200,6 +208,16 @@ target_sources(BuildScript PRIVATE
                Source/Compiler/ErrorReporter.cpp
                Source/Compiler/ManagedObject.cpp
                Source/Compiler/SourceText.cpp
+
+               # ==== GC ====
+               Source/GC/Impl/Noop.cpp
+               Source/GC/Allocator.cpp
+               Source/GC/Handle.cpp
+               Source/GC/Heap.cpp
+               Source/GC/Rootable.cpp
+
+               # ==== Platform ====
+               Source/Platform/MemoryChunk.cpp
 
                # ==== Utility ====
                Source/Utils/Convert.cpp
