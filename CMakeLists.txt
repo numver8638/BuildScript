@@ -190,6 +190,17 @@ target_sources(BuildScript PRIVATE
                Source/Compiler/AST/ParameterList.cpp
                Source/Compiler/AST/Statements.cpp
 
+               ## IR
+               Source/Compiler/IR/IRBuilder.cpp
+               Source/Compiler/IR/IRDumper.cpp
+               Source/Compiler/IR/IRGenerator.cpp
+               Source/Compiler/IR/IRGenerator.Declaration.cpp
+               Source/Compiler/IR/IRGenerator.Expression.cpp
+               Source/Compiler/IR/IRGenerator.Statement.cpp
+               Source/Compiler/IR/IRStatement.cpp
+               Source/Compiler/IR/IRValueReplacer.cpp
+               Source/Compiler/IR/Statements.cpp
+
                ## Parser
                Source/Compiler/Parse/Lexer.cpp
                Source/Compiler/Parse/Lexer.KeywordTable.cpp
