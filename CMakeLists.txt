@@ -173,6 +173,10 @@ install(FILES
 
 # Lists of sources
 target_sources(BuildScript PRIVATE
+               # ==== Bytecode ====
+               Source/Bytecode/BytecodeWriter.cpp
+               Source/Bytecode/Opcode.cpp
+
                # ==== Compiler ====
                ## Analysis
                Source/Compiler/Analysis/Scope.cpp
